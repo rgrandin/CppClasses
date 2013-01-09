@@ -1,0 +1,3127 @@
+/**
+ * @file UniformVolume3D.cpp
+ * @author Robert Grandin
+ * @brief Implementation of UniformVolume3D class.
+ */
+
+
+#include "UniformVolume3D.h"    /* Included for syntax-hilighting */
+
+
+
+/* =======================================================================================
+ *
+ *
+ *                  PRIVATE FUNCTIONS
+ *
+ *
+ *
+ */
+template <class T>
+void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
+                                    const T minx, const T maxx, const T miny, const T maxy,
+                                    const T minz, const T maxz, const T initval, const int n_scalars,
+                                    const int n_vectors, const int qty_label_size)
+{
+    vrows = ny;
+    vcols = nx;
+    vslices = nz;
+    xmin = minx;
+    xmax = maxx;
+    ymin = miny;
+    ymax = maxy;
+    zmin = minz;
+    zmax = maxz;
+    xminset = false;
+    xmaxset = false;
+    yminset = false;
+    ymaxset = false;
+    zminset = false;
+    zmaxset = false;
+    if(vcols > 1){
+        xspacing = (xmax - xmin)/((T)vcols - 1.0e0+1);
+    } else {
+        xspacing = 0.0e0;
+    }
+    if(vrows > 1){
+        yspacing = (ymax - ymin)/((T)vrows - 1.0e0+1);
+    } else {
+        yspacing = 0.0e0;
+    }
+    if(vslices > 1){
+        zspacing = (zmax - zmin)/((T)vslices - 1.0e0+1);
+    } else {
+        zspacing = 0.0e0;
+    }
+    nscalars = 0;
+    nvectors = 0;
+    qtysize = qty_label_size;
+
+    std::string scalarlabel("Scalar");
+    std::stringstream ssnum;
+    for(int i=0; i<n_scalars; i++){
+        ssnum.str(""); ssnum << i;
+        std::string tmpstr(scalarlabel + ssnum.str());
+        UniformVolume3D<T>::AddScalarQuantity(tmpstr);
+        pscalars(i)->ResetVal(initval);
+    }
+
+    std::string vectorlabel("Vector");
+    for(int i=0; i<n_vectors; i++){
+        ssnum.str(""); ssnum << i;
+        std::string tmpstr(vectorlabel + ssnum.str());
+        UniformVolume3D<T>::AddVectorQuantity(tmpstr,3);
+        pvectors(i)->ResetVal(initval);
+    }
+
+
+    /* Set type name */
+    dtypename = "unknown_type";
+    if(typeid(T) == typeid(char)){
+        dtypename = "char";
+    }
+    if(typeid(T) == typeid(short)){
+        dtypename = "short";
+    }
+    if(typeid(T) == typeid(int)){
+        dtypename = "int";
+    }
+    if(typeid(T) == typeid(long)){
+        dtypename = "long";
+    }
+    if(typeid(T) == typeid(long long)){
+        dtypename = "long long";
+    }
+    if(typeid(T) == typeid(float)){
+        dtypename = "float";
+    }
+    if(typeid(T) == typeid(double)){
+        dtypename = "double";
+    }
+    if(typeid(T) == typeid(long double)){
+        dtypename = "long double";
+    }
+
+    qtsignals = new QtIntermediary;
+
+    writebigendian = false;
+
+    conversion_options.input_file = "Not_Set";
+    conversion_options.isBigEndian = false;
+    conversion_options.output_CNDEVOL = false;
+    conversion_options.output_VTKImageData = false;
+    conversion_options.output_VTKRectGrid = false;
+    conversion_options.output_CNDEVOL_allowScaling = false;
+    conversion_options.output_CNDEVOL_scalingRange = (T)1024.0e0;
+}
+
+
+
+/*
+    NOTE: This function is taken straight from the code as-provided by Jia-Dong
+        and Joe Gray.  Its calling routine, VOLWrite(), has been modified for
+        use with this class.
+ */
+template <class T>
+int UniformVolume3D<T>::WriteVOLFile(
+    std::string	fileName,
+    size_t			xx,
+    size_t			yy,
+    size_t			zz,
+    T		* voxelIntensity)
+{
+
+    /*
+     * Conversion between (X,Y,Z) axes used in my code and their corresponding axes in HRCT, PSCT, and
+     * 3D Visualization:
+     *  (my coords) --> (corresponding VOL coords)
+     *            X --> y
+     *            Y --> z
+     *            Z --> x
+     */
+
+
+    size_t			len;
+    size_t			headerLength;
+
+    /* Get integer representation of resolution.  Convert between coordinate systems here. */
+    int x = (int)zz;
+    int y = (int)xx;
+    int z = (int)yy;
+
+    char		endSliceStr[100], countStr[30],startSliceStr[100];
+    char		extraInfoStr[10];
+    char		stateValidFlg;
+    std::ofstream	ffp;
+
+    T		xRotateAngle=0.0;
+    T		yRotateAngle=0.0;
+
+    T		xzoom=1.0;
+    T		yzoom=1.0;
+    T		zzoom=1.0;
+    int			corex=1, corey=1;
+
+    int			radius=0;
+    char		* voxelState;
+    int			pixelsPerVolume;
+
+    /* Dummy code to remove unused variable warnings. */
+    T tmp = voxelIntensity[0];
+    tmp += (T)1.0e0;
+
+    pixelsPerVolume = z*x*y;
+
+    stateValidFlg='Y';
+    sprintf(countStr,"%dx%dx%d",x, y, z);
+    sprintf(endSliceStr, "Volume Size: %s\n", countStr);
+    sprintf(extraInfoStr, " ");
+    sprintf(startSliceStr, "Start Slice:\ne:\\output\\%s001.asc\n",filenamestem.c_str());
+
+    headerLength = strlen(endSliceStr)+(size_t)1+strlen(startSliceStr)+(size_t)1+strlen(extraInfoStr)+(size_t)1;
+    headerLength +=1;									//state part
+
+    len = strlen(startSliceStr);
+    len = strlen(endSliceStr);
+    len = strlen(extraInfoStr);
+    ffp.open(fileName.c_str(),std::ios::out|std::ios::binary);
+    if(!ffp){
+        std::string errorstring;
+        errorstring = "Cannot open " + fileName + "\n";
+        std::cerr << errorstring << std::endl;
+        return 1;
+    }
+
+    int iheaderLength = (int)headerLength;
+    ffp.write((char *)&iheaderLength,sizeof(int));
+    ffp.write(startSliceStr,sizeof(char)* (strlen(startSliceStr)+(size_t)1));
+    ffp.write(endSliceStr,sizeof(char)* (strlen(endSliceStr)+(size_t)1));
+    ffp.write(extraInfoStr,sizeof(char)* (strlen(extraInfoStr)+(size_t)1));
+    ffp.write(&stateValidFlg,sizeof(char));
+
+    ffp.write((char *)&x, sizeof(int)*1);
+    ffp.write((char *)&y, sizeof(int)*1);
+    ffp.write((char *)&z, sizeof(int)*1);
+
+    ffp.write((char *)&xRotateAngle,sizeof(T));
+    ffp.write((char *)&yRotateAngle,sizeof(T));
+
+    ffp.write((char *)&xzoom,sizeof(T));
+    ffp.write((char *)&yzoom,sizeof(T));
+    ffp.write((char *)&zzoom,sizeof(T));
+
+    ffp.write((char*) &corex, sizeof(int));
+    ffp.write((char*) &corey,sizeof(int));
+    ffp.write((char*)&radius, sizeof(int));
+
+
+
+    /* Typecast values individually into a 'float' variable.  Then, write to place in the
+     * data file.  This is to avoid problems writing a 'float' VOL file
+     * from a 'double' UniformVolume3D object. */
+    std::string desc;
+    desc = "Writing CNDE VOL File";
+    qtsignals->EmitFunctionDesc(desc);
+    qtsignals->EmitFunctionProgress(0.0e0);
+
+    float ftmp = (float)0.0e0;
+    for(size_t i=0; i<yy; i++){
+        for(size_t j=0; j<xx; j++){
+            for(size_t k=0; k<zz; k++){
+                ftmp = (float)pscalars(0)->operator ()(i,j,k);
+                ffp.write(reinterpret_cast<char*>(&ftmp), sizeof(float));
+            }
+        }
+        qtsignals->EmitFunctionProgress((float)i/(float)yy);
+    }
+
+    desc = "";
+    qtsignals->EmitFunctionDesc(desc);
+    qtsignals->EmitFunctionProgress(0.0e0);
+
+
+
+
+    voxelState = new char[pixelsPerVolume];
+    for(int iii=0; iii<pixelsPerVolume; iii++)
+        voxelState[iii] = 0;
+    if(stateValidFlg=='Y')
+        ffp.write((char *)voxelState,sizeof(char)*pixelsPerVolume);
+    if (voxelState != NULL) {delete [] voxelState; voxelState=NULL;}
+    ffp.close();
+
+    /* Dummy code to remove unused variable warning. */
+    len++;
+
+    return(0);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ReadVOLFile(std::string filename)
+{
+    /*
+     * Conversion between (X,Y,Z) axes used in my code and their corresponding axes in HRCT, PSCT, and
+     * 3D Visualization:
+     *  (my coords) --> (corresponding VOL coords)
+     *            X --> y
+     *            Y --> z
+     *            Z --> x
+     */
+
+
+    /*
+      Remove all but the first scalar quantity and all vector quantities
+     */
+    if(nscalars > 1){
+        for(size_t i=1; i<nscalars; i++){
+            UniformVolume3D<T>::RemoveScalarQuantity(i);
+        }
+    }
+
+    for(size_t i=0; i<nvectors; i++){
+        UniformVolume3D<T>::RemoveVectorQuantity(i);
+    }
+
+    /*
+     * NOTE: This routine adapted from code provided by Jia-Dong
+     */
+
+    char * voxelState = NULL;
+    float xRotateAngle;
+    float yRotateAngle;
+    unsigned long pixelsPerVolume;
+    float xzoom;
+    float yzoom;
+    float zzoom;
+    int corex;
+    int corey;
+    int radius;
+    int x;
+    int y;
+    int z;
+
+    std::ifstream	fp;
+    char		*headerInfo = NULL;
+    char		*startSlice;
+    char		*endSlice;
+    char		*extraInfo;
+    char		stateflg;
+
+    int headerLength;
+
+    char *extraInfoStr;
+    char *endSliceStr;
+    char *startSliceStr;
+
+    fp.open(filename.c_str(),std::ios::in|std::ios::binary);
+
+    fp.read((char *)&headerLength,sizeof(int));
+
+    headerInfo = (char *)new char[headerLength];
+    fp.read(headerInfo,sizeof(char)*headerLength);
+
+
+    startSlice = headerInfo;
+    endSlice = startSlice+strlen(startSlice)+1;
+    extraInfo = endSlice+strlen(endSlice)+1;
+
+    int len;
+    len = (int)strlen(startSlice);
+    len = (int)strlen(endSlice);
+    len = (int)strlen(extraInfo);
+    startSliceStr = startSlice;
+    endSliceStr = endSlice;
+    extraInfoStr = extraInfo;
+    stateflg = *(headerInfo+headerLength-1);
+
+
+    fp.read((char *)&x,sizeof(int)*1);
+    fp.read((char *)&y,sizeof(int)*1);
+    fp.read((char *)&z,sizeof(int)*1);
+
+    /* Get resolution values in my (X,Y,Z) coordinate system. */
+    size_t XX = (size_t)y;
+    size_t YY = (size_t)z;
+    size_t ZZ = (size_t)x;
+
+    pixelsPerVolume = (unsigned long)(XX*YY*ZZ);
+
+    /* Set volume resolution */
+    UniformVolume3D<T>::ResetResolution(YY,XX,ZZ,(T)0.0e0);
+
+    fp.read((char *)&xRotateAngle,sizeof(float));
+    fp.read((char *)&yRotateAngle,sizeof(float));
+
+    fp.read((char *)&xzoom,sizeof(float));
+    fp.read((char *)&yzoom,sizeof(float));
+    fp.read((char *)&zzoom,sizeof(float));
+
+    fp.read((char *)&corex,sizeof(int));
+    fp.read((char *)&corey,sizeof(int));
+    fp.read((char *)&radius,sizeof(int));
+
+    if(voxelState!=NULL)	{
+        delete voxelState;
+       }
+    voxelState = new char[pixelsPerVolume];
+
+    if(voxelState==NULL){
+        fp.close();
+    }
+
+
+
+    /* Dummy code to avoid unused variable warnings. */
+    len++;
+    extraInfoStr++;
+    endSliceStr++;
+    startSliceStr++;
+
+
+
+
+    /* Read values individually into a 'float' variable.  Then, typecast to place in the
+     * data array for this object.  This is to avoid problems reading a 'float' VOL file
+     * into a 'double' UniformVolume3D object. */
+    std::string desc;
+    desc = "Reading CNDE VOL File";
+    qtsignals->EmitFunctionDesc(desc);
+    qtsignals->EmitFunctionProgress(0.0e0);
+
+    float ftmp = (float)0.0e0;
+    for(size_t i=0; i<YY; i++){
+        for(size_t j=0; j<XX; j++){
+            for(size_t k=0; k<ZZ; k++){
+                fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                pscalars(0)->operator ()(i,j,k) = (T)ftmp;
+            }
+        }
+        qtsignals->EmitFunctionProgress((float)i/(float)YY);
+    }
+
+    desc = "";
+    qtsignals->EmitFunctionDesc(desc);
+    qtsignals->EmitFunctionProgress(0.0e0);
+
+    if(stateflg=='Y')
+    fp.read((char *)voxelState,sizeof(char)*pixelsPerVolume);
+
+    fp.close();
+    delete [] voxelState;
+
+
+
+    /* Set other volume parameters */
+    UniformVolume3D<T>::setSpatialExtent(1,-1,0.0e0);
+    UniformVolume3D<T>::setSpatialExtent(1,1,(T)XX);
+    UniformVolume3D<T>::setSpatialExtent(0,-1,0.0e0);
+    UniformVolume3D<T>::setSpatialExtent(0,1,(T)YY);
+    UniformVolume3D<T>::setSpatialExtent(2,-1,0.0e0);
+    UniformVolume3D<T>::setSpatialExtent(2,1,(T)ZZ);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
+{
+    /*
+      Delete all scalar and vector quantities
+     */
+    for(size_t i=0; i<nscalars; i++){
+        UniformVolume3D<T>::RemoveScalarQuantity(i);
+    }
+    for(size_t i=0; i<nvectors; i++){
+        UniformVolume3D<T>::RemoveVectorQuantity(i);
+    }
+
+    /* Define temporary variables */
+    std::fstream vtkfile;
+    char discard[256];
+    std::string ascii_vs_binary("neither");
+    std::stringstream sstmp;
+    std::string format("unknown");
+
+
+    vtkfile.open(filename.c_str(), std::ios::in);
+
+    if(vtkfile.is_open() == true){
+
+        vtkfile.getline(discard,256);           /* VTK version line */
+
+        /* Check first character of first line.  If '#', file is legacy VTK format.  If '<'
+         * file is XML format.  Call appropriate reader. */
+        if(strncmp(&discard[0],"#",1) == 0){
+            /* File is legacy format. */
+            format = "legacy";
+        }
+        if(strncmp(&discard[0],"<",1) == 0){
+            /* File is XML format. */
+            format = "XML";
+        }
+
+
+        if(format == "legacy"){
+            vtkfile.getline(discard,256);           /* Description line */
+            vtkfile.getline(discard,256);           /* ASCII vs. Binary */
+
+            sstmp.str(discard);
+            ascii_vs_binary = sstmp.str();
+
+            if(ascii_vs_binary == "ASCII"){
+
+                /* Call ASCII reader. */
+                UniformVolume3D<T>::VTKReadLegacyASCII(vtkfile);
+                vtkfile.close();
+
+            }
+            if(ascii_vs_binary == "BINARY"){
+
+                /* Close file opened in ASCII mode. */
+                vtkfile.close();
+
+                /* Re-open file in binary mode. */
+                vtkfile.open(filename.c_str(), std::ios::in | std::ios::binary);
+
+                if(vtkfile.is_open() == true){
+
+                    /* Re-read initial header lines. */
+                    vtkfile.getline(discard,256);           /* VTK version line */
+                    vtkfile.getline(discard,256);           /* Description line */
+                    vtkfile.getline(discard,256);           /* ASCII vs. Binary */
+
+
+                    /* Call binary reader for legacy VTK format. */
+                    UniformVolume3D<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
+                    vtkfile.close();
+
+                } /* End of conditional on successful file open. */
+            } /* End of conditional on binary file. */
+        } /* End of check for legacy format. */
+
+        if(format == "XML"){
+            std::cerr << "UniformVolume3D::ReadVTKFile() - XML format not supported" << std::endl;
+
+            vtkfile.close();
+        }
+
+
+        /* Close file if it's still open. */
+        if(vtkfile.is_open()){
+            vtkfile.close();
+        }
+
+
+
+    } else {
+        std::cout << "UniformVolume3D::ReadVTKFile() - Could not open file " << filename << " for reading" << std::endl;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =======================================================================================
+ *
+ *
+ *                  PUBLIC FUNCTIONS
+ *
+ *
+ *
+ */
+template <class T>
+UniformVolume3D<T>::UniformVolume3D()
+{
+    UniformVolume3D<T>::Initialize(1,1,1,-1.0e0,1.0e0,-1.0e0,1.0e0,-1.0e0,1.0e0,0.0e0,1,0,256);
+}
+
+
+template <class T>
+UniformVolume3D<T>::UniformVolume3D(UniformVolume3D<T> &uc3d) : QtIntermediary()
+{
+    /* Set resolution and copy all data */
+    nscalars = 0;
+    nvectors = 0;
+    qtysize = 256;
+
+    int nx = 0; int ny = 0; int nz = 0;
+    nx = uc3d.GetResolution(1);
+    ny = uc3d.GetResolution(0);
+    nz = uc3d.GetResolution(2);
+    UniformVolume3D<T>::ResetResolution(ny,nx,nz,0.0e0);
+
+    int n_scalars = uc3d.NumScalarQuantities();
+    int n_vectors = uc3d.NumVectorQuantities();
+    std::string qtyname("name");
+
+    for(int q=0; q<n_scalars; q++){
+        qtyname = uc3d.ScalarQuantityName(q);
+        UniformVolume3D<T>::AddScalarQuantity(qtyname);
+        for(int k=0; k<vslices; k++){
+            for(int i=0; i<vrows; i++){
+                for(int j=0; j<vcols; j++){
+                    pscalars(nscalars-1)->operator ()(i,j,k) = uc3d(i,j,k,q);
+                }
+            }
+        }
+    }
+
+    int ncomp = 0;
+    for(int q=0; q<n_vectors; q++){
+        qtyname = uc3d.VectorQuantityName(q);
+        ncomp = uc3d.VectorQuantityComponents(q);
+        UniformVolume3D<T>::AddVectorQuantity(qtyname,ncomp);
+        for(int k=0; k<vslices; k++){
+            for(int i=0; i<vrows; i++){
+                for(int j=0; j<vcols; j++){
+                    for(int l=0; l<ncomp; l++){
+                        pvectors(nvectors-1)->operator ()(i,j,k,l) = uc3d(i,j,k,l,q);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Set spatial parameters */
+    xmin = uc3d.SpatialExtent(1,-1); xmax = uc3d.SpatialExtent(1,1);
+    ymin = uc3d.SpatialExtent(0,-1); ymax = uc3d.SpatialExtent(0,1);
+    zmin = uc3d.SpatialExtent(2,-1); zmax = uc3d.SpatialExtent(2,1);
+    if(vcols > 1){
+        xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
+    } else {
+        xspacing = 0.0e0;
+    }
+    if(vrows > 1){
+        yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
+    } else {
+        yspacing = 0.0e0;
+    }
+    if(vslices > 1){
+        zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
+    } else {
+        zspacing = 0.0e0;
+    }
+
+    std::cout << "Spatial limits: x " << xmin << " , " << xmax << "  " << xspacing << std::endl;
+    std::cout << "                y " << ymin << " , " << ymax << "  " << yspacing << std::endl;
+    std::cout << "                z " << zmin << " , " << zmax << "  " << zspacing << std::endl;
+
+    /* Set output parameters */
+    outputdir = uc3d.OutputDirectory();
+    filenamestem = uc3d.FilenameStem();
+    imageoutput = uc3d.VTKImageDataOutput();
+    rectoutput = uc3d.VTKRectDataOutput();
+    volname = filenamestem;
+
+    /* Set type name */
+    dtypename = "unknown_type";
+    if(typeid(T) == typeid(char)){
+        dtypename = "char";
+    }
+    if(typeid(T) == typeid(short)){
+        dtypename = "short";
+    }
+    if(typeid(T) == typeid(int)){
+        dtypename = "int";
+    }
+    if(typeid(T) == typeid(long)){
+        dtypename = "long";
+    }
+    if(typeid(T) == typeid(long long)){
+        dtypename = "long long";
+    }
+    if(typeid(T) == typeid(float)){
+        dtypename = "float";
+    }
+    if(typeid(T) == typeid(double)){
+        dtypename = "double";
+    }
+    if(typeid(T) == typeid(long double)){
+        dtypename = "long double";
+    }
+
+    writebigendian = false;
+}
+
+
+template <class T>
+UniformVolume3D<T>::~UniformVolume3D()
+{
+    delete qtsignals;
+}
+
+
+template <class T>
+size_t UniformVolume3D<T>::NumScalarQuantities() const
+{
+    return nscalars;
+}
+
+
+template <class T>
+size_t UniformVolume3D<T>::NumVectorQuantities() const
+{
+    return nvectors;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
+{
+    // Increase count of number of scalar quantities
+    nscalars++;
+
+    /*
+      Increase the size of the PArray1D object containing pointers to
+      Array2D objects containing data.  The data must be copied into temporary
+      arrays since the current Array2D objects are destroyed when the
+      PArray1D object is resized.  The data is then copied back into the
+      resized PArray1D object.
+
+      During the copy process, the source object is deleted immediately after
+      its data has been copied.  This is to reduce memory requirements so that
+      only one extra object's worth of memory is required during the
+      copy process.  Note that setting the resulting pointer to NULL is
+      needed to avoid freeing the memory more than once upon deletion of
+      the temporary PArray1D object.
+
+      After the copy is complete, add a new Array2D object to the final
+      entry in the resized PArray1D object, set its size equal to the grid
+      size, and all points initialized to 0.0.
+     */
+
+    /*
+      If the first element of pscalars is NULL, no quantity exists to be copied,
+      so this first part can be skipped.
+     */
+    if(pscalars(0) != NULL){
+        PArray1D<Array3D<T>*> tmparray(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            tmparray(i) = new Array3D<T>;
+            tmparray(i)->ResetSize(vrows,vcols,vslices);
+            for(size_t kk=0; kk<vslices; kk++){
+                for(size_t ii=0; ii<vrows; ii++){
+                    for(size_t jj=0; jj<vcols; jj++){
+                        tmparray(i)->operator ()(ii,jj,kk) = pscalars(i)->operator ()(ii,jj,kk);
+                    }
+                }
+            }
+            delete pscalars(i);
+            pscalars(i) = NULL;
+        }
+        pscalars.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            pscalars(i) = new Array3D<T>;
+            pscalars(i)->ResetSize(vrows,vcols,vslices);
+            for(size_t kk=0; kk<vslices; kk++){
+                for(size_t ii=0; ii<vrows; ii++){
+                    for(size_t jj=0; jj<vcols; jj++){
+                        pscalars(i)->operator ()(ii,jj,kk) = tmparray(i)->operator ()(ii,jj,kk);
+                    }
+                }
+            }
+            delete tmparray(i);
+            tmparray(i) = NULL;
+        }
+
+        /*
+          Like above, expand the arrays related to quantity labels.
+         */
+        PArray1D<std::string*> tmparray2(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            tmparray2(i) = new std::string;
+            tmparray2(i)->reserve(qtysize);
+            tmparray2(i)->assign(scalar_names(i)->substr());
+            delete scalar_names(i);
+            scalar_names(i) = NULL;
+        }
+        scalar_names.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            scalar_names(i) = new std::string;
+            scalar_names(i)->reserve(qtysize);
+            scalar_names(i)->assign(tmparray2(i)->substr());
+            delete tmparray2(i);
+            tmparray2(i) = NULL;
+        }
+    }
+
+    pscalars(nscalars-1) = new Array3D<T>;
+    pscalars(nscalars-1)->ResetSize(vrows,vcols,vslices);
+    pscalars(nscalars-1)->ResetVal((T)0.0e0);
+
+    scalar_names(nscalars-1) = new std::string;
+    scalar_names(nscalars-1)->reserve(qtysize);
+    scalar_names(nscalars-1)->assign(name);
+
+
+}
+
+
+template <class T>
+void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
+{
+    // Decrease count of number of scalar quantities
+    nscalars--;
+
+    /*
+      Decrease the size of the PArray1D object containing pointers to
+      Array2D objects containing data.  The data must be copied into temporary
+      arrays since the current Array2D objects are destroyed when the
+      PArray1D object is resized.  The data is then copied back into the
+      resized PArray1D object.
+
+      During the copy process, the source object is deleted immediately after
+      its data has been copied.  This is to reduce memory requirements so that
+      only one extra object's worth of memory is required during the
+      copy process.  Note that setting the resulting pointer to NULL is
+      needed to avoid freeing the memory more than once upon deletion of
+      the temporary PArray1D object.
+
+      After the copy is complete, add a new Array2D object to the final
+      entry in the resized PArray1D object, set its size equal to the grid
+      size, and all points initialized to 0.0.
+     */
+
+    /*
+      If the first element of pscalars is NULL, no scalar quantities exist, thus there
+      are none to be removed.
+     */
+    if(pscalars(0) != NULL && nscalars > 0){
+        PArray1D<Array3D<T>*> tmparray(nscalars+1);
+        for(size_t i=0; i<nscalars+1; i++){
+            tmparray(i) = new Array3D<T>;
+            tmparray(i)->ResetSize(vrows,vcols,vslices);
+            for(size_t kk=0; kk<vslices; kk++){
+                for(size_t ii=0; ii<vrows; ii++){
+                    for(size_t jj=0; jj<vcols; jj++){
+                        tmparray(i)->operator ()(ii,jj,kk) = pscalars(i)->operator ()(ii,jj,kk);
+                    }
+                }
+            }
+            delete pscalars(i);
+            pscalars(i) = NULL;
+        }
+        pscalars.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars+1; i++){
+            size_t itmp = i;
+            if(i != qty){
+                if(i > qty){
+                    itmp = i - 1;   // Reduce index by 1 since loop is past removed quantity
+                }
+                pscalars(itmp) = new Array3D<T>;
+                pscalars(itmp)->ResetSize(vrows,vcols,vslices);
+                for(size_t kk=0; kk<vslices; kk++){
+                    for(size_t ii=0; ii<vrows; ii++){
+                        for(size_t jj=0; jj<vcols; jj++){
+                            pscalars(itmp)->operator ()(ii,jj,kk) = tmparray(i)->operator ()(ii,jj,kk);
+                        }
+                    }
+                }
+            }
+            delete tmparray(i);
+            tmparray(i) = NULL;
+        }
+
+
+        /*
+          Like above, expand the arrays related to quantity labels.
+         */
+        PArray1D<std::string*> tmparray2(nscalars+1);
+        for(size_t i=0; i<nscalars+1; i++){
+            tmparray2(i) = new std::string;
+            tmparray2(i)->reserve(qtysize);
+            tmparray2(i)->assign(scalar_names(i)->substr());
+            delete scalar_names(i);
+            scalar_names(i) = NULL;
+        }
+        scalar_names.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars+1; i++){
+            size_t itmp = i;
+            if(i != qty){
+                if(i > qty){
+                    itmp = i - 1;
+                }
+                scalar_names(itmp) = new std::string;
+                scalar_names(itmp)->reserve(qtysize);
+                scalar_names(itmp)->assign(tmparray2(i)->substr());
+                delete tmparray2(i);
+                tmparray2(i) = NULL;
+            }
+        }
+    }
+
+    /*
+      If updated value of nscalars is 0, delete pointer to first object and set
+      to NULL.
+     */
+    if(nscalars == 0){
+        if(pscalars(0) != NULL){
+            delete pscalars(0);
+        }
+        pscalars(0) = NULL;
+
+        if(scalar_names(0) != NULL){
+            delete scalar_names(0);
+        }
+        scalar_names(0) = NULL;
+    }
+}
+
+
+template <class T>
+void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t ncomp)
+{
+    // Increase count of number of vector quantities
+    nvectors++;
+
+    /*
+      Increase the size of the PArray1D object containing pointers to
+      Array3D objects containing data.  The data must be copied into temporary
+      arrays since the current Array3D objects are destroyed when the
+      PArray1D object is resized.  The data is then copied back into the
+      resized PArray1D object.
+
+      During the copy process, the source object is deleted immediately after
+      its data has been copied.  This is to reduce memory requirements so that
+      only one extra object's worth of memory is required during the
+      copy process.  Note that setting the resulting pointer to NULL is
+      needed to avoid freeing the memory more than once upon deletion of
+      the temporary PArray1D object.
+
+      After the copy is complete, add a new Array3D object to the final
+      entry in the resized PArray1D object, set its size equal to the grid
+      size, and all points initialized to 0.0.
+     */
+
+    /*
+      If first element of pvectors is NULL, no vector quantity exists to be copied,
+      so this first part can be skipped.
+     */
+    if(pvectors(0) != NULL){
+        PArray1D<Array4D<T>*> tmparray(nvectors);
+        size_t n = 0;
+        for(size_t i=0; i<nvectors-1; i++){
+            tmparray(i) = new Array4D<T>;
+            n = pvectors(i)->GetDim(3);
+            tmparray(i)->ResetSize(vrows,vcols,vslices,n);
+            for(size_t ll=0; ll<n; ll++){
+                for(size_t kk=00; kk<vslices; kk++){
+                    for(size_t ii=0; ii<vrows; ii++){
+                        for(size_t jj=0; jj<vcols; jj++){
+                            tmparray(i)->operator ()(ii,jj,kk,ll) = pvectors(i)->operator ()(ii,jj,kk,ll);
+                        }
+                    }
+                }
+            }
+            delete pvectors(i);
+            pvectors(i) = NULL;
+        }
+        pvectors.ResetSize(nvectors);
+        for(size_t i=0; i<nvectors-1; i++){
+            pvectors(i) = new Array4D<T>;
+            n = tmparray(i)->GetDim(2);
+            pvectors(i)->ResetSize(vrows,vcols,vslices,n);
+            for(size_t ll=0; ll<n; ll++){
+                for(size_t kk=0; kk<vslices; kk++){
+                    for(size_t ii=0; ii<vrows; ii++){
+                        for(size_t jj=0; jj<vcols; jj++){
+                            pvectors(i)->operator ()(ii,jj,kk,ll) = tmparray(i)->operator ()(ii,jj,kk,ll);
+                        }
+                    }
+                }
+            }
+            delete tmparray(i);
+            tmparray(i) = NULL;
+        }
+
+        /*
+          Like above, expand the arrays related to quantity labels.
+         */
+        PArray1D<std::string*> tmparray2(nvectors);
+        for(size_t i=0; i<nvectors-1; i++){
+            tmparray2(i) = new std::string;
+            tmparray2(i)->reserve(qtysize);
+            tmparray2(i)->assign(vector_names(i)->substr());
+            delete vector_names(i);
+            vector_names(i) = NULL;
+        }
+        vector_names.ResetSize(nvectors);
+        for(size_t i=0; i<nvectors-1; i++){
+            vector_names(i) = new std::string;
+            vector_names(i)->reserve(qtysize);
+            vector_names(i)->assign(tmparray2(i)->substr());
+            delete tmparray2(i);
+            tmparray2(i) = NULL;
+        }
+
+    }
+
+    pvectors(nvectors-1) = new Array4D<T>;
+    pvectors(nvectors-1)->ResetSize(vrows,vcols,vslices,ncomp);
+    pvectors(nvectors-1)->ResetVal((T)0.0e0);
+
+    vector_names(nvectors-1) = new std::string;
+    vector_names(nvectors-1)->reserve(qtysize);
+    vector_names(nvectors-1)->assign(name);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::RemoveVectorQuantity(const size_t qty)
+{
+    // Decrease count of number of scalar quantities
+    nvectors--;
+
+    /*
+      Decrease the size of the PArray1D object containing pointers to
+      Array3D objects containing data.  The data must be copied into temporary
+      arrays since the current Array3D objects are destroyed when the
+      PArray1D object is resized.  The data is then copied back into the
+      resized PArray1D object.
+
+      During the copy process, the source object is deleted immediately after
+      its data has been copied.  This is to reduce memory requirements so that
+      only one extra object's worth of memory is required during the
+      copy process.  Note that setting the resulting pointer to NULL is
+      needed to avoid freeing the memory more than once upon deletion of
+      the temporary PArray1D object.
+
+      After the copy is complete, add a new Array3D object to the final
+      entry in the resized PArray1D object, set its size equal to the grid
+      size, and all points initialized to 0.0.
+     */
+
+    /*
+      If the first element of pvectors is NULL or the updated number of vector
+      quantities is zero, there are no quantities to delete.
+     */
+    if(pvectors(0) != NULL && nvectors > 0){
+
+        PArray1D<Array4D<T>*> tmparray(nvectors+1);
+        for(size_t i=0; i<nvectors+1; i++){
+            tmparray(i) = new Array4D<T>;
+            tmparray(i)->ResetSize(vrows,vcols,vslices,3);
+            for(size_t ll=0; ll<3; ll++){
+                for(size_t kk=0; kk<vslices; kk++){
+                    for(size_t ii=0; ii<vrows; ii++){
+                        for(size_t jj=0; jj<vcols; jj++){
+                            tmparray(i)->operator ()(ii,jj,kk,ll) = pvectors(i)->operator ()(ii,jj,kk,ll);
+                        }
+                    }
+                }
+            }
+            delete pvectors(i);
+            pvectors(i) = NULL;
+        }
+        pvectors.ResetSize(nvectors);
+        for(size_t i=0; i<nvectors+1; i++){
+            size_t itmp = i;
+            if(i != qty){
+                if(i > qty){
+                    itmp = i - 1;   // Reduce index by 1 since loop is past removed quantity
+                }
+                pvectors(itmp) = new Array4D<T>;
+                pvectors(itmp)->ResetSize(vrows,vcols,vslices,3);
+                for(size_t ll=0; ll<3; ll++){
+                    for(size_t kk=0; kk<vslices; kk++){
+                        for(size_t ii=0; ii<vrows; ii++){
+                            for(size_t jj=0; jj<vcols; jj++){
+                                pvectors(itmp)->operator ()(ii,jj,kk,ll) = tmparray(i)->operator ()(ii,jj,kk,ll);
+                            }
+                        }
+                    }
+                }
+            }
+            delete tmparray(i);
+            tmparray(i) = NULL;
+        }
+    }
+
+    /*
+      Like above, expand the arrays related to quantity labels.
+     */
+    PArray1D<std::string*> tmparray2(nvectors+1);
+    for(size_t i=0; i<nvectors+1; i++){
+        tmparray2(i) = new std::string;
+        tmparray2(i)->reserve(qtysize);
+        tmparray2(i)->assign(vector_names(i)->substr());
+        delete vector_names(i);
+        vector_names(i) = NULL;
+    }
+    vector_names.ResetSize(nvectors);
+    for(size_t i=0; i<nvectors+1; i++){
+        size_t itmp = i;
+        if(i != qty){
+            if(i > qty){
+                itmp = i - 1;
+            }
+            vector_names(itmp) = new std::string;
+            vector_names(itmp)->reserve(qtysize);
+            vector_names(itmp)->assign(tmparray2(i)->substr());
+            delete tmparray2(i);
+            tmparray2(i) = NULL;
+        }
+    }
+
+
+    /*
+      If updated value of nscalars is 0, delete pointer to first object and set
+      to NULL.
+     */
+    if(nvectors == 0){
+        if(pvectors(0) != NULL){
+            delete pvectors(0);
+        }
+        pvectors(0) = NULL;
+
+        if(vector_names(0) != NULL){
+            delete vector_names(0);
+        }
+        vector_names(0) = NULL;
+    }
+}
+
+
+template <class T>
+int UniformVolume3D<T>::VectorQuantityComponents(const int qty) const
+{
+    return pvectors(qty)->GetDim(4);
+}
+
+
+
+template <class T>
+void UniformVolume3D<T>::setScalarQuantityName(const size_t qty, const std::string name)
+{
+    scalar_names(qty)->assign(name);
+}
+
+
+template <class T>
+std::string UniformVolume3D<T>::ScalarQuantityName(const size_t qty)
+{
+    return scalar_names(qty)->substr();
+}
+
+
+template <class T>
+void UniformVolume3D<T>::setVectorQuantityName(const size_t qty, const std::string name)
+{
+    vector_names(qty)->assign(name);
+}
+
+
+template <class T>
+std::string UniformVolume3D<T>::VectorQuantityName(const size_t qty)
+{
+    return vector_names(qty)->substr();
+}
+
+
+
+template < class T > inline
+T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+                                  const size_t ind3, const size_t qty)
+{
+    #ifndef RELEASE
+        /*
+         * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
+         */
+        assert(ind1 < vrows);
+        assert(ind2 < vcols);
+        assert(ind3 < vslices);
+        return pscalars(qty)->operator ()(ind1,ind2,ind3);
+    #else
+        /*
+         * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
+         */
+        return pscalars(qty)->operator ()(ind1,ind2,ind3);
+    #endif
+}
+
+
+template < class T > inline
+const T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+                                        const size_t ind3, const size_t qty) const
+{
+    #ifndef RELEASE
+        /*
+         * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
+         */
+        assert(ind1 < vrows);
+        assert(ind2 < vcols);
+        assert(ind3 < vslices);
+        return pscalars(qty)->operator ()(ind1,ind2,ind3);
+    #else
+        /*
+         * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
+         */
+        return pscalars(qty)->operator ()(ind1,ind2,ind3);
+    #endif
+}
+
+
+template < class T > inline
+T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+                                  const size_t ind3, const size_t comp, const size_t qty)
+{
+    #ifndef RELEASE
+        /*
+         * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
+         */
+        assert(ind1 < vrows);
+        assert(ind2 < vcols);
+        assert(ind3 < vslices);
+        assert(comp < pvectors(qty)->GetDim(4));
+        return pvectors(qty)->operator ()(ind1,ind2,ind3,comp);
+    #else
+        /*
+         * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
+         */
+        return pvectors(qty)->operator ()(ind1,ind2,ind3,comp);
+    #endif
+}
+
+
+template < class T > inline
+const T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+                                        const size_t ind3, const size_t comp, const size_t qty) const
+{
+    #ifndef RELEASE
+        /*
+         * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
+         */
+        assert(ind1 < vrows);
+        assert(ind2 < vcols);
+        assert(ind3 < vslices);
+        assert(comp < pvectors(qty)->GetDim(4));
+        return pvectors(qty)->operator ()(ind1,ind2,ind3,comp);
+    #else
+        /*
+         * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
+         */
+        return pvectors(qty)->operator ()(ind1,ind2,ind3,comp);
+    #endif
+}
+
+
+template <class T>
+double UniformVolume3D<T>::EstimateMemoryUsage() const
+{
+    double retval = 0.0e0;
+    for(int i=0; i<nscalars; i++){
+        retval += pscalars(i)->GetMemoryUsage();
+    }
+    for(int i=0; i<nvectors; i++){
+        retval += pvectors(i)->GetMemoryUsage();
+    }
+    return retval;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ResetScalarVals(const int qty, const T initvalue)
+{
+    pscalars(qty)->ResetVal(initvalue);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ResetVectorVals(const int qty, const T initvalue)
+{
+    pvectors(qty)->ResetVal(initvalue);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::setSpatialExtent(const int dir, const int maxmin, const T val)
+{
+    if(dir == 1){
+        if(maxmin < 0){
+            xmin = val;
+            xminset = true;
+        }
+        if(maxmin > 0){
+            xmax = val;
+            xmaxset = true;
+        }
+        if(xminset == true && xmaxset == true){
+            if(vcols > 1){
+                xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
+            } else {
+                xspacing = 0.0e0;
+            }
+        }
+    }
+    if(dir == 0){
+        if(maxmin < 0){
+            ymin = val;
+            yminset = true;
+        }
+        if(maxmin > 0){
+            ymax = val;
+            ymaxset = true;
+        }
+        if(yminset == true && ymaxset == true){
+            if(vrows > 1){
+                yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
+            } else {
+                yspacing = 0.0e0;
+            }
+        }
+    }
+    if(dir == 2){
+        if(maxmin < 0){
+            zmin = val;
+            zminset = true;
+        }
+        if(maxmin > 0){
+            zmax = val;
+            zmaxset = true;
+        }
+        if(zminset == true && zmaxset == true){
+            if(vslices > 1){
+                zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
+            } else {
+                zspacing = 0.0e0;
+            }
+        }
+    }
+}
+
+
+template <class T>
+T UniformVolume3D<T>::SpatialExtent(const int dir, const int maxmin) const
+{
+    T retval = 0.0e0;
+
+    if(dir == 1){
+        if(maxmin < 0){
+            retval = xmin;
+        }
+        if(maxmin > 0){
+            retval = xmax;
+        }
+    }
+    if(dir == 0){
+        if(maxmin < 0){
+            retval = ymin;
+        }
+        if(maxmin > 0){
+            retval = ymax;
+        }
+    }
+    if(dir == 2){
+        if(maxmin < 0){
+            retval = zmin;
+        }
+        if(maxmin > 0){
+            retval = zmax;
+        }
+    }
+
+    return retval;
+}
+
+
+template <class T>
+T UniformVolume3D<T>::PointSpacing(const int dir) const
+{
+    T retval = 0.0e0;
+    if(dir == 0){
+        retval = xspacing;
+    }
+    if(dir == 1){
+        retval = yspacing;
+    }
+    if(dir == 2){
+        retval = zspacing;
+    }
+    return retval;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::setVTKImageDataOutput(const bool state)
+{
+    imageoutput = state;
+    if(imageoutput == true){
+        rectoutput = false;
+    }
+}
+
+
+template <class T>
+void UniformVolume3D<T>::setVTKRectDataOutput(const bool state)
+{
+    rectoutput = state;
+    if(rectoutput == true){
+        imageoutput = false;
+    }
+}
+
+
+template <class T>
+bool UniformVolume3D<T>::VTKImageDataOutput() const
+{
+    return imageoutput;
+}
+
+
+template <class T>
+bool UniformVolume3D<T>::VTKRectDataOutput() const
+{
+    return rectoutput;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::setFilenameStem(const std::string stem)
+{
+    filenamestem = stem;
+}
+
+
+template <class T>
+std::string UniformVolume3D<T>::FilenameStem() const
+{
+    return filenamestem;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::setOutputDirectory(const std::string dir)
+{
+    outputdir = dir;
+}
+
+
+template <class T>
+std::string UniformVolume3D<T>::OutputDirectory() const
+{
+    return outputdir;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ResetResolution(const size_t ny, const size_t nx, const size_t nz, const T initval)
+{
+    for(size_t i=0; i<nscalars; i++){
+        pscalars(i)->ResetSize(ny,nx,nz,initval);
+    }
+    for(size_t i=0; i<nvectors; i++){
+        size_t n = pvectors(i)->GetDim(3);
+        pvectors(i)->ResetSize(ny,nx,nz,n,initval);
+    }
+    vrows = ny;
+    vcols = nx;
+    vslices = nz;
+
+    if(vcols > 1){
+        xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
+    } else {
+        xspacing = 0.0e0;
+    }
+
+    if(vrows > 1){
+        yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
+    } else {
+        yspacing = 0.0e0;
+    }
+
+    if(vslices > 1){
+        zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
+    } else {
+        zspacing = 0.0e0;
+    }
+}
+
+
+template <class T>
+size_t UniformVolume3D<T>::GetResolution(const int dir)
+{
+    size_t retval = 0;
+    if(dir == 1){
+        retval = vcols;
+    }
+    if(dir == 0){
+        retval = vrows;
+    }
+    if(dir == 2){
+        retval = vslices;
+    }
+    return retval;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKWrite()
+{
+    std::string filename;
+    std::fstream ssfile;
+    filename = outputdir + "/" + filenamestem + ".vtk";
+    ssfile.open(filename.c_str(),std::ios::out);
+
+    /*
+      Variables needed for tracking progress
+     */
+    float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
+    float chunkscomplete = 0.0e0;
+    float completefrac = chunkscomplete/Tchunks;
+    std::string descriptor("Writing ASCII VTK File");
+
+    /*
+      Emit signals for the beginning of the file-writing process
+     */
+    qtsignals->EmitFunctionDesc(descriptor);
+    qtsignals->EmitFunctionProgress(completefrac);
+
+
+    /* Temporary stream to reduce I/O calls. */
+    std::stringstream tmpss;
+
+
+    if(ssfile.is_open() == true){
+        ssfile << "# vtk DataFile Version 2.0" << std::endl;
+        ssfile << filenamestem << std::endl;
+        ssfile << "ASCII" << std::endl;
+
+        if(imageoutput == true){
+            ssfile << "DATASET STRUCTURED_POINTS" << std::endl;
+            ssfile << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            ssfile << "ORIGIN " << xmin << " " << ymin << " " << zmin << std::endl;
+            ssfile << "SPACING " << xspacing << " " << yspacing << " " << zspacing << std::endl;
+        }
+
+        if(rectoutput == true){
+            ssfile << "DATASET RECTILINEAR_GRID" << std::endl;
+            ssfile << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            ssfile << "X_COORDINATES " << vcols << " float" << std::endl;
+            for(int i=0; i<vcols; i++){
+                float x = xmin + float(i)*xspacing;
+                ssfile << x << std::endl;
+            }
+            ssfile << "Y_COORDINATES " << vrows << " float" << std::endl;
+            for(int i=0; i<vrows; i++){
+                float y = ymin + float(i)*yspacing;
+                ssfile << y << std::endl;
+            }
+            ssfile << "Z_COORDINATES " << vslices << " float" << std::endl;
+            for(int i=0; i<vslices; i++){
+                float z = zmin + float(i)*zspacing;
+                ssfile << z << std::endl;
+            }
+        }
+
+        tmpss.clear();
+        tmpss.str("");
+        ssfile << "POINT_DATA " << vrows*vcols*vslices << std::endl;
+        for(int s=0; s<nscalars; s++){
+
+            descriptor = "Writing ASCII VTK File - scalars '" + ScalarQuantityName(s) + "'";
+            qtsignals->EmitFunctionDesc(descriptor);
+
+            chunkscomplete = 0.0e0;
+            std::string name(scalar_names(s)->substr());
+            ssfile << "SCALARS " << name << " " << dtypename << " 1" << std::endl;
+            ssfile << "LOOKUP_TABLE default" << std::endl;
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        tmpss << pscalars(s)->operator ()(i,j,k) << std::endl;
+                    }
+                }
+                ssfile << tmpss.str();
+                tmpss.clear();
+                tmpss.str("");
+                chunkscomplete += 1.0e0;
+                completefrac = chunkscomplete/Tchunks;
+                qtsignals->EmitFunctionProgress(completefrac, descriptor);
+                qtsignals->EmitFunctionProgress(completefrac);
+            }
+        }
+
+        tmpss.clear();
+        tmpss.str("");
+        for(int v=0; v<nvectors; v++){
+
+            descriptor = "Writing ASCII VTK File - vectors '" + VectorQuantityName(v) + "'";
+            qtsignals->EmitFunctionDesc(descriptor);
+
+            chunkscomplete = 0.0e0;
+            std::string name(vector_names(v)->substr());
+            int n = pvectors(v)->GetDim(4);
+            if(n > 3){
+                std::cerr << "WARNING: VTK file format requires 3-component vectors." << std::endl;
+                std::cerr << "         Vector quantity " << name << " has " << n << " components." << std::endl;
+                std::cerr << "         File will be written with all components, which may cause" << std::endl;
+                std::cerr << "         problems with some file readers." << std::endl;
+            }
+            ssfile << "VECTORS " << name << " " << dtypename << std::endl;
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        for(int l=0; l<n; l++){
+                            tmpss << pvectors(v)->operator ()(i,j,k,l) << " ";
+                        }
+                        tmpss << std::endl;
+                    }
+                }
+                ssfile << tmpss.str();
+                tmpss.clear();
+                tmpss.str("");
+                chunkscomplete += 1.0e0;
+                completefrac = chunkscomplete/Tchunks;
+                qtsignals->EmitFunctionProgress(completefrac, descriptor);
+                qtsignals->EmitFunctionProgress(completefrac);
+            }
+        }
+        ssfile.close();
+    } else {
+        std::cout << "ERROR!  Cannot open file: " << filename << " for data-output!" << std::endl;
+    }
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKWriteBinary()
+{
+    std::string filename;
+    std::fstream ssfile;
+    if(!UniformVolume3D<T>::IsBigEndian()){
+        filename = outputdir + "/" + filenamestem + ".vtk";
+    } else {
+        filename = outputdir + "/" + filenamestem + "_BigEndian.vtk";
+    }
+    ssfile.open(filename.c_str(),std::ios::out|std::ios::binary);
+
+    /*
+      Variables needed for tracking progress
+     */
+    float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
+    float chunkscomplete = 0.0e0;
+    float completefrac = chunkscomplete/Tchunks;
+    std::string descriptor("Writing Binary VTK File");
+
+    /*
+      Emit signals for the beginning of the file-writing process
+     */
+    qtsignals->EmitFunctionDesc(descriptor);
+    qtsignals->EmitFunctionProgress(completefrac);
+
+
+    /* Buffer for text values to be written. */
+    char buffer[2048];
+    int size;
+
+    T tmpfloat;
+
+    /* Use std::stringstream to allow cross-compiler handling of size_t array sizes without
+     * requiring separate format specifiers in 'sprintf()'. */
+    std::stringstream tmpss;
+
+
+    if(ssfile.is_open() == true){
+        size = sprintf(buffer,"# vtk DataFile Version 2.0\n");
+        ssfile.write(buffer,size);
+        size = sprintf(buffer,"%s\n",filenamestem.c_str());
+        ssfile.write(buffer,size);
+        size = sprintf(buffer,"BINARY\n");
+        ssfile.write(buffer,size);
+
+        if(imageoutput == true){
+            size = sprintf(buffer,"DATASET STRUCTURED_POINTS\n");
+            ssfile.write(buffer,size);
+            tmpss.clear();  tmpss.str("");
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            size = sprintf(buffer,"ORIGIN %g %g %g\n",xmin,ymin,zmin);
+            ssfile.write(buffer,size);
+            size = sprintf(buffer,"SPACING %g %g %g\n",xspacing,yspacing,zspacing);
+            ssfile.write(buffer,size);
+        }
+
+        if(rectoutput == true){
+            size = sprintf(buffer,"DATASET RECTILINEAR_GRID\n");
+            ssfile.write(buffer,size);
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "X_COORDINATES " << vcols << " float" << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            for(size_t i=0; i<vcols; i++){
+                tmpfloat = (float)i*(float)xspacing;
+                ssfile.write((char*)&tmpfloat,sizeof(float));
+            }
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "Y_COORDINATES " << vrows << " float" << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            for(size_t i=0; i<vrows; i++){
+                tmpfloat = (float)i*(float)yspacing;
+                ssfile.write((char*)&tmpfloat,sizeof(float));
+            }
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "Z_COORDINATES " << vslices << " float" << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            for(size_t i=0; i<vslices; i++){
+                tmpfloat = (float)i*(float)zspacing;
+                ssfile.write((char*)&tmpfloat,sizeof(float));
+            }
+        }
+
+        size_t nchunks = vslices*(nscalars + nvectors);
+        size_t chunks_processed = 0;
+
+        tmpss.clear();  tmpss.str("");
+        tmpss << "POINT_DATA " << vcols*vrows*vslices << std::endl;
+        size = sprintf(buffer,"%s",tmpss.str().c_str());
+        ssfile.write(buffer,size);
+
+        for(size_t s=0; s<nscalars; s++){
+
+            descriptor = "Writing Binary VTK File - scalars '" + ScalarQuantityName(s) + "'";
+            qtsignals->EmitFunctionDesc(descriptor);
+
+            size = sprintf(buffer,"SCALARS %s %s 1\n",scalar_names(s)->substr().c_str(),dtypename.c_str());
+            ssfile.write(buffer,size);
+            size = sprintf(buffer,"LOOKUP_TABLE default\n");
+            ssfile.write(buffer,size);
+            for(size_t k=0; k<vslices; k++){
+                for(size_t i=0; i<vrows; i++){
+                    for(size_t j=0; j<vcols; j++){
+                        tmpfloat = pscalars(s)->operator ()(i,j,k);
+                        ssfile.write((char*)&tmpfloat,sizeof(T));
+                    }
+                }
+                chunks_processed++;
+                qtsignals->EmitFunctionProgress((float)chunks_processed/(float)nchunks);
+            }
+        }
+
+        for(size_t v=0; v<nvectors; v++){
+
+            descriptor = "Writing Binary VTK File - vectors '" + VectorQuantityName(v) + "'";
+            qtsignals->EmitFunctionDesc(descriptor);
+
+            std::string name(vector_names(v)->substr());
+            size_t n = pvectors(v)->GetDim(4);
+            if(n > 3){
+                std::cerr << "WARNING: VTK file format requires 3-component vectors." << std::endl;
+                std::cerr << "         Vector quantity " << name << " has " << n << " components." << std::endl;
+                std::cerr << "         File will be written with all components, which may cause" << std::endl;
+                std::cerr << "         problems with some file readers." << std::endl;
+            }
+            size = sprintf(buffer,"VECTORS %s %s\n",vector_names(v)->substr().c_str(),dtypename.c_str());
+            ssfile.write(buffer,size);
+            for(size_t k=0; k<vslices; k++){
+                for(size_t i=0; i<vrows; i++){
+                    for(size_t j=0; j<vcols; j++){
+                        for(size_t l=0; l<n; l++){ /* Write components of vectors. */
+                            tmpfloat = pvectors(v)->operator ()(i,j,k,l);
+                            ssfile.write((char*)&tmpfloat,sizeof(T));
+                        }
+                        for(size_t l=n; l<3; l++){ /* Add 0 for extra dimension(s) if necessary. */
+                            tmpfloat = (T)0.0e0;
+                            ssfile.write((char*)&tmpfloat,sizeof(T));
+                        }
+                    }
+                }
+                chunks_processed++;
+                qtsignals->EmitFunctionProgress((float)chunks_processed/(float)nchunks);
+            }
+        }
+        ssfile.close();
+    } else {
+        std::cout << "ERROR!  Cannot open file: " << filename << " for data-output!" << std::endl;
+    }
+
+    descriptor = "";
+    qtsignals->EmitFunctionDesc(descriptor);
+    qtsignals->EmitFunctionProgress(0.0e0);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
+{
+    std::string filename;
+    std::fstream ssfile;
+    if(UniformVolume3D<T>::IsBigEndian()){
+        filename = outputdir + "/" + filenamestem + ".vtk";     /* Flipping bits will make output Little Endian. */
+    } else {
+        filename = outputdir + "/" + filenamestem + "_BigEndian.vtk";
+    }
+    ssfile.open(filename.c_str(),std::ios::out|std::ios::binary);
+
+    /*
+      Variables needed for tracking progress
+     */
+    float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
+    float chunkscomplete = 0.0e0;
+    float completefrac = chunkscomplete/Tchunks;
+    std::string descriptor("Writing Binary VTK File");
+
+    /*
+      Emit signals for the beginning of the file-writing process
+     */
+    qtsignals->EmitFunctionDesc(descriptor);
+    qtsignals->EmitFunctionProgress(completefrac);
+
+
+    /* Buffer for text values to be written. */
+    char buffer[2048];
+    int size;
+
+    T flippedfloat;
+
+    /* Use std::stringstream to allow cross-compiler handling of size_t array sizes without
+     * requiring separate format specifiers in 'sprintf()'. */
+    std::stringstream tmpss;
+
+
+    if(ssfile.is_open() == true){
+        size = sprintf(buffer,"# vtk DataFile Version 2.0\n");
+        ssfile.write(buffer,size);
+        size = sprintf(buffer,"%s\n",filenamestem.c_str());
+        ssfile.write(buffer,size);
+        size = sprintf(buffer,"BINARY\n");
+        ssfile.write(buffer,size);
+
+        if(imageoutput == true){
+            size = sprintf(buffer,"DATASET STRUCTURED_POINTS\n");
+            ssfile.write(buffer,size);
+            tmpss.clear();  tmpss.str("");
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            size = sprintf(buffer,"ORIGIN %g %g %g\n",xmin,ymin,zmin);
+            ssfile.write(buffer,size);
+            size = sprintf(buffer,"SPACING %g %g %g\n",xspacing,yspacing,zspacing);
+            ssfile.write(buffer,size);
+        }
+
+        if(rectoutput == true){
+            size = sprintf(buffer,"DATASET RECTILINEAR_GRID\n");
+            ssfile.write(buffer,size);
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "X_COORDINATES " << vcols << " float" << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            for(size_t i=0; i<vcols; i++){
+                flippedfloat = (float)i*(float)xspacing;
+                UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
+                ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
+            }
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "Y_COORDINATES " << vrows << " float" << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            for(size_t i=0; i<vrows; i++){
+                flippedfloat = (float)i*(float)yspacing;
+                UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
+                ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
+            }
+
+            tmpss.clear();  tmpss.str("");
+            tmpss << "Z_COORDINATES " << vslices << " float" << std::endl;
+            size = sprintf(buffer,"%s",tmpss.str().c_str());
+            ssfile.write(buffer,size);
+            for(size_t i=0; i<vslices; i++){
+                flippedfloat = (float)i*(float)zspacing;
+                UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
+                ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
+            }
+        }
+
+        size_t nchunks = vslices*(nscalars + nvectors);
+        size_t chunks_processed = 0;
+
+        tmpss.clear();  tmpss.str("");
+        tmpss << "POINT_DATA " << vcols*vrows*vslices<< std::endl;
+        size = sprintf(buffer,"%s",tmpss.str().c_str());
+        ssfile.write(buffer,size);
+        for(size_t s=0; s<nscalars; s++){
+
+            descriptor = "Writing Binary VTK File - scalars '" + ScalarQuantityName(s) + "'";
+            qtsignals->EmitFunctionDesc(descriptor);
+
+            size = sprintf(buffer,"SCALARS %s %s 1\n",scalar_names(s)->substr().c_str(),dtypename.c_str());
+            ssfile.write(buffer,size);
+            size = sprintf(buffer,"LOOKUP_TABLE default\n");
+            ssfile.write(buffer,size);
+            for(size_t k=0; k<vslices; k++){
+                for(size_t i=0; i<vrows; i++){
+                    for(size_t j=0; j<vcols; j++){
+                        flippedfloat = pscalars(s)->operator ()(i,j,k);
+                        UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
+                        ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
+                    }
+                }
+                chunks_processed++;
+                qtsignals->EmitFunctionProgress((float)chunks_processed/(float)nchunks);
+            }
+        }
+
+        for(size_t v=0; v<nvectors; v++){
+            std::string name(vector_names(v)->substr());
+            size_t n = pvectors(v)->GetDim(4);
+            if(n > 3){
+                std::cerr << "WARNING: VTK file format requires 3-component vectors." << std::endl;
+                std::cerr << "         Vector quantity " << name << " has " << n << " components." << std::endl;
+                std::cerr << "         File will be written with all components, which may cause" << std::endl;
+                std::cerr << "         problems with some file readers." << std::endl;
+            }
+
+            descriptor = "Writing Binary VTK File - vectors '" + VectorQuantityName(v) + "'";
+            qtsignals->EmitFunctionDesc(descriptor);
+
+            size = sprintf(buffer,"VECTORS %s %s\n",vector_names(v)->substr().c_str(),dtypename.c_str());
+            ssfile.write(buffer,size);
+            for(size_t k=0; k<vslices; k++){
+                for(size_t i=0; i<vrows; i++){
+                    for(size_t j=0; j<vcols; j++){
+                        for(size_t l=0; l<n; l++){ /* Write components of vectors. */
+                            flippedfloat = pvectors(v)->operator ()(i,j,k,l);
+                            UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
+                            ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
+                        }
+                        for(size_t l=n; l<3; l++){ /* Add 0 for extra dimension(s) if necessary. */
+                            flippedfloat = (T)0.0e0;
+                            UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
+                            ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
+                        }
+                    }
+                }
+                chunks_processed++;
+                qtsignals->EmitFunctionProgress((float)chunks_processed/(float)nchunks);
+            }
+        }
+        ssfile.close();
+    } else {
+        std::cout << "ERROR!  Cannot open file: " << filename << " for data-output!" << std::endl;
+    }
+
+    descriptor = "";
+    qtsignals->EmitFunctionDesc(descriptor);
+    qtsignals->EmitFunctionProgress(0.0e0);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKWriteBinaryBigEndian()
+{
+    writebigendian = true;
+
+    if(UniformVolume3D<T>::IsBigEndian()){
+        UniformVolume3D<T>::VTKWriteBinary();
+    } else {
+        UniformVolume3D<T>::VTKWriteBinaryBitFlip();
+    }
+
+    writebigendian = false;
+}
+
+
+template <class T>
+T UniformVolume3D<T>::ReverseFloat(const T inFloat, size_t numbytes = sizeof(T))
+{
+    /* Code from:
+     * http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian
+     */
+    T retval;
+    T incopy = inFloat;
+    char *floatToConvert = reinterpret_cast<char*>(&incopy);
+    char *returnFloat = reinterpret_cast<char*>(&retval);
+
+    for(size_t i=0; i<numbytes; i++){
+        returnFloat[i] = floatToConvert[numbytes-i-1];
+    }
+
+    return retval;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ByteSwap(void *value, size_t numbytes)
+{
+    unsigned char *memp = reinterpret_cast<unsigned char*>(value);
+    std::reverse(memp, memp + numbytes);
+}
+
+
+template <class T>
+T UniformVolume3D<T>::ReverseFloat_FloatOnly(const float inFloat, size_t numbytes = 4)
+{
+    /* Code from:
+     * http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian
+     */
+    float retval;
+    float incopy = inFloat;
+    char *floatToConvert = reinterpret_cast<char*>(&incopy);
+    char *returnFloat = reinterpret_cast<char*>(&retval);
+
+    for(size_t i=0; i<numbytes; i++){
+        returnFloat[i] = floatToConvert[numbytes-i-1];
+    }
+
+    return (T)retval;
+}
+
+
+template <class T>
+bool UniformVolume3D<T>::IsBigEndian()
+{
+    /* From http://http://www.codeproject.com/Articles/4804/Basic-concepts-on-Endianness */
+    short word = 0x4321;
+    if((*(char *)& word) != 0x21 ){
+        return true;
+    } else  {
+        return false;
+    }
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VOLWrite(const int qty, const bool allowScaling, const T minRange)
+{
+    int retval = -1;
+
+    std::string filename;
+    filename = outputdir + "/" + filenamestem + ".vol";
+
+    /* Multiply all values by a scaling factor to ensure that the data spans multiple integers.
+     *
+     * This scaling is done to compensate for a bug in the behavior of the CNDE 3D Visualization
+     * program.  When adjusting the lookup table in 3D Viz, it is thought that a cast-to-int is
+     * applied to the data values when determining the appropriate grayscale to be used in the
+     * display.  If data values span a range less than an integer, no remapping is possible because
+     * all values get cast to the same integer.  Similarly, if very few integers are spanned, the
+     * mapping result will appear very poor due to a small number of integers which are cast to
+     * grayscales.  By applying a linear scaling to the data, the numeric values can be made to
+     * span a sufficiently-large range of values to prevent the cast-to-int operation from
+     * adversely affecting the color-mapping.
+     *
+     * Note that this addresses a graphics/visualization problem in 3D Viz.  The application does
+     * accurately read-in the floating-point data. */
+    std::string desc;
+    size_t loc1, loc2, loc3;
+    T maxval = pscalars(qty)->MaxVal(loc1,loc2,loc3);
+    T minval = pscalars(qty)->MinVal(loc1,loc2,loc3);
+    T range = maxval - minval;
+    bool scalingPerformed = false;
+
+    if(range < minRange && allowScaling){
+        /* Apply scaling to data, only if data range must be increased AND scaling is allowed. */
+        scalingPerformed = true;
+
+        desc = "Scaling Data For VOL File";
+        qtsignals->EmitFunctionDesc(desc);
+        qtsignals->EmitFunctionProgress(0.0e0);
+
+        for(size_t k=0; k<vslices; k++){
+            for(size_t i=0; i<vrows; i++){
+                for(size_t j=0; j<vcols; j++){
+                    pscalars(qty)->operator ()(i,j,k) = minRange*(pscalars(qty)->operator ()(i,j,k) - minval)/range;
+                }
+            }
+            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+        }
+        desc = "";
+        qtsignals->EmitFunctionDesc(desc);
+        qtsignals->EmitFunctionProgress(0.0e0);
+    }
+
+
+
+    retval = UniformVolume3D<T>::WriteVOLFile(filename,vcols,vrows,vslices,
+                                           &pscalars(qty)->operator ()((size_t)0,(size_t)0,(size_t)0));
+
+    if(scalingPerformed){
+        /* Undo scaling to data, if scaling was done before
+         *
+         * Note that IEEE 754 (Standard for Floating Point Arithmetic) requires addition, subtraction,
+         * multiplication, and division to be within 0.5 ULP (unit in last place / unit of least precision).
+         * This means the operations will produce numbers within 0.5 ULP of the mathematically exact
+         * result.  Some operations, such as subtraction, can cause loss-of-significant-digits, though,
+         * so the result of the following un-scaling must be treated carefully as some precision may be lost
+         * through the scaling and un-scaling processes. */
+
+        desc = "Undoing Scaling for VOL Output";
+        qtsignals->EmitFunctionDesc(desc);
+        for(size_t k=0; k<vslices; k++){
+            for(size_t i=0; i<vrows; i++){
+                for(size_t j=0; j<vcols; j++){
+                    pscalars(qty)->operator ()(i,j,k) = pscalars(qty)->operator ()(i,j,k)*range/minRange + minval;
+                }
+            }
+            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+        }
+
+        desc = "";
+        qtsignals->EmitFunctionDesc(desc);
+    }
+
+    if(retval == 0){
+        /*
+        printf("Data written successfully to %s\n",filename.c_str());
+        */
+    } else {
+        std::cerr << "Data output to VOL file FAILED" << std::endl;
+    }
+
+    desc = "";
+    qtsignals->EmitFunctionDesc(desc);
+    qtsignals->EmitFunctionProgress(0.0e0);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::ReadFile(const std::string filename, const bool isBigEndian)
+{
+    std::string fileext;
+    fileext = StringManip::DetermFileExt(filename);
+    if(fileext == "vol" || fileext == "VOL"){
+        UniformVolume3D<T>::ReadVOLFile(filename);
+    }
+    if(fileext == "vtk" || fileext == "VTK"){
+        UniformVolume3D<T>::ReadVTKFile(filename,isBigEndian);
+    }
+
+}
+
+
+template <class T>
+T UniformVolume3D<T>::Mean(const int scalarqty, const int vectorqty, const int vectorcomp) const
+{
+    T retval = (T)0.0e0;
+    if(scalarqty >= 0){
+        retval = pscalars(scalarqty)->Mean();
+    }
+
+    if(vectorqty >= 0){
+        Array3D<T> tmparray(vrows,vcols,vslices);
+        if(vectorcomp >= 0){
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        tmparray(i,j,k) = pvectors(vectorqty)->operator ()(i,j,k,vectorcomp);
+                    }
+                }
+            }
+        } else {
+            int n = pvectors(vectorqty)->GetDim(3);
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        for(int l=0; l<n; l++){
+                            tmparray(i,j,k) += pvectors(vectorqty)->operator ()(i,j,k,l)*
+                                    pvectors(vectorqty)->operator ()(i,j,k,l);
+                        }
+                        tmparray(i,j,k) = std::sqrt(tmparray(i,j,k));
+                    }
+                }
+            }
+        }
+        retval = tmparray.Mean();
+    }
+
+    return retval;
+}
+
+
+template <class T>
+T UniformVolume3D<T>::Median(const int scalarqty, const int vectorqty, const int vectorcomp) const
+{
+    T retval = (T)0.0e0;
+    if(scalarqty >= 0){
+        retval = pscalars(scalarqty)->MedianVal();
+    }
+
+    if(vectorqty >= 0){
+        Array3D<T> tmparray(vrows,vcols,vslices);
+        if(vectorcomp >= 0){
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        tmparray(i,j,k) = pvectors(i)->operator ()(i,j,k,vectorcomp);
+                    }
+                }
+            }
+        } else {
+            int n = pvectors(vectorqty)->GetDim(3);
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        for(int l=0; l<n; l++){
+                            tmparray(i,j,k) += pvectors(vectorqty)->operator ()(i,j,k,l)*
+                                    pvectors(vectorqty)->operator ()(i,j,k,l);
+                        }
+                        tmparray(i,j,k) = std::sqrt(tmparray(i,j,k));
+                    }
+                }
+            }
+        }
+        retval = tmparray.MedianVal();
+    }
+
+    return retval;
+}
+
+
+template <class T>
+T UniformVolume3D<T>::Variance(const int scalarqty, const int vectorqty, const int vectorcomp) const
+{
+    T retval = (T)0.0e0;
+    if(scalarqty >= 0){
+        retval = pscalars(scalarqty)->Variance();
+    }
+
+    if(vectorqty >= 0){
+        Array3D<T> tmparray(vrows,vcols,vslices);
+        if(vectorcomp >= 0){
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        tmparray(i,j,k) = pvectors(vectorqty)->operator ()(i,j,k,vectorcomp);
+                    }
+                }
+            }
+        } else {
+            int n = pvectors(vectorqty)->GetDim(3);
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        for(int l=0; l<n; l++){
+                            tmparray(i,j,k) += pvectors(vectorqty)->operator ()(i,j,k,l)*
+                                    pvectors(vectorqty)->operator ()(i,j,k,l);
+                        }
+                        tmparray(i,j,k) = std::sqrt(tmparray(i,j,k));
+                    }
+                }
+            }
+        }
+        retval = tmparray.Variance();
+    }
+
+    return retval;
+}
+
+
+template <class T>
+T UniformVolume3D<T>::MinVal(const int scalarqty, const int vectorqty, const int vectorcomp,
+         int &loc_x, int &loc_y, int &loc_z) const
+{
+    T retval = (T)0.0e0;
+    if(scalarqty >= 0){
+        retval = pscalars(scalarqty)->MinVal(loc_y,loc_x,loc_z);
+    }
+
+    if(vectorqty >= 0){
+        Array3D<T> tmparray(vrows,vcols,vslices);
+        if(vectorcomp >= 0){
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        tmparray(i,j,k) = pvectors(vectorqty)->operator ()(i,j,k,vectorcomp);
+                    }
+                }
+            }
+        } else {
+            int n = pvectors(vectorqty)->GetDim(3);
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        for(int l=0; l<n; l++){
+                            tmparray(i,j,k) += pvectors(vectorqty)->operator ()(i,j,k,l)*
+                                    pvectors(vectorqty)->operator ()(i,j,k,l);
+                        }
+                        tmparray(i,j,k) = std::sqrt(tmparray(i,j,k));
+                    }
+                }
+            }
+        }
+        retval = tmparray.MinVal(loc_y,loc_x,loc_z);
+    }
+
+    return retval;
+}
+
+
+template <class T>
+T UniformVolume3D<T>::MaxVal(const int scalarqty, const int vectorqty, const int vectorcomp,
+         int &loc_x, int &loc_y, int &loc_z) const
+{
+    T retval = (T)0.0e0;
+    if(scalarqty >= 0){
+        retval = pscalars(scalarqty)->MaxVal(loc_y,loc_x,loc_z);
+    }
+
+    if(vectorqty >= 0){
+        Array3D<T> tmparray(vrows,vcols,vslices);
+        if(vectorcomp >= 0){
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        tmparray(i,j,k) = pvectors(vectorqty)->operator ()(i,j,k,vectorcomp);
+                    }
+                }
+            }
+        } else {
+            int n = pvectors(vectorqty)->GetDim(3);
+            for(int k=0; k<vslices; k++){
+                for(int i=0; i<vrows; i++){
+                    for(int j=0; j<vcols; j++){
+                        for(int l=0; l<n; l++){
+                            tmparray(i,j,k) += pvectors(vectorqty)->operator ()(i,j,k,l)*
+                                    pvectors(vectorqty)->operator ()(i,j,k,l);
+                        }
+                        tmparray(i,j,k) = std::sqrt(tmparray(i,j,k));
+                    }
+                }
+            }
+        }
+        retval = tmparray.MaxVal(loc_y,loc_x,loc_z);
+    }
+
+    return retval;
+}
+
+
+template <class T>
+size_t UniformVolume3D<T>::MemoryRequired() const
+{
+    size_t retval = 0;
+
+
+    return retval;
+}
+
+
+
+template <class T>
+void UniformVolume3D<T>::PerformCalculations()
+{
+    UniformVolume3D<T>::ReadFile(conversion_options.input_file,conversion_options.isBigEndian);
+
+    if(conversion_options.output_VTKImageData){
+        UniformVolume3D<T>::setVTKImageDataOutput(true);
+        UniformVolume3D<T>::setVTKRectDataOutput(false);
+        UniformVolume3D<T>::VTKWriteBinaryBigEndian();
+    }
+
+    if(conversion_options.output_VTKRectGrid){
+        UniformVolume3D<T>::setVTKImageDataOutput(false);
+        UniformVolume3D<T>::setVTKRectDataOutput(true);
+        UniformVolume3D<T>::VTKWriteBinaryBigEndian();
+    }
+
+    if(conversion_options.output_CNDEVOL){
+        UniformVolume3D<T>::VOLWrite(0,conversion_options.output_CNDEVOL_allowScaling,conversion_options.output_CNDEVOL_scalingRange);
+    }
+
+    qtsignals->EmitDone();
+    UniformVolume3D<T>::EmitDone();
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigEndian)
+{
+    char linedata[256];
+    std::string sval1("");
+    std::string sval2("");
+    std::string sval3("");
+    long long ival1 = 0;
+    long long ival2 = 0;
+    long long ival3 = 0;
+    T fval1 = (T)0.0e0;
+    T fval2 = (T)0.0e0;
+    T fval3 = (T)0.0e0;
+    bool isImageData = false;
+    bool isRectGrid = false;
+    bool thisBigEndian = UniformVolume3D<T>::IsBigEndian();
+    std::string desc("");
+    std::stringstream sstmp;
+
+    /* Read dataset type. */
+    file.getline(linedata,256);
+    sstmp.str(linedata);
+    sstmp >> sval1 >> sval2;
+    if(sval1 != "DATASET"){
+        std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Dataset keyword not recognized" << std::endl;
+        std::cerr << "                                         Keyword read: " << sval1 << std::endl;
+        return;
+    }
+
+    if(sval2 == "STRUCTURED_POINTS"){
+        /* Data is Image Data format. */
+        isImageData = true;
+        isRectGrid = false;
+    }
+
+    if(sval2 == "RECTILINEAR_GRID"){
+        /* Data is Rectilinear Grid format. */
+        isImageData = false;
+        isRectGrid = true;
+    }
+    sval1 = "";
+    sval2 = "";
+
+
+    /* Read dimensions. */
+    file.getline(linedata,256);
+    sstmp.clear(); sstmp.str(linedata);
+    sstmp >> sval1 >> ival1 >> ival2 >> ival3;
+    if(sval1 != "DIMENSIONS"){
+        std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Dimensions keyword not recognized" << std::endl;
+        std::cerr << "                                         Keyword read: " << sval1 << std::endl;
+        return;
+    }
+    if(ival1 > 0 && ival2 > 0 && ival3 > 0){
+        vcols = (size_t)ival1;
+        vrows = (size_t)ival2;
+        vslices = (size_t)ival3;
+    } else {
+        std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Dimensions not read properly" << std::endl;
+        std::cerr << "                                         Dimensions read: " << ival1 << " x " << ival2
+                                                                          << " x " << ival3 << std::endl;
+        return;
+    }
+
+
+    /* Read remainder of header -- Image data. */
+    if(isImageData){
+        int linecount = 0;
+        T o1 = 0.0e0;
+        T o2 = 0.0e0;
+        T o3 = 0.0e0;
+        T s1 = 0.0e0;
+        T s2 = 0.0e0;
+        T s3 = 0.0e0;
+        while(linecount < 2){
+
+            /* Read ORIGIN / SPACING and floating-point values. */
+            file.getline(linedata,256);
+            sstmp.clear(); sstmp.str(linedata);
+            sstmp >> sval1 >> fval1 >> fval2 >> fval3;
+
+
+            /* Set origin info. */
+            if(sval1 == "ORIGIN"){
+                o1 = fval1;
+                o2 = fval2;
+                o3 = fval3;
+            }
+
+
+            /* Set spacing info. */
+            if(sval1 == "SPACING"){
+                s1 = fval1;
+                s2 = fval2;
+                s3 = fval3;
+            }
+
+            linecount++;
+
+
+            /* Only set spatial bounds after both origin and spacing have been read-in. */
+            if(linecount == 2){
+                UniformVolume3D<T>::setSpatialExtent(1,-1,o1);
+                UniformVolume3D<T>::setSpatialExtent(0,-1,o2);
+                UniformVolume3D<T>::setSpatialExtent(2,-1,o3);
+                UniformVolume3D<T>::setSpatialExtent(1,1,xmin+s1*vcols);
+                UniformVolume3D<T>::setSpatialExtent(0,1,ymin+s2*vrows);
+                UniformVolume3D<T>::setSpatialExtent(2,1,zmin+s3*vslices);
+            }
+        }
+    }
+
+
+
+    /* Read remainder of header -- Rectilinear Grid data. */
+    if(isRectGrid){
+
+        /* Read next line and set appropriate coordinates.  Only the first and last value are
+         * read-in.  Internal points are determined automatically by knowing the min/max values
+         * and number of elements along each direction. */
+        for(int i=0; i<3; i++){
+            file.getline(linedata,256);
+            sstmp.clear(); sstmp.str(linedata);
+            sstmp >> sval1 >> ival1 >> sval2;
+
+            float ffloat = (float)0.0e0;
+            double dfloat = (double)0.0e0;
+            bool isfloat = false;
+            bool isdouble = false;
+            size_t datasize = 0;
+
+            if(sval2 == "float"){
+                datasize = sizeof(float);
+                isfloat = true;
+                isdouble = false;
+            }
+            if(sval2 == "double"){
+                datasize = sizeof(double);
+                isfloat = false;
+                isdouble = true;
+            }
+
+
+            if(sval1 == "X_COORDINATES"){
+                if(isfloat){
+                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(0,-1,(T)ffloat);
+
+                    for(size_t i=0; i<vcols-2; i++){
+                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    }
+
+                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(0,1,(T)ffloat);
+                }
+                if(isdouble){
+                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(0,-1,(T)dfloat);
+
+                    for(size_t i=0; i<vcols-2; i++){
+                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    }
+
+                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(0,1,(T)dfloat);
+                }
+            }
+
+            if(sval1 == "Y_COORDINATES"){
+                if(isfloat){
+                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(1,-1,(T)ffloat);
+
+                    for(size_t i=0; i<vrows-2; i++){
+                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    }
+
+                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(1,1,(T)ffloat);
+                }
+                if(isdouble){
+                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(1,-1,(T)dfloat);
+
+                    for(size_t i=0; i<vrows-2; i++){
+                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    }
+
+                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(1,1,(T)dfloat);
+                }
+            }
+
+            if(sval1 == "Z_COORDINATES"){
+                if(isfloat){
+                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(2,-1,(T)ffloat);
+
+                    for(size_t i=0; i<vslices-2; i++){
+                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    }
+
+                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(2,1,(T)ffloat);
+                }
+                if(isdouble){
+                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(2,-1,(T)dfloat);
+
+                    for(size_t i=0; i<vslices-2; i++){
+                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    }
+
+                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume3D<T>::setSpatialExtent(2,1,(T)dfloat);
+                }
+            }
+
+
+
+        } /* End of loop through reading 3 sets of coordinate values. */
+
+    } /* End of if-block for rectilinear grid format. */
+
+
+
+
+
+    /* Header-reading complete.  Now read data from file. */
+
+
+    while(file.eof() == false){
+
+
+        /* Read point data. */
+        file.getline(linedata,256);
+        sstmp.clear(); sstmp.str(linedata);
+        sstmp >> sval1 >> ival1;
+        if(sval1 != "POINT_DATA" && sval1 != ""){
+            std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Point data keyword not recognized" << std::endl;
+            std::cerr << "                                         Keyword read: " << sval1 << std::endl;
+            std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Only POINT_DATA supported...exiting" << std::endl;
+            return;
+        }
+        sval1 = "";
+
+
+        /* Read keyword. */
+        file.getline(linedata,256);
+        sstmp.clear(); sstmp.str(linedata);
+        sstmp >> sval1;
+
+        if(sval1 == "SCALARS"){
+            sval1 = "";
+            sstmp >> sval2 >> sval3 >> ival1;
+            /* Add scalar quantity to this object. */
+            UniformVolume3D<T>::AddScalarQuantity(sval2);
+
+            /* Read lookup table line. */
+            file.getline(linedata,256);
+            sstmp.clear(); sstmp.str(linedata);
+            sstmp >> sval1 >> sval2;
+
+
+            /* Read data values. */
+            size_t datasize = 0;
+            bool isfloat = false;
+            bool isdouble = false;
+            if(sval3 == "float"){
+                datasize = sizeof(float);
+                isfloat = true;
+                isdouble = false;
+            }
+            if(sval3 == "double"){
+                datasize = sizeof(double);
+                isfloat = false;
+                isdouble = true;
+            }
+
+            if((isBigEndian && !thisBigEndian) || (!isBigEndian && thisBigEndian)){
+                /* Read point-by-point and bit-flip each point value. */
+
+                if(false){
+                    std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume3D<T>::IsBigEndian()) << std::endl;
+                    std::cout << "datasize: " << datasize << "     Big Endian Conversion" << std::endl;
+                }
+
+                desc = "Reading binary scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                qtsignals->EmitFunctionDesc(desc);
+
+                float ffloat = (float)0.0e0;
+                double dfloat = (double)0.0e0;
+                for(size_t k=0; k<vslices; k++){
+                    for(size_t i=0; i<vrows; i++){
+                        for(size_t j=0; j<vcols; j++){
+                            if(isfloat){
+                                file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                            }
+                            if(isdouble){
+                                file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                            }
+                        }
+                    }
+                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                }
+
+
+            } else {
+                /* No byte-swapping necessary.  Type-checking still performed, however, in case
+                 * datatype in file does not match datatype of this object. */
+                float ffloat = (float)0.0e0;
+                double dfloat = (double)0.0e0;
+                for(size_t k=0; k<vslices; k++){
+                    for(size_t i=0; i<vrows; i++){
+                        for(size_t j=0; j<vcols; j++){
+                            if(isfloat){
+                                file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                            }
+                            if(isdouble){
+                                file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                            }
+                        }
+                    }
+                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                }
+            }
+
+            desc = "";
+            qtsignals->EmitFunctionDesc(desc);
+            qtsignals->EmitFunctionProgress(0.0e0);
+
+        }
+
+
+        if(sval1 == "VECTORS"){
+            sval1 = "";
+            sstmp >> sval2 >> sval3 >> ival1;
+
+            /* Add vector quantity to this object, assuming 3 components. */
+            UniformVolume3D<T>::AddVectorQuantity(sval2,3);
+
+            /* Read data values. */
+            size_t datasize = 0;
+            bool isfloat = false;
+            bool isdouble = false;
+            if(sval3 == "float"){
+                datasize = sizeof(float);
+                isfloat = true;
+                isdouble = false;
+            }
+            if(sval3 == "double"){
+                datasize = sizeof(double);
+                isfloat = false;
+                isdouble = true;
+            }
+
+            if((isBigEndian && !thisBigEndian) || (!isBigEndian && thisBigEndian)){
+                /* Read point-by-point and bit-flip each point value. */
+
+                if(false){
+                    std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume3D<T>::IsBigEndian()) << std::endl;
+                    std::cout << "datasize: " << datasize << "     Big Endian Conversion" << std::endl;
+                }
+
+                desc = "Reading binary vectors '" + UniformVolume3D<T>::VectorQuantityName(nvectors-1) + "'";
+                qtsignals->EmitFunctionDesc(desc);
+
+                float ffloat = (float)0.0e0;
+                double dfloat = (double)0.0e0;
+                for(size_t k=0; k<vslices; k++){
+                    for(size_t i=0; i<vrows; i++){
+                        for(size_t j=0; j<vcols; j++){
+                            for(size_t l=0; l<3; l++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                                    pvectors(nvectors-1)->operator ()(i,j,k,l) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                                    pvectors(nvectors-1)->operator ()(i,j,k,l) = (T)dfloat;
+                            }
+                            }
+                        }
+                    }
+                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                }
+
+
+            } else {
+                /* No byte-swapping necessary.  Type-checking still performed, however, in case
+                 * datatype in file does not match datatype of this object. */
+                float ffloat = (float)0.0e0;
+                double dfloat = (double)0.0e0;
+                for(size_t k=0; k<vslices; k++){
+                    for(size_t i=0; i<vrows; i++){
+                        for(size_t j=0; j<vcols; j++){
+                            for(size_t l=0; l<3; l++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    pvectors(nvectors-1)->operator ()(i,j,k,l) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    pvectors(nvectors-1)->operator ()(i,j,k,l) = (T)dfloat;
+                            }
+                            }
+                        }
+                    }
+                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                }
+
+            }
+
+            desc = "";
+            qtsignals->EmitFunctionDesc(desc);
+            qtsignals->EmitFunctionProgress(0.0e0);
+
+        }
+
+        if(sval1 == "FIELD"){
+            sval1 = "";
+            /* Read number of fields.  Discard field name. */
+            int nfields = 0;
+            sstmp >> sval2 >> nfields;
+
+
+            for(int f=0; f<nfields; f++){
+
+                /* Read field name. */
+                file.getline(linedata,256);
+                sstmp.clear(); sstmp.str(linedata);
+                sstmp >> sval2 >> ival1 >> ival2 >> sval3;
+
+
+                /* Add scalar quantity to this object. */
+                UniformVolume3D<T>::AddScalarQuantity(sval2);
+
+                /* Read data values. */
+                size_t datasize = 0;
+                bool isfloat = false;
+                bool isdouble = false;
+                if(sval3 == "float"){
+                    datasize = sizeof(float);
+                    isfloat = true;
+                    isdouble = false;
+                }
+                if(sval3 == "double"){
+                    datasize = sizeof(double);
+                    isfloat = false;
+                    isdouble = true;
+                }
+
+                if((isBigEndian && !thisBigEndian) || (!isBigEndian && thisBigEndian)){
+                    /* Read point-by-point and bit-flip each point value. */
+
+                    if(false){
+                        std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume3D<T>::IsBigEndian()) << std::endl;
+                        std::cout << "datasize: " << datasize << "     Big Endian Conversion" << std::endl;
+                    }
+
+                    desc = "Reading binary field scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                    qtsignals->EmitFunctionDesc(desc);
+
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                }
+                            }
+                        }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    }
+
+
+                } else {
+                    /* No byte-swapping necessary.  Type-checking still performed, however, in case
+                     * datatype in file does not match datatype of this object. */
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                }
+                            }
+                        }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    }
+                }
+            }
+
+            desc = "";
+            qtsignals->EmitFunctionDesc(desc);
+            qtsignals->EmitFunctionProgress(0.0e0);
+        }
+
+
+    } /* End of while()-loop terminated by EOF. */
+
+    desc = "";
+    qtsignals->EmitFunctionDesc(desc);
+    qtsignals->EmitFunctionProgress(0.0e0);
+
+} /* UniformVolume3D::VTKReadLegacyBinary() */
+
+
+template <class T>
+void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
+{
+    std::string discard;
+    std::string discard1;
+    std::string discard2;
+    std::string datasettype;
+    std::stringstream sstmp;
+    int itmp1, itmp2, itmp3;
+    T d1, d2, d3;
+    T o1, o2, o3;
+    T Tval;
+
+    file >> discard1 >> discard2;        /* Dataset definition */
+
+    /* Extract dataset definition */
+    sstmp << discard2; datasettype = sstmp.str(); sstmp.str("");
+
+    /* Read volume parameters based on dataset type */
+    if(datasettype == "STRUCTURED_POINTS"){
+        /* Read volume resolution */
+        file >> discard1 >> itmp1 >> itmp2 >> itmp3;
+
+        /* Reset resolution of this object */
+        UniformVolume3D<T>::ResetResolution(itmp2,itmp1,itmp3,(T)0.0e0);
+
+        file >> discard1 >> o1 >> o2 >> o3;	/* Volume origin */
+        file >> discard1 >> d1 >> d2 >> d3;	/* Voxel spacing */
+
+        /* Determine starting and ending points from origin and spacing info */
+        xmin = o1; xmax = xmin + d1*((T)vcols - 1.0e0);
+        ymin = o2; ymax = ymin + d2*((T)vrows - 1.0e0);
+        zmin = o3; zmax = zmin + d3*((T)vslices - 1.0e0);
+        xspacing = d1;
+        yspacing = d2;
+        zspacing = d3;
+
+    } /* Image Data header */
+
+    if(datasettype == "RECTILINEAR_GRID"){
+        /* Read volume resolution */
+        file >> discard1 >> itmp1 >> itmp2 >> itmp3;
+
+        /* Reset resolution of this object */
+        UniformVolume3D<T>::ResetResolution(itmp2,itmp1,itmp3,(T)0.0e0);
+
+        /* Read X Coordinates */
+        file >> discard1 >> discard1 >> discard1; /* Label line */
+        file >> o1;
+        UniformVolume3D<T>::setSpatialExtent(1,-1,o1);
+        for(size_t i=0; i<vcols-2; i++){
+            file >> discard;     /* Ignore all points except first and last */
+        }
+        file >> o1;
+        UniformVolume3D<T>::setSpatialExtent(1,1,o1);
+
+        /* Read Y Coordinates */
+        file >> discard1 >> discard1 >> discard1; /* Label line */
+        file >> o1;
+        UniformVolume3D<T>::setSpatialExtent(0,-1,o1);
+        for(size_t i=0; i<vrows-2; i++){
+            file >> discard;     /* Ignore all points except first and last */
+        }
+        file >> o1;
+        UniformVolume3D<T>::setSpatialExtent(0,1,o1);
+
+        /* Read Z Coordinates */
+        file >> discard1 >> discard1 >> discard1; /* Label line */
+        file >> o1;
+        UniformVolume3D<T>::setSpatialExtent(2,-1,o1);
+        for(size_t i=0; i<vslices-2; i++){
+            file >> discard;     /* Ignore all points except first and last */
+        }
+        file >> o1;
+        UniformVolume3D<T>::setSpatialExtent(2,1,o1);
+    } /* Rectilinear Grid header */
+
+    /* Read POINT_DATA line */
+    file >> discard1 >> discard2;
+
+    /* Read until either "VECTORS" or "SCALARS" is read.  Repeat until end-of-file */
+    while(file.eof() == false){
+        discard1 = "na";
+        while(discard1 != "SCALARS" && discard1 != "VECTORS" && file.eof() == false){
+            file >> discard1;
+        }
+
+        if(discard1 == "SCALARS" && file.eof() == false){
+            file >> discard2;                /* Read name of quantity */
+            file >> discard1 >> discard1;    /* Read remainder of line */
+            file >> discard1 >> discard1;    /* Read lookup table line */
+
+            /* Add quantity and read-in values */
+            T frac = 0.0e0;
+            std::string progressstr;
+            UniformVolume3D<T>::AddScalarQuantity(discard2);
+
+            progressstr = "Reading ASCII scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+            qtsignals->EmitFunctionProgress(frac);
+            qtsignals->EmitFunctionProgress(frac,progressstr);
+
+            for(size_t s=0; s<vslices; s++){
+                for(size_t r=0; r<vrows; r++){
+                    for(size_t c=0; c<vcols; c++){
+                        file >> Tval;
+                        pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                    }
+                }
+                frac = ((T)s + 1.0e0)/(T)vslices;
+                qtsignals->EmitFunctionProgress(frac);
+                qtsignals->EmitFunctionProgress(frac,progressstr);
+            }
+
+            progressstr = "";
+            qtsignals->EmitFunctionDesc(progressstr);
+            qtsignals->EmitFunctionProgress(0.0e0);
+        }
+
+        if(discard1 == "VECTORS" && file.eof() == false){
+            file >> discard2;                /* Read name of quantity */
+            file >> discard1;                /* Read remainder of line */
+
+            /*
+              Determine number of vector components.  It is assumed that each vector
+              is terminated by a newline.
+             */
+            int n = 0;
+            std::stringstream readss;
+            std::stringstream countss;
+            std::string word;
+            getline(file,word);  /* Catches the '\n' remaining on the VECTORS line */
+            getline(file,word);  /* Reads the first line of vector data */
+            readss.str(word);
+            countss.str(word);
+
+            while(getline(countss,word,' ')){
+                n++;
+            }
+
+            /* Add quantity and read-in values */
+            T frac = 0.0e0;
+            std::string progressstr;
+            UniformVolume3D<T>::AddVectorQuantity(discard2,n);
+
+            progressstr = "Reading ASCII vectors '" + UniformVolume3D<T>::VectorQuantityName(nvectors-1) + "'";
+            qtsignals->EmitFunctionProgress(frac);
+            qtsignals->EmitFunctionProgress(frac,progressstr);
+
+            /* The first line is stored in 'readss' */
+            for(int i=0; i<n; i++){
+                readss >> pvectors(nvectors-1)->operator ()(0,0,0,i);
+            }
+
+            for(size_t s=0; s<vslices; s++){
+                for(size_t r=0; r<vrows; r++){
+                    for(size_t c=0; c<vcols; c++){
+                        if(c == 0 && r == 0 && s == 0){
+                            /* First element already read-in, so no action to take.  For all
+                               other combinations of (c,r,s), read the file as expected.
+                             */
+                        } else {
+                            for(int l=0; l<n; l++){
+                                file >> Tval;
+                                pvectors(nvectors-1)->operator ()(r,c,s,l) = (T)Tval;
+                            }
+                        }
+                    }
+                }
+                frac = ((T)s + 1.0e0)/(T)vslices;
+                qtsignals->EmitFunctionProgress(frac);
+                qtsignals->EmitFunctionProgress(frac,progressstr);
+            }
+
+            progressstr = "";
+            qtsignals->EmitFunctionDesc(progressstr);
+            qtsignals->EmitFunctionProgress(0.0e0);
+
+        } /* End of conditional on VECTORS. */
+
+
+        if(discard1 == "FIELD" && file.eof() == false){
+            int nfields;
+            file >> discard2;                /* Read name of quantity */
+            file >> discard1 >> nfields;     /* Read remainder of line */
+
+            for(int f=0; f<nfields; f++){
+
+                /* Read field name. */
+                size_t throwaway1, throwaway2;
+                file >> discard2 >> throwaway1 >> throwaway2 >> discard1;
+
+                /* Add quantity and read-in values */
+                T frac = 0.0e0;
+                std::string progressstr;
+                UniformVolume3D<T>::AddScalarQuantity(discard2);
+
+                progressstr = "Reading ASCII field scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                qtsignals->EmitFunctionProgress(frac);
+                qtsignals->EmitFunctionProgress(frac,progressstr);
+
+                for(size_t s=0; s<vslices; s++){
+                    for(size_t r=0; r<vrows; r++){
+                        for(size_t c=0; c<vcols; c++){
+                            file >> Tval;
+                            pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                        }
+                    }
+                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    qtsignals->EmitFunctionProgress(frac);
+                    qtsignals->EmitFunctionProgress(frac,progressstr);
+                }
+
+                progressstr = "";
+                qtsignals->EmitFunctionDesc(progressstr);
+                qtsignals->EmitFunctionProgress(0.0e0);
+            }
+        }
+    }
+} /* UniformVolume3D::VTKReadLegacyASCII() */
+
+
+template <class T>
+void UniformVolume3D<T>::PointCoordinates(const size_t row, const size_t col, const size_t slice, T &y, T &x, T &z) const
+{
+    x = xmin + xspacing*(T)col;
+    y = ymin + yspacing*(T)row;
+    z = zmin + zspacing*(T)slice;
+} /* UniformVolume3D::PointCoordinates() */
