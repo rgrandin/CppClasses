@@ -1,0 +1,5 @@
+#!/bin/bash
+
+HASH=`git hash-object $1`
+
+echo $HASH
