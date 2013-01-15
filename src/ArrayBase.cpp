@@ -294,3 +294,16 @@ size_t ArrayBase<T>::MemoryRequired() const
 {
     return ArrayBase<T>::GetMemoryUsage();
 }
+
+
+template <class T>
+T ArrayBase<T>::MeanRMS() const
+{
+    T xrms = (T)0.0e0;
+
+    for(size_t i=0; i<npoints; i++){
+        xrms += array[i]*array[i];
+    }
+
+    return sqrt((double)xrms/(double)npoints);
+}

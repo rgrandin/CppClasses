@@ -202,6 +202,14 @@ public:
     float MeanFloat() const;
 
 
+    /**
+     * @brief MeanRMS calculates the root mean square value of the array.
+     *  @f$ x_{rms} = \sqrt{\frac{1}{n} \left(x_1^2 + x_2^2 + \ldots + x_n^2 \right)}
+     * @return RMS value of array, in the same datatype as the member data.
+     */
+    T MeanRMS() const;
+
+
 	/**
 	 * @brief Calculate the population variance of the elements in the array.
 	 * @pre Array object exists.
