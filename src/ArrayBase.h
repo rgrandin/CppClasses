@@ -203,11 +203,11 @@ public:
 
 
     /**
-     * @brief MeanRMS calculates the root mean square value of the array.
-     *  @f$ x_{rms} = \sqrt{\frac{1}{n} \left(x_1^2 + x_2^2 + \ldots + x_n^2 \right)}
+     * @brief Calculates the root mean square value of the array.
+     *  @f$ x_{rms} = \sqrt{\frac{1}{n} \left(x_1^2 + x_2^2 + \ldots + x_n^2 \right)} @f$
      * @return RMS value of array, in the same datatype as the member data.
      */
-    T MeanRMS() const;
+    T RMS() const;
 
 
 	/**

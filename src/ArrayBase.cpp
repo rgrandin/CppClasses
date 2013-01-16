@@ -297,7 +297,7 @@ size_t ArrayBase<T>::MemoryRequired() const
 
 
 template <class T>
-T ArrayBase<T>::MeanRMS() const
+T ArrayBase<T>::RMS() const
 {
     T xrms = (T)0.0e0;
 
