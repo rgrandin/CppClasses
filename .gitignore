@@ -1,2 +1,6 @@
 doc/html/
 doc/html/*
+CppClasses.config
+CppClasses.creator
+CppClasses.files
+CppClasses.includes
