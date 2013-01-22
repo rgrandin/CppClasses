@@ -131,7 +131,7 @@ public:
 	 * @return Number of elements in the array.
 	 * @post Array object remains unchanged.
 	 */
-    int GetDim() const;
+    size_t GetDim() const;
 
 
 	/**

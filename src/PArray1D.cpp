@@ -81,7 +81,7 @@ const T& PArray1D<T>::operator()(size_t ind1) const
 
 
 template <class T> inline
-int PArray1D<T>::GetDim() const
+size_t PArray1D<T>::GetDim() const
 {
 	return PArrayBase<T>::npoints;
 }
