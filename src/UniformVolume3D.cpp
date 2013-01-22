@@ -2679,6 +2679,9 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
 
 
             } else {
+                desc = "Reading binary scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                qtsignals->EmitFunctionDesc(desc);
+
                 /* No byte-swapping necessary.  Type-checking still performed, however, in case
                  * datatype in file does not match datatype of this object. */
                 float ffloat = (float)0.0e0;
@@ -2764,6 +2767,9 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
 
 
             } else {
+                desc = "Reading binary vectors '" + UniformVolume3D<T>::VectorQuantityName(nvectors-1) + "'";
+                qtsignals->EmitFunctionDesc(desc);
+
                 /* No byte-swapping necessary.  Type-checking still performed, however, in case
                  * datatype in file does not match datatype of this object. */
                 float ffloat = (float)0.0e0;
@@ -2860,6 +2866,9 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
 
 
                 } else {
+                    desc = "Reading binary scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                    qtsignals->EmitFunctionDesc(desc);
+
                     /* No byte-swapping necessary.  Type-checking still performed, however, in case
                      * datatype in file does not match datatype of this object. */
                     float ffloat = (float)0.0e0;
