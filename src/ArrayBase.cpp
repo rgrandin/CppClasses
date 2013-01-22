@@ -305,5 +305,5 @@ T ArrayBase<T>::RMS() const
         xrms += array[i]*array[i];
     }
 
-    return sqrt((double)xrms/(double)npoints);
+    return (T)sqrt((double)xrms/(double)npoints);
 }
