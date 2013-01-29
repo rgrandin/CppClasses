@@ -553,8 +553,8 @@ std::string FormattedNumber(const float val, const int width, const int precisio
  * @param showpos Show '+' in front of positive numbers.
  * @return String of val, formatted as specified.
  */
-inline
-std::string FormattedNumber(const double val, const int width, const int precision, const char fill,
+template <class T>
+std::string FormattedNumber(const T val, const int width, const int precision, const char fill,
                             const bool showpos)
 {
     std::stringstream tmpss;
