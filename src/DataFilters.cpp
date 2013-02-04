@@ -621,66 +621,77 @@ void DataFilters<T>::Sinc2D_Real(Array2D<T> &data)
 		data_filtered_fft[i][1] = 0.0e0;
 	}
 
+
+
+
+    /* "Smooth padding"
+     *
+     * Interpolation scheme used:
+     *
+     *                      nfftx
+     *      |------------|                              |
+     *      |------------|                              |
+     *      |------------|                              |
+     *   n  |-- DATA ----|               I              |
+     *   f  |------------|                              |
+     *   f  |------------|                              |
+     *   t  |------------|                              |
+     *   y  |------------|..............................|
+     *      |            |                              |
+     *      |            |                              |
+     *      |            |                              |
+     *      |            |                              |
+     *      |            |                              |
+     *      |     II     |             III              |
+     *      |            |                              |
+     *      |            |                              |
+     *      |            |                              |
+     *      |            |                              |
+     *
+     *  DATA: This region corresponds to the input data to be filtered (array 'rdata').
+     *  I:    Padding along the first direction ('nfftx' direction).  This is linearly-
+     *        interpolated along the rows so that the last element (right-most) matches the
+     *        first element of the row (left-most in the DATA region).
+     *  II:   Padding along the second direction ('nffty' direction).  This is linearly-
+     *        interpolated along the columns so that the last element (bottom-most) matches
+     *        the first element of the column (top-most in the DATA region).
+     *  III:  This region is padded using the average of the upper and left boundary values.
+     *        The upper-boundary value is taken from the linear interpolation in the bottom
+     *        row of region I.  The left-boundary value is taken from the linear interpolation
+     *        in the right-most column of region II.
+     */
+
     for(size_t i=0; i<n_sinc_fft2; i++){
         for(size_t j=0; j<n_sinc_fft1; j++){
-			if(i < n1 && j < n2){
+            if(i < n1 && j < n2){
                 data_sp[i*n_sinc_fft1+j][0] = (double)data(i,j);
-			}
-		}
-	}
+            } else {
+                if(i < n1){
+                    /* (i,j) is in region I. */
+                    double dval = (double)(data(i,(size_t)0) - data(i,n2-(size_t)1))/(double)(n_sinc_fft1 - n2);
+                    data_sp[i*n_sinc_fft1+j][0] = (double)data(i,n2-(size_t)1) + dval*(double)(j - n2);
+                }
+                if(j < n2){
+                    /* (i,j) is in region II. */
+                    double dval = (double)(data((size_t)0,j) - data(n1-(size_t)1,j))/(double)(n_sinc_fft2 - n1);
+                    data_sp[i*n_sinc_fft1+j][0] = (double)data(n1-(size_t)1,j) + dval*(double)(i - n1);
+                }
+                if(i >= n1 && j >= n2){
+                    /* (i,j) is in region III. */
+                    double dval = (double)(data(n1-(size_t)1,(size_t)0) - data(n1-(size_t)1,n2-(size_t)1))/
+                            (double)(n_sinc_fft1 - n2);
+                    double data1 = (double)data(n1-(size_t)1,n2-(size_t)1) + dval*(double)(j - n2);
 
-//    /* "Smooth padding" */
-//    double delta = 0.0e0;
-//    int nfft1 = n_sinc_fft1;
-//    int nfft2 = n_sinc_fft2;
+                    dval = (double)(data((size_t)0,n2-(size_t)1) - data(n1-(size_t)1,n2-(size_t)1))/
+                            (double)(n_sinc_fft2 - n1);
+                    double data2 = (double)data(n1-(size_t)1,n2-(size_t)1) + dval*(double)(i - n1);
 
-//    for(int j=0; j<n2; j++){
-//        delta = (data(0,j) - data(n1-1,j))/((double)(nfft1 - n1));
-//        for(int i=n1; i<nfft1; i++){
-//            data_sp[i*nfft2+j][0] = data(n1-1,j) + (double)(i-n1)*delta;
-//        }
-//    }
+                    data_sp[i*n_sinc_fft1+j][0] = 0.5e0*(data1 + data2);
+                }
+            }
+        }
+    }
 
-//    for(int i=0; i<n1; i++){
-//        delta = (data(i,0) - data(i,n2-1))/((double)(nfft2 - n2));
-//        for(int j=n2; j<nfft2; j++){
-//            data_sp[i*nfft2+j][0] = data(i,n2-1) + (double)(j-n2)*delta;
-//        }
-//    }
-
-//    double eta = 0.0e0;
-//    double zeta = 0.0e0;
-//    double u1 = data(n1-1,n2-1);
-//    double u2 = data(n1-1,0);
-//    double u3 = data(0,0);
-//    double u4 = data(0,n2-1);
-//    double dj = (double)(nfft2 - n2);
-//    double di = (double)(nfft1 - n1);
-//    for(int i=n1; i<nfft1; i++){
-//        for(int j=n2; j<nfft2; j++){
-//            eta = (double)(j - n2)/dj;
-//            zeta = (double)(i - n1)/di;
-//            eta = 2.0e0*eta - 1.0e0;
-//            zeta = 2.0e0*zeta - 1.0e0;
-//            data_sp[i*n_sinc_fft2+j][0] = 0.25e0*(u1*(1.0e0-zeta)*(1.0e0-eta) +
-//                                                u2*(1.0e0+zeta)*(1.0e0-eta) + u3*(1.0e0+zeta)*(1.0e0+eta) +
-//                                                u4*(1.0e0-zeta)*(1.0e0+eta));
-//        }
-//    }
-
-
-//    fstream ssfile;
-//    std::string fname("data.txt");
-//    ssfile.open(fname.c_str(),ios::out);
-//    for(int i=0; i<n_sinc_fft1; i++){
-//        for(int j=0; j<n_sinc_fft2; j++){
-//            ssfile << data_sp[i*n_sinc_fft2+j][0] << " ";
-//        }
-//        ssfile << std::endl;
-//    }
-//    ssfile.close();
-
-//    assert(false);
 
 
 
