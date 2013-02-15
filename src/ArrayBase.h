@@ -65,7 +65,7 @@
 #define  ArrayBase_
 
 
-// REQUIRED INCLUDE FILES
+#include <algorithm>
 #include <stdlib.h>
 #include <cstdlib>
 #include <memory>
@@ -104,7 +104,7 @@ public:
 	 * @return None.
 	 * @post Array object created and initialized.
 	 */
-	ArrayBase(int dim1);
+    ArrayBase(size_t dim1);
 
 
 	/**
@@ -114,7 +114,21 @@ public:
 	 * @return None.
 	 * @post Array object created and initialized.
 	 */
-	ArrayBase(int dim1, const T initvalue);
+    ArrayBase(size_t dim1, const T initvalue);
+
+
+    /**
+     * @brief Copy constructor.
+     * @param ab Reference to existing ArrayBase object to be copied.
+     */
+    ArrayBase(ArrayBase<T> &ab);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param ab Reference to existing ArrayBase object to be copied.
+     */
+    ArrayBase(ArrayBase<T> &&ab);
 
 
 	/**
@@ -125,6 +139,30 @@ public:
 	 * @warning This is a deep-delete.  All object data is deleted.
 	 */
     virtual ~ArrayBase();
+
+
+    /**
+     * @brief Assignment operator.
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     */
+    ArrayBase& operator=(const ArrayBase<T> &ab);
+
+
+    /**
+     * @brief Array subscription operator.
+     * @param idx Index to be accessed.
+     * @return Value stored at array index.
+     */
+    T& operator [](const size_t idx);
+
+
+    /**
+     * @brief Array subscription operator.
+     * @param idx Index to be accessed.
+     * @return Value stored at array index.
+     */
+    const T& operator [](const size_t idx) const;
 
 
 	/**
@@ -143,7 +181,7 @@ public:
 	 * 		'assert' statement and as such the check will not be performed when
 	 * 		compiled with NDEBUG defined.
 	 */
-	void ResetSize(long long dim1);
+    void ResetSize(size_t dim1);
 
 
 	/**
@@ -296,9 +334,6 @@ public:
 	 * 		least-negative value as the maximum.  Instead, it will return the smallest-
 	 * 		expressible non-negative number for the datatype.
 	 */
-	/* @warning This is not an absolute-value maximum, so "-2" is considered greater
-	 * 		than "-3".
-	 */
     virtual T MaxVal(size_t &loc) const;
 
 
@@ -319,6 +354,13 @@ public:
      *      accordingly.
      */
     size_t MemoryRequired() const;
+
+
+    /**
+     * @brief NPts reports the number of points in the array.
+     * @return Number of points in the array.
+     */
+    size_t NPts();
 
 
 
@@ -343,7 +385,19 @@ protected:
 	 * @return None.
 	 * @post Array created with specified size and initial value.
 	 */
-	void initialize(int dim1, const T initvalue);
+    void initialize(size_t dim1, const T initvalue);
+
+
+    /**
+     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @param first First ArrayBase object.
+     * @param second Second ArrayBase object.
+     */
+    friend void ArrayBaseSwap(ArrayBase<T> &first, ArrayBase<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+    }
 
 
 	/**

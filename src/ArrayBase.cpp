@@ -14,7 +14,7 @@
 
 // ARRAY INITIALIZATION
 template <class T>
-void ArrayBase<T>::initialize(int dim1, T initvalue)
+void ArrayBase<T>::initialize(size_t dim1, T initvalue)
 {
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
@@ -23,7 +23,7 @@ void ArrayBase<T>::initialize(int dim1, T initvalue)
 		array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
-			array[i] = initvalue;		// INITIALIZE TO SPECIFIED VALUE
+            array[i] = initvalue;           // INITIALIZE TO SPECIFIED VALUE
 		}
 
 	}
@@ -50,17 +50,40 @@ ArrayBase<T>::ArrayBase()
 	ArrayBase<T>::initialize(1,0);
 }
 
+
 template <class T>
-ArrayBase<T>::ArrayBase(int dim1)
+ArrayBase<T>::ArrayBase(size_t dim1)
 {
 	initialize(dim1,(T)0.0e0);
 }
 
+
 template <class T>
-ArrayBase<T>::ArrayBase(int dim1, const T initvalue)
+ArrayBase<T>::ArrayBase(size_t dim1, const T initvalue)
 {
 	initialize(dim1,initvalue);
 }
+
+
+template <class T>
+ArrayBase<T>::ArrayBase(ArrayBase<T> &ab)
+{
+    npoints = ab.NPts();
+
+    if(npoints > 0){
+        array = &ab[0];
+    } else {
+        array = NULL;
+    }
+}
+
+
+template <class T>
+ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab) : ArrayBase()
+{
+    ArrayBaseSwap(*this, ab);
+}
+
 
 template <class T>
 ArrayBase<T>::~ArrayBase()
@@ -73,7 +96,29 @@ ArrayBase<T>::~ArrayBase()
 
 
 template <class T>
-void ArrayBase<T>::ResetSize(long long dim1)
+ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &ab)
+{
+    ArrayBaseSwap(*this, ab);
+    return *this;
+}
+
+
+template <class T>
+T& ArrayBase<T>::operator [](const size_t idx)
+{
+    return array[idx];
+}
+
+
+template <class T>
+const T& ArrayBase<T>::operator [](const size_t idx) const
+{
+    return array[idx];
+}
+
+
+template <class T>
+void ArrayBase<T>::ResetSize(size_t dim1)
 {
 	if(typeid(T) == typeid(std::string) ||
 		typeid(T) == typeid(char)){
