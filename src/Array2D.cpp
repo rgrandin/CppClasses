@@ -32,6 +32,7 @@ Array2D<T>::Array2D()
 	npoints = size1*size2;
 }
 
+
 template <class T>
 Array2D<T>::Array2D(size_t dim1, size_t dim2, const T initvalue)
 {
@@ -41,33 +42,31 @@ Array2D<T>::Array2D(size_t dim1, size_t dim2, const T initvalue)
 	ArrayBase<T>::ResetSize(npoints,initvalue);
 }
 
+
+template <class T>
+Array2D<T>::Array2D(Array2D<T> &a) : Array2D()
+{
+    Array2DSwap(*this, a);
+}
+
+
+template <class T>
+Array2D<T>::Array2D(Array2D<T> &&a) : Array2D()
+{
+    Array2DSwap(*this, a);
+}
+
+
+
 template <class T>
 Array2D<T>::~Array2D()
 {
-	;
 }
 
 
-/*
-// ASSIGNMENT OPERATORS
-template <class T>
-Array2D<T>& Array2D<T>::operator=(const Array2D<T>& a)
-{
-  if(this != &a){
-	int temp = a.rows*a.cols;
-	if(temp <= npoints){
-	  for(int i=0; i<tmp; i++){
-		array[i] = a.array[i];
-	  }
-	} else {
-	  delete [] array;
-	  initialize(a.size1,a.size2,
-	}
-  }
 
-  return *this;
-}
-*/
+
+
 
 // () OPERATOR
 template < class T > inline
@@ -145,6 +144,22 @@ const T& Array2D<T>::operator()(int ind1i, int ind2i) const
          */
         return ArrayBase<T>::array[IND1_IND2];
     #endif
+}
+
+
+template <class T>
+Array2D<T>& Array2D<T>::operator=(const Array2D<T> &a)
+{
+    Array2DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+Array2D<T>& Array2D<T>::operator=(const Array2D<T> &&a)
+{
+    Array2DSwap(*this, a);
+    return *this;
 }
 
 

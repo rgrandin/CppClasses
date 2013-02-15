@@ -63,6 +63,20 @@ Array4D<T>::Array4D(int dim1, int dim2, int dim3, int dim4,
 
 
 template <class T>
+Array4D<T>::Array4D(Array4D<T> &a) : Array4D()
+{
+    Array4DSwap(*this, a);
+}
+
+
+template <class T>
+Array4D<T>::Array4D(Array4D<T> &&a) : Array4D()
+{
+    Array4DSwap(*this, a);
+}
+
+
+template <class T>
 Array4D<T>::~Array4D()
 {
 	;
@@ -109,6 +123,22 @@ const T& Array4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3,
 		 */
 		return ArrayBase<T>::array[IND1_IND2_IND3_IND4];
 	#endif
+}
+
+
+template <class T>
+Array4D<T>& Array4D<T>::operator=(const Array4D<T> &a)
+{
+    Array4DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+Array4D<T>& Array4D<T>::operator=(const Array4D<T> &&a)
+{
+    Array4DSwap(*this, a);
+    return *this;
 }
 
 

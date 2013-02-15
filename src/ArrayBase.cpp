@@ -66,15 +66,9 @@ ArrayBase<T>::ArrayBase(size_t dim1, const T initvalue)
 
 
 template <class T>
-ArrayBase<T>::ArrayBase(ArrayBase<T> &ab)
+ArrayBase<T>::ArrayBase(ArrayBase<T> &ab) : ArrayBase()
 {
-    npoints = ab.NPts();
-
-    if(npoints > 0){
-        array = &ab[0];
-    } else {
-        array = NULL;
-    }
+    ArrayBaseSwap(*this, ab);
 }
 
 
@@ -97,6 +91,14 @@ ArrayBase<T>::~ArrayBase()
 
 template <class T>
 ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &ab)
+{
+    ArrayBaseSwap(*this, ab);
+    return *this;
+}
+
+
+template <class T>
+ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &&ab)
 {
     ArrayBaseSwap(*this, ab);
     return *this;

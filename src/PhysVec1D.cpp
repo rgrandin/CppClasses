@@ -36,7 +36,7 @@ PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &vec) : Array1D<T>::Array1D()
 template <class T>
 PhysVec1D<T>::PhysVec1D(int n, const T initval)
 {
-        ArrayBase<T>::initialize(n,(T)initval);
+    ArrayBase<T>::initialize(n,(T)initval);
 }
 
 

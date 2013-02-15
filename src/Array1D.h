@@ -121,6 +121,21 @@ public:
     Array1D(size_t dim1, const T initvalue);
 
 
+    /**
+     * @brief Copy constructor.
+     * @param ab Reference to existing Array1D object to be copied.
+     */
+    Array1D(Array1D<T> &ab);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param ab Reference to existing Array1D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    Array1D(Array1D<T> &&ab);
+
+
 	/**
 	 * @brief Destructor for 1D array.
 	 * @pre Array object exists.
@@ -236,6 +251,23 @@ public:
     const T& operator()(size_t ind1) const;
 
 
+    /**
+     * @brief Copy-assignment operator.
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     */
+    Array1D& operator=(const Array1D<T> &ab);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     * @warning This function requires C++11 compiler support.
+     */
+    Array1D& operator=(const Array1D<T> &&ab);
+
+
 	/**
 	 * @brief Get the memory occupied by this object.
 	 * @pre Array object exists.
@@ -249,10 +281,22 @@ public:
 
 protected:
 
+    /**
+     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @param first First ArrayBase object.
+     * @param second Second ArrayBase object.
+     */
+    friend void Array1DSwap(Array1D<T> &first, Array1D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+    }
 
 
 
 private:
+
+
 
 };
 

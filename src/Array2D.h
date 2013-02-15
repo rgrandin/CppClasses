@@ -91,74 +91,89 @@
  */
 template <class T>
 class Array2D : public ArrayBase<T>{
-  
-  public:
-	// CONSTRUCTOR
-	/**
-	 * @brief Constructor for 2D array using default initial size and value.
-	 * @return None.
-	 * @post Array object created and initialized to default value.
-	 */
-	Array2D();
+
+public:
+    // CONSTRUCTOR
+    /**
+     * @brief Constructor for 2D array using default initial size and value.
+     * @return None.
+     * @post Array object created and initialized to default value.
+     */
+    Array2D();
 
 
-	/**
-	 * @brief Constructor for 2D array using default initial value.
-	 * @param dim1 Size of first dimension of the array.
-	 * @param dim2 Size of the second dimension of the array.
-	 * @param initvalue Value to be placed at all array locations.
-	 * @return None.
-	 * @post Array object created and initialized to default value.
-	 */
+    /**
+     * @brief Constructor for 2D array using default initial value.
+     * @param dim1 Size of first dimension of the array.
+     * @param dim2 Size of the second dimension of the array.
+     * @param initvalue Value to be placed at all array locations.
+     * @return None.
+     * @post Array object created and initialized to default value.
+     */
     Array2D(size_t dim1, size_t dim2, const T initvalue);
-	
-	
-	// DECONSTRUCTOR
-	/**
-	 * @brief Deconstructor for 2D array.
-	 * @pre Array object exists.
-	 * @return None.
-	 * @post Array object destroyed.
-	 */
+
+
+    /**
+     * @brief Copy constructor.
+     * @param ab Reference to existing ArrayBase object to be copied.
+     */
+    Array2D(Array2D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param ab Reference to existing ArrayBase object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    Array2D(Array2D<T> &&a);
+
+
+    // DECONSTRUCTOR
+    /**
+     * @brief Deconstructor for 2D array.
+     * @pre Array object exists.
+     * @return None.
+     * @post Array object destroyed.
+     */
     virtual ~Array2D();
 
-	
-	
-	// FUNCTIONS TO ACCESS AND MANIPULATE DATA
-	/**
-	 * @brief Retrieve the array extent in the specified dimension.
-	 * @pre Array object exists.
-	 * @param dim Dimension for which extent is desired.
-	 * @return Array extent in the specified dimension.
-	 * @post Array extents remain unchanged.
-	 */
+
+
+    // FUNCTIONS TO ACCESS AND MANIPULATE DATA
+    /**
+     * @brief Retrieve the array extent in the specified dimension.
+     * @pre Array object exists.
+     * @param dim Dimension for which extent is desired.
+     * @return Array extent in the specified dimension.
+     * @post Array extents remain unchanged.
+     */
     size_t GetDim(int dim) const;
 
-	
-	/**
-	 * @brief Retrieve the value stored in array.
-	 * @pre Array object exists.
-	 * @param ind1 Index of array point in first dimension.
-	 * @param ind2 Index of array point in second dimension.
-	 * @return Value stored in array at position (ind1,ind2).
-	 * @post Array remains unchanged.
-	 */
+
+    /**
+     * @brief Retrieve the value stored in array.
+     * @pre Array object exists.
+     * @param ind1 Index of array point in first dimension.
+     * @param ind2 Index of array point in second dimension.
+     * @return Value stored in array at position (ind1,ind2).
+     * @post Array remains unchanged.
+     */
     T GetValue(size_t ind1, size_t ind2) const;
 
 
-	/**
-	 * @brief Set the value stored in array.
-	 * @pre Array object exists.
-	 * @param ind1 Index of array point in first dimension.
-	 * @param ind2 Index of array point in second dimension.
-	 * @param value Value to be placed in array at specified indices.
-	 * @return None.
-	 * @post Value at array point (ind1,ind2) set to 'value'.
-	 */
+    /**
+     * @brief Set the value stored in array.
+     * @pre Array object exists.
+     * @param ind1 Index of array point in first dimension.
+     * @param ind2 Index of array point in second dimension.
+     * @param value Value to be placed in array at specified indices.
+     * @return None.
+     * @post Value at array point (ind1,ind2) set to 'value'.
+     */
     void SetValue(size_t ind1, size_t ind2, const T value);
 
-	
-	/**
+
+    /**
      * @brief Reset array size.
      *
      * Previously-existing points retain their previous
@@ -166,18 +181,18 @@ class Array2D : public ArrayBase<T>{
      * 	If input dimensions match existing array dimensions the array is
      * 	set to 'initvalue' at all points (same behavior as ResetVal
      * 	member function).
-	 * @pre Array object exists.
-	 * @warning Any data already existing in the volume will be lost.
-	 * @param dim1 New size of the first dimension.
-	 * @param dim2 New size of the second dimension.
-	 * @return None.
-	 * @post Array size changed to dim1xdim2 and new points initialized to
-	 * 			'initvalue'.
-	 */
+     * @pre Array object exists.
+     * @warning Any data already existing in the volume will be lost.
+     * @param dim1 New size of the first dimension.
+     * @param dim2 New size of the second dimension.
+     * @return None.
+     * @post Array size changed to dim1xdim2 and new points initialized to
+     * 			'initvalue'.
+     */
     void ResetSize(size_t dim1, size_t dim2);
 
 
-	/**
+    /**
      * @brief Reset array size.
      *
      * Previously-existing points retain their previous
@@ -185,36 +200,36 @@ class Array2D : public ArrayBase<T>{
      * 	If input dimensions match existing array dimensions the array is
      * 	set to 'initvalue' at all points (same behavior as ResetVal
      * 	member function).
-	 * @pre Array object exists.
-	 * @warning Any data already existing in the volume will be lost.
-	 * @param dim1 New size of the first dimension.
-	 * @param dim2 New size of the second dimension.
-	 * @param initvalue Value to be placed at new array points.
-	 * @return None.
-	 * @post Array size changed to dim1xdim2 and new points initialized to
-	 * 			'initvalue'.
-	 */
-	void ResetSize(size_t dim1, size_t dim2, const T initvalue);
-
-	
-	/**
-	 * @brief Reset all array points to a single value.
-	 * @pre Array object exists.
-	 * @param initvalue Value to be placed at all array points.
-	 * @return None.
-	 * @post All array points set to 'initvalue'.
-	 */
-	void ResetVal(const T initvalue);
+     * @pre Array object exists.
+     * @warning Any data already existing in the volume will be lost.
+     * @param dim1 New size of the first dimension.
+     * @param dim2 New size of the second dimension.
+     * @param initvalue Value to be placed at new array points.
+     * @return None.
+     * @post Array size changed to dim1xdim2 and new points initialized to
+     * 			'initvalue'.
+     */
+    void ResetSize(size_t dim1, size_t dim2, const T initvalue);
 
 
-	/**
-	 * @brief Overload () operator.
-	 * @pre Array object exists.
-	 * @param ind1 Value of first index.
-	 * @param ind2 Value of second index.
-	 * @post No changes to object.
-	 * @return Value stored at supplied indices.
-	 */
+    /**
+     * @brief Reset all array points to a single value.
+     * @pre Array object exists.
+     * @param initvalue Value to be placed at all array points.
+     * @return None.
+     * @post All array points set to 'initvalue'.
+     */
+    void ResetVal(const T initvalue);
+
+
+    /**
+     * @brief Overload () operator.
+     * @pre Array object exists.
+     * @param ind1 Value of first index.
+     * @param ind2 Value of second index.
+     * @post No changes to object.
+     * @return Value stored at supplied indices.
+     */
     T& operator()(size_t ind1, size_t ind2);
 
 
@@ -229,14 +244,14 @@ class Array2D : public ArrayBase<T>{
     const T& operator()(size_t ind1, size_t ind2) const;
 
 
-	/**
-	 * @brief Overload () operator.
-	 * @pre Array object exists.
-	 * @param ind1 Value of first index.
-	 * @param ind2 Value of second index.
-	 * @post No changes to object.
-	 * @return Value stored at supplied indices.
-	 */
+    /**
+     * @brief Overload () operator.
+     * @pre Array object exists.
+     * @param ind1 Value of first index.
+     * @param ind2 Value of second index.
+     * @post No changes to object.
+     * @return Value stored at supplied indices.
+     */
     const T& operator()(int ind1, int ind2) const;
 
 
@@ -251,46 +266,65 @@ class Array2D : public ArrayBase<T>{
     T& operator()(int ind1, int ind2);
 
 
-	/**
-	 * @brief Get the memory occupied by this object.
-	 * @pre Array object exists.
-	 * @post No changes made to object.
-	 * @return Memory, in bytes, used by this object.
-	 * @warning Type 'double' is used to ensure that the size can be accurately
-	 * 		rendered.
-	 */
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     */
+    Array2D& operator=(const Array2D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     * @warning This function requires C++11 compiler support.
+     */
+    Array2D& operator=(const Array2D<T> &&a);
+
+
+
+    /**
+     * @brief Get the memory occupied by this object.
+     * @pre Array object exists.
+     * @post No changes made to object.
+     * @return Memory, in bytes, used by this object.
+     * @warning Type 'double' is used to ensure that the size can be accurately
+     * 		rendered.
+     */
     double GetMemoryUsage() const;
 
 
-	/**
-	 * @brief Find the minimum value in the array, as well as its location.
-	 * @pre Array object exists.
-	 * @param loc1 Reference to variable which will receive the location value
-	 * 		corresponding to the first array dimension.
-	 * @param loc2 Reference to the variable which will receive the location value
-	 * 		corresponding to the second array dimension.
-	 * @post No changes to object.
-	 * @return Minimum value in the array.  Location is returned via the referenced
-	 * 		input variable.
-	 * @warning This is not an absolute-value minimum, so "-3" is considered less
-	 * 		than "-2".
-	 */
+    /**
+     * @brief Find the minimum value in the array, as well as its location.
+     * @pre Array object exists.
+     * @param loc1 Reference to variable which will receive the location value
+     * 		corresponding to the first array dimension.
+     * @param loc2 Reference to the variable which will receive the location value
+     * 		corresponding to the second array dimension.
+     * @post No changes to object.
+     * @return Minimum value in the array.  Location is returned via the referenced
+     * 		input variable.
+     * @warning This is not an absolute-value minimum, so "-3" is considered less
+     * 		than "-2".
+     */
     virtual T MinVal(size_t &loc1, size_t &loc2) const;
 
 
-	/**
-	 * @brief Find the maximum value in the array, as well as its location.
-	 * @pre Array object exists.
-	 * @param loc1 Reference to variable which will receive the location value
-	 * 		corresponding to the first array dimension.
-	 * @param loc2 Reference to the variable which will receive the location value
-	 * 		corresponding to the second array dimension.
-	 * @post No changes to object.
-	 * @return Maximum value in the array.  Location is returned via the referenced
-	 * 		input variable.
-	 * @warning This is not an absolute-value maximum, so "-2" is considered greater
-	 * 		than "-3".
-	 */
+    /**
+     * @brief Find the maximum value in the array, as well as its location.
+     * @pre Array object exists.
+     * @param loc1 Reference to variable which will receive the location value
+     * 		corresponding to the first array dimension.
+     * @param loc2 Reference to the variable which will receive the location value
+     * 		corresponding to the second array dimension.
+     * @post No changes to object.
+     * @return Maximum value in the array.  Location is returned via the referenced
+     * 		input variable.
+     * @warning This is not an absolute-value maximum, so "-2" is considered greater
+     * 		than "-3".
+     */
     virtual T MaxVal(size_t &loc1, size_t &loc2) const;
 
 
@@ -312,7 +346,7 @@ class Array2D : public ArrayBase<T>{
      * 		will be lost.
      */
     void ReadCSVFile(const std::string filename, const int nheader, const int mincols,
-    		const T defval, const int linewidth);
+                     const T defval, const int linewidth);
 
 
     /**
@@ -330,23 +364,38 @@ class Array2D : public ArrayBase<T>{
       @return None.
     */
     void WriteCSVFile(const std::string filename, const PArray1D<std::string *> &labels, const int ndec) const;
-	
-	
-  protected:
-	// VARIABLES
-	/** @brief Number of points along the first dimension */
+
+
+protected:
+    // VARIABLES
+    /** @brief Number of points along the first dimension */
     size_t size1;
 
-	/** @brief Number of points along the second dimension */
+    /** @brief Number of points along the second dimension */
     size_t size2;
 
-	/** @brief Number of points in the array */
+    /** @brief Number of points in the array */
     size_t npoints;
 
 
-  private:
 
-  
+    /**
+     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @param first First ArrayBase object.
+     * @param second Second ArrayBase object.
+     */
+    friend void Array2DSwap(Array2D<T> &first, Array2D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.size1, second.size1);
+        std::swap(first.size2, second.size2);
+        std::swap(first.array, second.array);
+    }
+
+
+private:
+
+
 };
 
 #include "Array2D.cpp"

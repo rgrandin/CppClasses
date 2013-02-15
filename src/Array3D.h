@@ -108,6 +108,21 @@ class Array3D : public ArrayBase<T>{
 	 */
 	Array3D(int dim1, int dim2, int dim3, const T initvalue);
 
+
+    /**
+     * @brief Copy constructor.
+     * @param ab Reference to existing ArrayBase object to be copied.
+     */
+    Array3D(Array3D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param ab Reference to existing ArrayBase object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    Array3D(Array3D<T> &&a);
+
 	
 	/**
 	 * @brief Deconstructor for 3D array.
@@ -228,6 +243,23 @@ class Array3D : public ArrayBase<T>{
     const T& operator()(size_t dim1, size_t dim2, size_t dim3) const;
 
 
+    /**
+     * @brief Copy-assignment operator.
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     */
+    Array3D& operator=(const Array3D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     * @warning This function requires C++11 compiler support.
+     */
+    Array3D& operator=(const Array3D<T> &&a);
+
+
 	/**
 	 * @brief Get the memory occupied by this object.
 	 * @pre Array object exists.
@@ -291,6 +323,22 @@ class Array3D : public ArrayBase<T>{
 
 	/** @brief Total number of points in the array. */
     size_t npoints;
+
+
+
+    /**
+     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @param first First ArrayBase object.
+     * @param second Second ArrayBase object.
+     */
+    friend void Array3DSwap(Array3D<T> &first, Array3D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.size1, second.size1);
+        std::swap(first.size2, second.size2);
+        std::swap(first.size3, second.size3);
+        std::swap(first.array, second.array);
+    }
 
 
 

@@ -127,6 +127,7 @@ public:
     /**
      * @brief Move constructor (C++11).
      * @param ab Reference to existing ArrayBase object to be copied.
+     * @warning This function requires C++11 compiler support.
      */
     ArrayBase(ArrayBase<T> &&ab);
 
@@ -142,11 +143,20 @@ public:
 
 
     /**
-     * @brief Assignment operator.
+     * @brief Copy-assignment operator.
      * @param ab Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      */
     ArrayBase& operator=(const ArrayBase<T> &ab);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     * @warning This function requires C++11 compiler support.
+     */
+    ArrayBase& operator=(const ArrayBase<T> &&ab);
 
 
     /**
