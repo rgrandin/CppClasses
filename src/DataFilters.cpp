@@ -283,6 +283,20 @@ DataFilters<T>::DataFilters()
 
 
 template <class T>
+DataFilters<T>::DataFilters(DataFilters<T> &a) : DataFilters()
+{
+    DataFiltersSwap(*this, a);
+}
+
+
+template <class T>
+DataFilters<T>::DataFilters(DataFilters<T> &&a) : DataFilters()
+{
+    DataFiltersSwap(*this, a);
+}
+
+
+template <class T>
 DataFilters<T>::~DataFilters()
 {
 	// FREE MEMORY
@@ -292,6 +306,22 @@ DataFilters<T>::~DataFilters()
 	fftw_destroy_plan(sinc2d_backward_plan);
 	fftw_destroy_plan(custom2d_forward_plan);
 	fftw_destroy_plan(custom2d_backward_plan);
+}
+
+
+template <class T>
+DataFilters<T>& DataFilters<T>::operator=(const DataFilters<T> &a)
+{
+    DataFiltersSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+DataFilters<T>& DataFilters<T>::operator=(const DataFilters<T> &&a)
+{
+    DataFiltersSwap(*this, a);
+    return *this;
 }
 
 

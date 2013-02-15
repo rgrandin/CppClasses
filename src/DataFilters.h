@@ -107,6 +107,21 @@ public:
 	DataFilters();
 
 
+    /**
+     * @brief Copy constructor.
+     * @param ab Reference to existing DataFilters object to be copied.
+     */
+    DataFilters(DataFilters<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param ab Reference to existing DataFilters object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    DataFilters(DataFilters<T> &&a);
+
+
 	/**
 	 * @brief Deconstructor.
 	 * @pre DataFilters object exists.
@@ -114,6 +129,23 @@ public:
 	 * @return None.
 	 */
     virtual ~DataFilters();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     */
+    DataFilters& operator=(const DataFilters<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param ab Reference to ArrayBase object being assigned.
+     * @return Pointer to instance of ArrayBase.
+     * @warning This function requires C++11 compiler support.
+     */
+    DataFilters& operator=(const DataFilters<T> &&a);
 
 
 	/**
@@ -236,6 +268,36 @@ public:
 	 * @return None.
 	 */
 	void CustomFilter2D_Real(Array2D<T> &data);
+
+
+
+protected:
+
+    /**
+     * @brief DataFiltersSwap swaps member information between two ArrayBase objects.
+     * @param first First ArrayBase object.
+     * @param second Second ArrayBase object.
+     */
+    friend void DataFiltersSwap(DataFilters<T> &first, DataFilters<T> &second)
+    {
+        std::swap(first.n_sinc_fft, second.n_sinc_fft);
+        std::swap(first.n_sinc_fft1, second.n_sinc_fft1);
+        std::swap(first.n_sinc_fft2, second.n_sinc_fft2);
+        std::swap(first.sinc2d_backward_plan, second.sinc2d_backward_plan);
+        std::swap(first.sinc2d_backward_plan_set, second.sinc2d_backward_plan_set);
+        std::swap(first.sinc2d_forward_plan, second.sinc2d_forward_plan);
+        std::swap(first.sinc2d_forward_plan_set, second.sinc2d_forward_plan_set);
+        std::swap(first.sinc_fft, second.sinc_fft);
+        std::swap(first.custom2d_backward_plan, second.custom2d_backward_plan);
+        std::swap(first.custom2d_backward_plan_set, second.custom2d_backward_plan_set);
+        std::swap(first.custom2d_fft, second.custom2d_fft);
+        std::swap(first.custom2d_fileread, second.custom2d_fileread);
+        std::swap(first.custom2d_forward_plan, second.custom2d_forward_plan);
+        std::swap(first.custom2d_forward_plan_set, second.custom2d_forward_plan_set);
+        std::swap(first.custom2d_nfft1, second.custom2d_nfft1);
+        std::swap(first.custom2d_nfft2, second.custom2d_nfft2);
+        std::swap(first.custom2d_points, second.custom2d_points);
+    }
 
 
 

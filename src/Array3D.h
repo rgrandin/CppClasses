@@ -111,14 +111,14 @@ class Array3D : public ArrayBase<T>{
 
     /**
      * @brief Copy constructor.
-     * @param ab Reference to existing ArrayBase object to be copied.
+     * @param ab Reference to existing Array3D object to be copied.
      */
     Array3D(Array3D<T> &a);
 
 
     /**
      * @brief Move constructor (C++11).
-     * @param ab Reference to existing ArrayBase object to be copied.
+     * @param ab Reference to existing Array3D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array3D(Array3D<T> &&a);
@@ -327,7 +327,7 @@ class Array3D : public ArrayBase<T>{
 
 
     /**
-     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @brief Array3DSwap swaps member information between two ArrayBase objects.
      * @param first First ArrayBase object.
      * @param second Second ArrayBase object.
      */

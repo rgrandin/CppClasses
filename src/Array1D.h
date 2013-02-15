@@ -282,7 +282,7 @@ public:
 protected:
 
     /**
-     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @brief Array1DSwap swaps member information between two ArrayBase objects.
      * @param first First ArrayBase object.
      * @param second Second ArrayBase object.
      */

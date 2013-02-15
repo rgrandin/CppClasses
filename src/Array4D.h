@@ -119,14 +119,14 @@ public:
 
     /**
      * @brief Copy constructor.
-     * @param ab Reference to existing ArrayBase object to be copied.
+     * @param ab Reference to existing Array4D object to be copied.
      */
     Array4D(Array4D<T> &a);
 
 
     /**
      * @brief Move constructor (C++11).
-     * @param ab Reference to existing ArrayBase object to be copied.
+     * @param ab Reference to existing Array4D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array4D(Array4D<T> &&a);
@@ -350,7 +350,7 @@ protected:
 
 
     /**
-     * @brief ArrayBaseSwap swaps member information between two ArrayBase objects.
+     * @brief Array4DSwap swaps member information between two ArrayBase objects.
      * @param first First ArrayBase object.
      * @param second Second ArrayBase object.
      */
