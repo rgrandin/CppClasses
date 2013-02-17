@@ -720,8 +720,10 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
                     }
                 }
             }
-            delete pscalars(i);
-            pscalars(i) = NULL;
+            if(pscalars(i) != NULL){
+                delete pscalars(i);
+                pscalars(i) = NULL;
+            }
         }
         pscalars.ResetSize(nscalars);
         for(size_t i=0; i<nscalars-1; i++){
@@ -734,8 +736,10 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
                     }
                 }
             }
-            delete tmparray(i);
-            tmparray(i) = NULL;
+            if(tmparray(i) != NULL){
+                delete tmparray(i);
+                tmparray(i) = NULL;
+            }
         }
 
         /*
@@ -754,8 +758,10 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
             scalar_names(i) = new std::string;
             scalar_names(i)->reserve(qtysize);
             scalar_names(i)->assign(tmparray2(i)->substr());
-            delete tmparray2(i);
-            tmparray2(i) = NULL;
+            if(tmparray2(i) != NULL){
+                delete tmparray2(i);
+                tmparray2(i) = NULL;
+            }
         }
     }
 
@@ -768,6 +774,131 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
     scalar_names(nscalars-1)->assign(name);
 
 
+}
+
+
+template <class T>
+void UniformVolume3D<T>::AddScalarQuantity(const std::string name, Array3D<T> *data)
+{
+    // Increase count of number of scalar quantities
+    nscalars++;
+
+    /*
+      Increase the size of the PArray1D object containing pointers to
+      Array2D objects containing data.  The data must be copied into temporary
+      arrays since the current Array2D objects are destroyed when the
+      PArray1D object is resized.  The data is then copied back into the
+      resized PArray1D object.
+
+      During the copy process, the source object is deleted immediately after
+      its data has been copied.  This is to reduce memory requirements so that
+      only one extra object's worth of memory is required during the
+      copy process.  Note that setting the resulting pointer to NULL is
+      needed to avoid freeing the memory more than once upon deletion of
+      the temporary PArray1D object.
+
+      After the copy is complete, add a new Array2D object to the final
+      entry in the resized PArray1D object, set its size equal to the grid
+      size, and all points initialized to 0.0.
+     */
+
+    /*
+      If the first element of pscalars is NULL, no quantity exists to be copied,
+      so this first part can be skipped.
+     */
+    if(pscalars(0) != NULL){
+        PArray1D<Array3D<T>*> tmparray(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            tmparray(i) = new Array3D<T>;
+            tmparray(i)->ResetSize(vrows,vcols,vslices);
+            for(size_t kk=0; kk<vslices; kk++){
+                for(size_t ii=0; ii<vrows; ii++){
+                    for(size_t jj=0; jj<vcols; jj++){
+                        tmparray(i)->operator ()(ii,jj,kk) = pscalars(i)->operator ()(ii,jj,kk);
+                    }
+                }
+            }
+            if(pscalars(i) != NULL){
+                delete pscalars(i);
+                pscalars(i) = NULL;
+            }
+        }
+        pscalars.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            pscalars(i) = new Array3D<T>;
+            pscalars(i)->ResetSize(vrows,vcols,vslices);
+            for(size_t kk=0; kk<vslices; kk++){
+                for(size_t ii=0; ii<vrows; ii++){
+                    for(size_t jj=0; jj<vcols; jj++){
+                        pscalars(i)->operator ()(ii,jj,kk) = tmparray(i)->operator ()(ii,jj,kk);
+                    }
+                }
+            }
+            if(tmparray(i) != NULL){
+                delete tmparray(i);
+                tmparray(i) = NULL;
+            }
+        }
+
+        /*
+          Like above, expand the arrays related to quantity labels.
+         */
+        PArray1D<std::string*> tmparray2(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            tmparray2(i) = new std::string;
+            tmparray2(i)->reserve(qtysize);
+            tmparray2(i)->assign(scalar_names(i)->substr());
+            delete scalar_names(i);
+            scalar_names(i) = NULL;
+        }
+        scalar_names.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            scalar_names(i) = new std::string;
+            scalar_names(i)->reserve(qtysize);
+            scalar_names(i)->assign(tmparray2(i)->substr());
+            if(tmparray2(i) != NULL){
+                delete tmparray2(i);
+                tmparray2(i) = NULL;
+            }
+        }
+    }
+
+    pscalars(nscalars-1) = data;
+
+    scalar_names(nscalars-1) = new std::string;
+    scalar_names(nscalars-1)->reserve(qtysize);
+    scalar_names(nscalars-1)->assign(name);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::RemoveScalarQuantityRef(const size_t qty)
+{
+    /* Set pointer to NULL. */
+    pscalars(qty) = NULL;
+
+    /* Remove quantity from array of pointers. */
+    UniformVolume3D<T>::RemoveScalarQuantity(qty);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::RemoveAllData()
+{
+    for(size_t i=0; i<nscalars; i++){
+        RemoveScalarQuantity(i);
+    }
+
+    for(size_t i=0; i<nvectors; i++){
+        RemoveVectorQuantity(i);
+    }
+}
+
+
+template <class T>
+Array3D<T>* UniformVolume3D<T>::PointerToScalarData(const size_t qty)
+{
+    return pscalars(qty);
 }
 
 
@@ -812,8 +943,10 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
                     }
                 }
             }
-            delete pscalars(i);
-            pscalars(i) = NULL;
+            if(pscalars(i) != NULL){
+                delete pscalars(i);
+                pscalars(i) = NULL;
+            }
         }
         pscalars.ResetSize(nscalars);
         for(size_t i=0; i<nscalars+1; i++){
@@ -832,8 +965,10 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
                     }
                 }
             }
-            delete tmparray(i);
-            tmparray(i) = NULL;
+            if(tmparray(i) != NULL){
+                delete tmparray(i);
+                tmparray(i) = NULL;
+            }
         }
 
 

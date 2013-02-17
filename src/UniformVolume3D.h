@@ -186,6 +186,36 @@ public:
 
 
     /**
+    @brief Add an array to hold a scalar quantity at each grid point.
+    @pre UniformVolume3D object exists.
+    @param name Name of scalar quantity added.
+    @param data Pointer to data.
+    @post New scalar quantity has been added.
+    @return None.
+    */
+    void AddScalarQuantity(const std::string name, Array3D<T> *data);
+
+
+    /**
+    @brief Remove array containing scalar quantity at each grid point.
+
+    This removes the reference to the data array identified by quantity index 'qty'.
+    @pre UniformVolume3D object exists and scalar quantity exists.
+    @param qty 0-based index of quantity to be removed.
+    @post Scalar quantity removed.  Remaining quantities remain in their
+          same relative order, but their index numbers are updated to
+          remain contiguous.
+    @return None.
+    @warning All data stored in the quantity will be lost.
+    @warning Be aware of the index renumbering.  Order remains the same, but
+          index numbers are updated to remain contiguous.
+    @warning No data is actually deleted.  The pointer to the data array is simply
+        forgotten and the original data array is untouched.
+     */
+    void RemoveScalarQuantityRef(const size_t qty);
+
+
+    /**
     @brief Remove array containing scalar quantity at each grid point.
     @pre UniformVolume3D object exists and scalar quantity exists.
     @param qty 0-based index of quantity to be removed.
@@ -198,6 +228,20 @@ public:
           index numbers are updated to remain contiguous.
     */
     void RemoveScalarQuantity(const size_t qty);
+
+
+    /**
+     * @brief PointerToScalarData retrieves the pointer to the scalar data identified
+     *  by index 'qty'.
+     * @param qty 0-based index of scalar quantity to which a pointer is desired.
+     * @return Pointer to Array3D object containing data.
+     * @warning The data in this object is not forgotten by this object when this function
+     *  is called.  It is left to the programmer to ensure that the memory occupied by the
+     *  Array3D object containing data is only freed once.
+     * @see RemoveScalarQuantityRef() for information about having this UniformVolume3D object
+     *  "forget" about the data array.
+     */
+    Array3D<T>* PointerToScalarData(const size_t qty);
 
 
     /**
@@ -267,6 +311,12 @@ public:
     @return Name of vector quantity.
     */
     std::string VectorQuantityName(const size_t qty);
+
+
+    /**
+     * @brief RemoveAllData deletes all data arrays (scalar and vector).
+     */
+    void RemoveAllData();
 
 
     /**
