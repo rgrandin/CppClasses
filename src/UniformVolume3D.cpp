@@ -687,19 +687,14 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
 
     /*
       Increase the size of the PArray1D object containing pointers to
-      Array2D objects containing data.  The data must be copied into temporary
-      arrays since the current Array2D objects are destroyed when the
-      PArray1D object is resized.  The data is then copied back into the
-      resized PArray1D object.
+      Array3D objects containing data.  Pointers to existing arrays are
+      copied to a temporary PArray1D so that the resize operation does not
+      cause existing data to be lost.
 
-      During the copy process, the source object is deleted immediately after
-      its data has been copied.  This is to reduce memory requirements so that
-      only one extra object's worth of memory is required during the
-      copy process.  Note that setting the resulting pointer to NULL is
-      needed to avoid freeing the memory more than once upon deletion of
-      the temporary PArray1D object.
+      No extra memory is required for this approach since the data is moved
+      between PArray1D objects rather than copied.
 
-      After the copy is complete, add a new Array2D object to the final
+      After the move is complete, add a new Array3D object to the final
       entry in the resized PArray1D object, set its size equal to the grid
       size, and all points initialized to 0.0.
      */
@@ -711,30 +706,15 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
     if(pscalars(0) != NULL){
         PArray1D<Array3D<T>*> tmparray(nscalars);
         for(size_t i=0; i<nscalars-1; i++){
-            tmparray(i) = new Array3D<T>;
-            tmparray(i)->ResetSize(vrows,vcols,vslices);
-            for(size_t kk=0; kk<vslices; kk++){
-                for(size_t ii=0; ii<vrows; ii++){
-                    for(size_t jj=0; jj<vcols; jj++){
-                        tmparray(i)->operator ()(ii,jj,kk) = pscalars(i)->operator ()(ii,jj,kk);
-                    }
-                }
-            }
-            delete pscalars(i);
+            /* Move pointer to data to temporary array.  Set pointer within pscalars to NULL so that
+             * the resize operation does not cause data to be lost. */
+            tmparray(i) = pscalars(i);
             pscalars(i) = NULL;
         }
         pscalars.ResetSize(nscalars);
         for(size_t i=0; i<nscalars-1; i++){
-            pscalars(i) = new Array3D<T>;
-            pscalars(i)->ResetSize(vrows,vcols,vslices);
-            for(size_t kk=0; kk<vslices; kk++){
-                for(size_t ii=0; ii<vrows; ii++){
-                    for(size_t jj=0; jj<vcols; jj++){
-                        pscalars(i)->operator ()(ii,jj,kk) = tmparray(i)->operator ()(ii,jj,kk);
-                    }
-                }
-            }
-            delete tmparray(i);
+            /* Move pointer from temporary array back to pscalars. */
+            pscalars(i) = tmparray(i);
             tmparray(i) = NULL;
         }
 
@@ -743,22 +723,18 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
          */
         PArray1D<std::string*> tmparray2(nscalars);
         for(size_t i=0; i<nscalars-1; i++){
-            tmparray2(i) = new std::string;
-            tmparray2(i)->reserve(qtysize);
-            tmparray2(i)->assign(scalar_names(i)->substr());
-            delete scalar_names(i);
+            tmparray2(i) = scalar_names(i);
             scalar_names(i) = NULL;
         }
         scalar_names.ResetSize(nscalars);
         for(size_t i=0; i<nscalars-1; i++){
-            scalar_names(i) = new std::string;
-            scalar_names(i)->reserve(qtysize);
-            scalar_names(i)->assign(tmparray2(i)->substr());
-            delete tmparray2(i);
+            scalar_names(i) = tmparray2(i);
             tmparray2(i) = NULL;
         }
     }
 
+    /* By this point, the last element of both 'pscalars' and 'scalar_names' has not been set.  Create
+     * the appropriate objects for each array and initialize values.  */
     pscalars(nscalars-1) = new Array3D<T>;
     pscalars(nscalars-1)->ResetSize(vrows,vcols,vslices);
     pscalars(nscalars-1)->ResetVal((T)0.0e0);
@@ -766,8 +742,110 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
     scalar_names(nscalars-1) = new std::string;
     scalar_names(nscalars-1)->reserve(qtysize);
     scalar_names(nscalars-1)->assign(name);
+}
 
 
+template <class T>
+void UniformVolume3D<T>::AddScalarQuantity(const std::string name, Array3D<T> *data)
+{
+    // Increase count of number of scalar quantities
+    nscalars++;
+
+    /*
+      Increase the size of the PArray1D object containing pointers to
+      Array3D objects containing data.  Pointers to existing arrays are
+      copied to a temporary PArray1D so that the resize operation does not
+      cause existing data to be lost.
+
+      No extra memory is required for this approach since the data is moved
+      between PArray1D objects rather than copied.
+
+      After the move is complete, add a new Array3D object to the final
+      entry in the resized PArray1D object, set its size equal to the grid
+      size, and all points initialized to 0.0.
+     */
+
+    /*
+      If the first element of pscalars is NULL, no quantity exists to be copied,
+      so this first part can be skipped.
+     */
+    if(pscalars(0) != NULL){
+        PArray1D<Array3D<T>*> tmparray(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            /* Move pointer to data to temporary array.  Set pointer within pscalars to NULL so that
+             * the resize operation does not cause data to be lost. */
+            tmparray(i) = pscalars(i);
+            pscalars(i) = NULL;
+        }
+        pscalars.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            /* Move pointer from temporary array back to pscalars. */
+            pscalars(i) = tmparray(i);
+            tmparray(i) = NULL;
+        }
+
+        /*
+          Like above, expand the arrays related to quantity labels.
+         */
+        PArray1D<std::string*> tmparray2(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            tmparray2(i) = scalar_names(i);
+            scalar_names(i) = NULL;
+        }
+        scalar_names.ResetSize(nscalars);
+        for(size_t i=0; i<nscalars-1; i++){
+            scalar_names(i) = tmparray2(i);
+            tmparray2(i) = NULL;
+        }
+    }
+
+    /* By this point, the last element of both 'pscalars' and 'scalar_names' has not been set.  Set the
+     * pointer to the data to the passed-in value and set the appropriate name.  */
+    pscalars(nscalars-1) = data;
+
+    scalar_names(nscalars-1) = new std::string;
+    scalar_names(nscalars-1)->reserve(qtysize);
+    scalar_names(nscalars-1)->assign(name);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::RemoveScalarQuantityRef(const size_t qty)
+{
+    /* Set pointer to NULL to prevent deletion of data. */
+    pscalars(qty) = NULL;
+
+    /* Remove quantity from array of pointers. */
+    UniformVolume3D<T>::RemoveScalarQuantity(qty);
+}
+
+
+template <class T>
+void UniformVolume3D<T>::RemoveAllData()
+{
+    /* Set member variables tracking data quantities to 0.  Reset arrays of pointers to data and data-names
+     * to contain a single NULL element (cannot create 0-length array, so create array with no real data). */
+    nscalars = 0;
+    nvectors = 0;
+
+    pscalars.ResetSize(1);
+    pscalars(0) = NULL;
+
+    scalar_names.ResetSize(1);
+    scalar_names(0) = NULL;
+
+    pvectors.ResetSize(1);
+    pvectors(0) = NULL;
+
+    vector_names.ResetSize(1);
+    vector_names(0) = NULL;
+}
+
+
+template <class T>
+Array3D<T>* UniformVolume3D<T>::PointerToScalarData(const size_t qty)
+{
+    return pscalars(qty);
 }
 
 
@@ -779,21 +857,9 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
 
     /*
       Decrease the size of the PArray1D object containing pointers to
-      Array2D objects containing data.  The data must be copied into temporary
-      arrays since the current Array2D objects are destroyed when the
-      PArray1D object is resized.  The data is then copied back into the
-      resized PArray1D object.
-
-      During the copy process, the source object is deleted immediately after
-      its data has been copied.  This is to reduce memory requirements so that
-      only one extra object's worth of memory is required during the
-      copy process.  Note that setting the resulting pointer to NULL is
-      needed to avoid freeing the memory more than once upon deletion of
-      the temporary PArray1D object.
-
-      After the copy is complete, add a new Array2D object to the final
-      entry in the resized PArray1D object, set its size equal to the grid
-      size, and all points initialized to 0.0.
+      Array3D objects containing data.  As with the AddScalarQuantity function,
+      pointers to the data are moved between temporary arrays to avoid the need
+      for extra memory to copy data.
      */
 
     /*
@@ -803,37 +869,25 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
     if(pscalars(0) != NULL && nscalars > 0){
         PArray1D<Array3D<T>*> tmparray(nscalars+1);
         for(size_t i=0; i<nscalars+1; i++){
-            tmparray(i) = new Array3D<T>;
-            tmparray(i)->ResetSize(vrows,vcols,vslices);
-            for(size_t kk=0; kk<vslices; kk++){
-                for(size_t ii=0; ii<vrows; ii++){
-                    for(size_t jj=0; jj<vcols; jj++){
-                        tmparray(i)->operator ()(ii,jj,kk) = pscalars(i)->operator ()(ii,jj,kk);
-                    }
-                }
+
+            /* Save pointer to data only for data not to be removed.  Missing element is set to
+             * NULL in the initialization of 'tmparray'. */
+            if(i != qty){
+                tmparray(i) = pscalars(i);
+                pscalars(i) = NULL;
             }
-            delete pscalars(i);
-            pscalars(i) = NULL;
         }
         pscalars.ResetSize(nscalars);
+        size_t j = 0;
         for(size_t i=0; i<nscalars+1; i++){
-            size_t itmp = i;
+
+            /* Move pointer to data only if loop iteration is for data to be retained.  Variable
+             * 'j' is only incremented when a valid pointer is moved.  When i > qty, j = i-1. */
             if(i != qty){
-                if(i > qty){
-                    itmp = i - 1;   // Reduce index by 1 since loop is past removed quantity
-                }
-                pscalars(itmp) = new Array3D<T>;
-                pscalars(itmp)->ResetSize(vrows,vcols,vslices);
-                for(size_t kk=0; kk<vslices; kk++){
-                    for(size_t ii=0; ii<vrows; ii++){
-                        for(size_t jj=0; jj<vcols; jj++){
-                            pscalars(itmp)->operator ()(ii,jj,kk) = tmparray(i)->operator ()(ii,jj,kk);
-                        }
-                    }
-                }
+                pscalars(j) = tmparray(i);
+                tmparray(i) = NULL;
+                j++;
             }
-            delete tmparray(i);
-            tmparray(i) = NULL;
         }
 
 
@@ -842,24 +896,18 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
          */
         PArray1D<std::string*> tmparray2(nscalars+1);
         for(size_t i=0; i<nscalars+1; i++){
-            tmparray2(i) = new std::string;
-            tmparray2(i)->reserve(qtysize);
-            tmparray2(i)->assign(scalar_names(i)->substr());
-            delete scalar_names(i);
+            tmparray2(i) = scalar_names(i);
             scalar_names(i) = NULL;
         }
         scalar_names.ResetSize(nscalars);
+        j = 0;
         for(size_t i=0; i<nscalars+1; i++){
-            size_t itmp = i;
             if(i != qty){
-                if(i > qty){
-                    itmp = i - 1;
+                if(i != qty){
+                    scalar_names(j) = tmparray2(i);
+                    tmparray2(i) = NULL;
+                    j++;
                 }
-                scalar_names(itmp) = new std::string;
-                scalar_names(itmp)->reserve(qtysize);
-                scalar_names(itmp)->assign(tmparray2(i)->substr());
-                delete tmparray2(i);
-                tmparray2(i) = NULL;
             }
         }
     }
@@ -885,66 +933,39 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
 template <class T>
 void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t ncomp)
 {
-    // Increase count of number of vector quantities
+    // Increase count of number of scalar quantities
     nvectors++;
 
     /*
       Increase the size of the PArray1D object containing pointers to
-      Array3D objects containing data.  The data must be copied into temporary
-      arrays since the current Array3D objects are destroyed when the
-      PArray1D object is resized.  The data is then copied back into the
-      resized PArray1D object.
+      Array4D objects containing data.  Pointers to existing arrays are
+      copied to a temporary PArray1D so that the resize operation does not
+      cause existing data to be lost.
 
-      During the copy process, the source object is deleted immediately after
-      its data has been copied.  This is to reduce memory requirements so that
-      only one extra object's worth of memory is required during the
-      copy process.  Note that setting the resulting pointer to NULL is
-      needed to avoid freeing the memory more than once upon deletion of
-      the temporary PArray1D object.
+      No extra memory is required for this approach since the data is moved
+      between PArray1D objects rather than copied.
 
-      After the copy is complete, add a new Array3D object to the final
+      After the move is complete, add a new Array3D object to the final
       entry in the resized PArray1D object, set its size equal to the grid
       size, and all points initialized to 0.0.
      */
 
     /*
-      If first element of pvectors is NULL, no vector quantity exists to be copied,
+      If the first element of pscalars is NULL, no quantity exists to be copied,
       so this first part can be skipped.
      */
     if(pvectors(0) != NULL){
         PArray1D<Array4D<T>*> tmparray(nvectors);
-        size_t n = 0;
         for(size_t i=0; i<nvectors-1; i++){
-            tmparray(i) = new Array4D<T>;
-            n = pvectors(i)->GetDim(3);
-            tmparray(i)->ResetSize(vrows,vcols,vslices,n);
-            for(size_t ll=0; ll<n; ll++){
-                for(size_t kk=00; kk<vslices; kk++){
-                    for(size_t ii=0; ii<vrows; ii++){
-                        for(size_t jj=0; jj<vcols; jj++){
-                            tmparray(i)->operator ()(ii,jj,kk,ll) = pvectors(i)->operator ()(ii,jj,kk,ll);
-                        }
-                    }
-                }
-            }
-            delete pvectors(i);
+            /* Move pointer to data to temporary array.  Set pointer within pscalars to NULL so that
+             * the resize operation does not cause data to be lost. */
+            tmparray(i) = pvectors(i);
             pvectors(i) = NULL;
         }
         pvectors.ResetSize(nvectors);
         for(size_t i=0; i<nvectors-1; i++){
-            pvectors(i) = new Array4D<T>;
-            n = tmparray(i)->GetDim(2);
-            pvectors(i)->ResetSize(vrows,vcols,vslices,n);
-            for(size_t ll=0; ll<n; ll++){
-                for(size_t kk=0; kk<vslices; kk++){
-                    for(size_t ii=0; ii<vrows; ii++){
-                        for(size_t jj=0; jj<vcols; jj++){
-                            pvectors(i)->operator ()(ii,jj,kk,ll) = tmparray(i)->operator ()(ii,jj,kk,ll);
-                        }
-                    }
-                }
-            }
-            delete tmparray(i);
+            /* Move pointer from temporary array back to pscalars. */
+            pvectors(i) = tmparray(i);
             tmparray(i) = NULL;
         }
 
@@ -953,23 +974,18 @@ void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t 
          */
         PArray1D<std::string*> tmparray2(nvectors);
         for(size_t i=0; i<nvectors-1; i++){
-            tmparray2(i) = new std::string;
-            tmparray2(i)->reserve(qtysize);
-            tmparray2(i)->assign(vector_names(i)->substr());
-            delete vector_names(i);
+            tmparray2(i) = vector_names(i);
             vector_names(i) = NULL;
         }
         vector_names.ResetSize(nvectors);
         for(size_t i=0; i<nvectors-1; i++){
-            vector_names(i) = new std::string;
-            vector_names(i)->reserve(qtysize);
-            vector_names(i)->assign(tmparray2(i)->substr());
-            delete tmparray2(i);
+            vector_names(i) = tmparray2(i);
             tmparray2(i) = NULL;
         }
-
     }
 
+    /* By this point, the last element of both 'pscalars' and 'scalar_names' has not been set.  Create
+     * the appropriate objects for each array and initialize values.  */
     pvectors(nvectors-1) = new Array4D<T>;
     pvectors(nvectors-1)->ResetSize(vrows,vcols,vslices,ncomp);
     pvectors(nvectors-1)->ResetVal((T)0.0e0);
@@ -983,103 +999,68 @@ void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t 
 template <class T>
 void UniformVolume3D<T>::RemoveVectorQuantity(const size_t qty)
 {
-    // Decrease count of number of scalar quantities
+    // Decrease count of number of vector quantities
     nvectors--;
 
     /*
       Decrease the size of the PArray1D object containing pointers to
-      Array3D objects containing data.  The data must be copied into temporary
-      arrays since the current Array3D objects are destroyed when the
-      PArray1D object is resized.  The data is then copied back into the
-      resized PArray1D object.
-
-      During the copy process, the source object is deleted immediately after
-      its data has been copied.  This is to reduce memory requirements so that
-      only one extra object's worth of memory is required during the
-      copy process.  Note that setting the resulting pointer to NULL is
-      needed to avoid freeing the memory more than once upon deletion of
-      the temporary PArray1D object.
-
-      After the copy is complete, add a new Array3D object to the final
-      entry in the resized PArray1D object, set its size equal to the grid
-      size, and all points initialized to 0.0.
+      Array4D objects containing data.  As with the AddVectorQuantity function,
+      pointers to the data are moved between temporary arrays to avoid the need
+      for extra memory to copy data.
      */
 
     /*
-      If the first element of pvectors is NULL or the updated number of vector
-      quantities is zero, there are no quantities to delete.
+      If the first element of pvectors is NULL, no vector quantities exist, thus there
+      are none to be removed.
      */
     if(pvectors(0) != NULL && nvectors > 0){
-
         PArray1D<Array4D<T>*> tmparray(nvectors+1);
         for(size_t i=0; i<nvectors+1; i++){
-            tmparray(i) = new Array4D<T>;
-            tmparray(i)->ResetSize(vrows,vcols,vslices,3);
-            for(size_t ll=0; ll<3; ll++){
-                for(size_t kk=0; kk<vslices; kk++){
-                    for(size_t ii=0; ii<vrows; ii++){
-                        for(size_t jj=0; jj<vcols; jj++){
-                            tmparray(i)->operator ()(ii,jj,kk,ll) = pvectors(i)->operator ()(ii,jj,kk,ll);
-                        }
-                    }
-                }
+
+            /* Save pointer to data only for data not to be removed.  Missing element is set to
+             * NULL in the initialization of 'tmparray'. */
+            if(i != qty){
+                tmparray(i) = pvectors(i);
+                pvectors(i) = NULL;
             }
-            delete pvectors(i);
-            pvectors(i) = NULL;
         }
         pvectors.ResetSize(nvectors);
+        size_t j = 0;
         for(size_t i=0; i<nvectors+1; i++){
-            size_t itmp = i;
+
+            /* Move pointer to data only if loop iteration is for data to be retained.  Variable
+             * 'j' is only incremented when a valid pointer is moved.  When i > qty, j = i-1. */
             if(i != qty){
-                if(i > qty){
-                    itmp = i - 1;   // Reduce index by 1 since loop is past removed quantity
-                }
-                pvectors(itmp) = new Array4D<T>;
-                pvectors(itmp)->ResetSize(vrows,vcols,vslices,3);
-                for(size_t ll=0; ll<3; ll++){
-                    for(size_t kk=0; kk<vslices; kk++){
-                        for(size_t ii=0; ii<vrows; ii++){
-                            for(size_t jj=0; jj<vcols; jj++){
-                                pvectors(itmp)->operator ()(ii,jj,kk,ll) = tmparray(i)->operator ()(ii,jj,kk,ll);
-                            }
-                        }
-                    }
+                pvectors(j) = tmparray(i);
+                tmparray(i) = NULL;
+                j++;
+            }
+        }
+
+
+        /*
+          Like above, expand the arrays related to quantity labels.
+         */
+        PArray1D<std::string*> tmparray2(nvectors+1);
+        for(size_t i=0; i<nvectors+1; i++){
+            tmparray2(i) = vector_names(i);
+            vector_names(i) = NULL;
+        }
+        vector_names.ResetSize(nvectors);
+        j = 0;
+        for(size_t i=0; i<nvectors+1; i++){
+            if(i != qty){
+                if(i != qty){
+                    vector_names(j) = tmparray2(i);
+                    tmparray2(i) = NULL;
+                    j++;
                 }
             }
-            delete tmparray(i);
-            tmparray(i) = NULL;
         }
     }
 
     /*
-      Like above, expand the arrays related to quantity labels.
-     */
-    PArray1D<std::string*> tmparray2(nvectors+1);
-    for(size_t i=0; i<nvectors+1; i++){
-        tmparray2(i) = new std::string;
-        tmparray2(i)->reserve(qtysize);
-        tmparray2(i)->assign(vector_names(i)->substr());
-        delete vector_names(i);
-        vector_names(i) = NULL;
-    }
-    vector_names.ResetSize(nvectors);
-    for(size_t i=0; i<nvectors+1; i++){
-        size_t itmp = i;
-        if(i != qty){
-            if(i > qty){
-                itmp = i - 1;
-            }
-            vector_names(itmp) = new std::string;
-            vector_names(itmp)->reserve(qtysize);
-            vector_names(itmp)->assign(tmparray2(i)->substr());
-            delete tmparray2(i);
-            tmparray2(i) = NULL;
-        }
-    }
-
-
-    /*
-      If updated value of nscalars is 0, delete pointer to first object and set
+      If updated value of nvectors is 0, delete pointer to first object and set
       to NULL.
      */
     if(nvectors == 0){
@@ -1600,6 +1581,162 @@ void UniformVolume3D<T>::VTKWrite()
 template <class T>
 void UniformVolume3D<T>::VTKWriteBinary()
 {
+    /* Calculate the number of points in the data volume, and compare to the maximum value expressible
+     * using type 'int'.  If too many data points are in the volume, automatically write the data as
+     * multiple VTK files. */
+    std::string filestem_save(filenamestem);
+    size_t first_slice = 0;
+    size_t num_slices = vslices;
+    size_t remainder = 0;
+    size_t ntasks = 1;
+    float slice_min = (float)zmin;
+    float dz = 0.0e0;
+
+    size_t max_points_int = 2147483647;     /* 2^31 - 1 */
+
+    size_t max_slices = max_points_int/(vrows*vcols);
+
+    /* If too many points exist, re-calculate the number of sub-volume-files required and their size.  The
+     * last sub-volume-file may be smaller than the others. */
+    if(vslices > max_slices){
+        size_t loop_limit = vslices;
+        size_t loop_counter = 0;
+        while(num_slices > max_slices && loop_counter != loop_limit){
+            /* Calculate the number of sub-volume-files required. */
+            ntasks = vslices/max_slices;    /* INTEGER MATH! */
+
+            /* Add additional task if remainder is non-zero. */
+            if(vslices % max_slices != 0){
+                ntasks++;
+            }
+
+            /* Calculate number of slices per task. */
+            num_slices = vslices/ntasks;    /* INTEGER MATH! */
+
+            /* Calculate remainder. */
+            remainder = vslices % ntasks;
+
+            loop_counter++;
+        }
+    }
+
+    /* Calculate z-coordinate increment between each sub-volume-file. */
+    dz = (float)num_slices*zspacing;
+
+    /* Loop through the number of tasks and write the sub-volume-file. */
+    for(size_t i=0; i<ntasks; i++){
+
+        /* If multiple tasks are to be used, append "_partXX" to the current filename stem. */
+        if(ntasks > 1){
+            std::stringstream tmpss;
+            tmpss << filenamestem << "_part" << StringManip::FormattedNumber<size_t>(i,2,0,'0',false);
+            filenamestem = tmpss.str();
+        }
+
+        slice_min = (float)zmin + dz*(float)i;
+        first_slice = num_slices*i;
+
+        /* If this is the last iteration and the remainder is non-zero, change the number of slices to
+         * be equal to the remainder since the final iteration may be smaller than the others. */
+        if(i == ntasks-1 && remainder != 0){
+            num_slices = remainder;
+        }
+
+        /* Build a string to update the user-interface to indicate which file is being written, emit the
+         * signal to update the interface, and call the function to write the specified portion of the data. */
+        std::stringstream tmpss;
+        tmpss << "Writing volume file " << i+1 << " of " << ntasks;
+        qtsignals->EmitFunctionDesc2(tmpss.str());
+
+        UniformVolume3D<T>::VTKWriteBinaryPartial(first_slice, num_slices, slice_min);
+    }
+
+    /* Reset filename stem to original value. */
+    filenamestem = filestem_save;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
+{
+    /* Calculate the number of points in the data volume, and compare to the maximum value expressible
+     * using type 'int'.  If too many data points are in the volume, automatically write the data as
+     * multiple VTK files. */
+    std::string filestem_save(filenamestem);
+    size_t first_slice = 0;
+    size_t num_slices = vslices;
+    size_t remainder = 0;
+    size_t ntasks = 1;
+    float slice_min = (float)zmin;
+    float dz = 0.0e0;
+
+    size_t max_points_int = 2147483647;     /* 2^31 - 1 -- Maximum value for signed integer. */
+
+    size_t max_slices = max_points_int/(vrows*vcols);
+
+    /* If too many points exist, re-calculate the number of sub-volume-files required and their size.  The
+     * last sub-volume-file may be smaller than the others. */
+    if(vslices > max_slices){
+        size_t loop_limit = vslices;
+        size_t loop_counter = 0;
+        while(num_slices > max_slices && loop_counter != loop_limit){
+            /* Calculate the number of sub-volume-files required. */
+            ntasks = vslices/max_slices;    /* INTEGER MATH! */
+
+            /* Add additional task if remainder is non-zero. */
+            if(vslices % max_slices != 0){
+                ntasks++;
+            }
+
+            /* Calculate number of slices per task. */
+            num_slices = vslices/ntasks;    /* INTEGER MATH! */
+
+            /* Calculate remainder. */
+            remainder = vslices % ntasks;
+
+            loop_counter++;
+        }
+    }
+
+    /* Calculate z-coordinate increment between each sub-volume-file. */
+    dz = (float)num_slices*zspacing;
+
+    /* Loop through the number of tasks and write the sub-volume-file. */
+    for(size_t i=0; i<ntasks; i++){
+
+        /* If multiple tasks are to be used, append "_partXX" to the current filename stem. */
+        if(ntasks > 1){
+            std::stringstream tmpss;
+            tmpss << filestem_save << "_part" << StringManip::FormattedNumber<size_t>(i,2,0,'0',false);
+            filenamestem = tmpss.str();
+        }
+
+        slice_min = (float)zmin + dz*(float)i;
+        first_slice = num_slices*i;
+
+        /* If this is the last iteration and the remainder is non-zero, change the number of slices to
+         * be equal to the remainder since the final iteration may be smaller than the others. */
+        if(i == ntasks-1 && remainder != 0){
+            num_slices = remainder;
+        }
+
+        /* Build a string to update the user-interface to indicate which file is being written, emit the
+         * signal to update the interface, and call the function to write the specified portion of the data. */
+        std::stringstream tmpss;
+        tmpss << "Writing volume file " << i+1 << " of " << ntasks;
+        qtsignals->EmitFunctionDesc2(tmpss.str());
+
+        UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(first_slice, num_slices, slice_min);
+    }
+
+    /* Reset filename stem to original value. */
+    filenamestem = filestem_save;
+}
+
+
+template <class T>
+void UniformVolume3D<T>::VTKWriteBinaryPartial(const size_t first_slice, const size_t num_slices, const float slice_min)
+{
     std::string filename;
     std::fstream ssfile;
     if(!UniformVolume3D<T>::IsBigEndian()){
@@ -1612,7 +1749,7 @@ void UniformVolume3D<T>::VTKWriteBinary()
     /*
       Variables needed for tracking progress
      */
-    float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
+    float Tchunks = (float)num_slices*((float)nscalars + (float)nvectors);
     float chunkscomplete = 0.0e0;
     float completefrac = chunkscomplete/Tchunks;
     std::string descriptor("Writing Binary VTK File");
@@ -1647,10 +1784,10 @@ void UniformVolume3D<T>::VTKWriteBinary()
             size = sprintf(buffer,"DATASET STRUCTURED_POINTS\n");
             ssfile.write(buffer,size);
             tmpss.clear();  tmpss.str("");
-            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << num_slices << std::endl;
             size = sprintf(buffer,"%s",tmpss.str().c_str());
             ssfile.write(buffer,size);
-            size = sprintf(buffer,"ORIGIN %g %g %g\n",xmin,ymin,zmin);
+            size = sprintf(buffer,"ORIGIN %g %g %g\n",xmin,ymin,slice_min);
             ssfile.write(buffer,size);
             size = sprintf(buffer,"SPACING %g %g %g\n",xspacing,yspacing,zspacing);
             ssfile.write(buffer,size);
@@ -1661,7 +1798,7 @@ void UniformVolume3D<T>::VTKWriteBinary()
             ssfile.write(buffer,size);
 
             tmpss.clear();  tmpss.str("");
-            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << num_slices << std::endl;
             size = sprintf(buffer,"%s",tmpss.str().c_str());
             ssfile.write(buffer,size);
 
@@ -1684,20 +1821,20 @@ void UniformVolume3D<T>::VTKWriteBinary()
             }
 
             tmpss.clear();  tmpss.str("");
-            tmpss << "Z_COORDINATES " << vslices << " float" << std::endl;
+            tmpss << "Z_COORDINATES " << num_slices << " float" << std::endl;
             size = sprintf(buffer,"%s",tmpss.str().c_str());
             ssfile.write(buffer,size);
-            for(size_t i=0; i<vslices; i++){
-                tmpfloat = (float)i*(float)zspacing;
+            for(size_t i=0; i<num_slices; i++){
+                tmpfloat = (float)i*(float)zspacing + slice_min;
                 ssfile.write((char*)&tmpfloat,sizeof(float));
             }
         }
 
-        size_t nchunks = vslices*(nscalars + nvectors);
+        size_t nchunks = num_slices*(nscalars + nvectors);
         size_t chunks_processed = 0;
 
         tmpss.clear();  tmpss.str("");
-        tmpss << "POINT_DATA " << vcols*vrows*vslices << std::endl;
+        tmpss << "POINT_DATA " << vcols*vrows*num_slices << std::endl;
         size = sprintf(buffer,"%s",tmpss.str().c_str());
         ssfile.write(buffer,size);
 
@@ -1710,10 +1847,11 @@ void UniformVolume3D<T>::VTKWriteBinary()
             ssfile.write(buffer,size);
             size = sprintf(buffer,"LOOKUP_TABLE default\n");
             ssfile.write(buffer,size);
-            for(size_t k=0; k<vslices; k++){
+            for(size_t k=0; k<num_slices; k++){
+                size_t kk = k + first_slice;
                 for(size_t i=0; i<vrows; i++){
                     for(size_t j=0; j<vcols; j++){
-                        tmpfloat = pscalars(s)->operator ()(i,j,k);
+                        tmpfloat = pscalars(s)->operator ()(i,j,kk);
                         ssfile.write((char*)&tmpfloat,sizeof(T));
                     }
                 }
@@ -1737,11 +1875,12 @@ void UniformVolume3D<T>::VTKWriteBinary()
             }
             size = sprintf(buffer,"VECTORS %s %s\n",vector_names(v)->substr().c_str(),dtypename.c_str());
             ssfile.write(buffer,size);
-            for(size_t k=0; k<vslices; k++){
+            for(size_t k=0; k<num_slices; k++){
+                size_t kk = k + first_slice;
                 for(size_t i=0; i<vrows; i++){
                     for(size_t j=0; j<vcols; j++){
                         for(size_t l=0; l<n; l++){ /* Write components of vectors. */
-                            tmpfloat = pvectors(v)->operator ()(i,j,k,l);
+                            tmpfloat = pvectors(v)->operator ()(i,j,kk,l);
                             ssfile.write((char*)&tmpfloat,sizeof(T));
                         }
                         for(size_t l=n; l<3; l++){ /* Add 0 for extra dimension(s) if necessary. */
@@ -1766,7 +1905,7 @@ void UniformVolume3D<T>::VTKWriteBinary()
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
+void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, const size_t num_slices, const float slice_min)
 {
     std::string filename;
     std::fstream ssfile;
@@ -1780,7 +1919,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
     /*
       Variables needed for tracking progress
      */
-    float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
+    float Tchunks = (float)num_slices*((float)nscalars + (float)nvectors);
     float chunkscomplete = 0.0e0;
     float completefrac = chunkscomplete/Tchunks;
     std::string descriptor("Writing Binary VTK File");
@@ -1815,10 +1954,10 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
             size = sprintf(buffer,"DATASET STRUCTURED_POINTS\n");
             ssfile.write(buffer,size);
             tmpss.clear();  tmpss.str("");
-            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << num_slices << std::endl;
             size = sprintf(buffer,"%s",tmpss.str().c_str());
             ssfile.write(buffer,size);
-            size = sprintf(buffer,"ORIGIN %g %g %g\n",xmin,ymin,zmin);
+            size = sprintf(buffer,"ORIGIN %g %g %g\n",xmin,ymin,slice_min);
             ssfile.write(buffer,size);
             size = sprintf(buffer,"SPACING %g %g %g\n",xspacing,yspacing,zspacing);
             ssfile.write(buffer,size);
@@ -1829,7 +1968,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
             ssfile.write(buffer,size);
 
             tmpss.clear();  tmpss.str("");
-            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+            tmpss << "DIMENSIONS " << vcols << " " << vrows << " " << num_slices << std::endl;
             size = sprintf(buffer,"%s",tmpss.str().c_str());
             ssfile.write(buffer,size);
 
@@ -1854,21 +1993,21 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
             }
 
             tmpss.clear();  tmpss.str("");
-            tmpss << "Z_COORDINATES " << vslices << " float" << std::endl;
+            tmpss << "Z_COORDINATES " << num_slices << " float" << std::endl;
             size = sprintf(buffer,"%s",tmpss.str().c_str());
             ssfile.write(buffer,size);
-            for(size_t i=0; i<vslices; i++){
-                flippedfloat = (float)i*(float)zspacing;
+            for(size_t i=0; i<num_slices; i++){
+                flippedfloat = (float)i*(float)zspacing + slice_min;
                 UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
                 ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
             }
         }
 
-        size_t nchunks = vslices*(nscalars + nvectors);
+        size_t nchunks = num_slices*(nscalars + nvectors);
         size_t chunks_processed = 0;
 
         tmpss.clear();  tmpss.str("");
-        tmpss << "POINT_DATA " << vcols*vrows*vslices<< std::endl;
+        tmpss << "POINT_DATA " << vcols*vrows*num_slices<< std::endl;
         size = sprintf(buffer,"%s",tmpss.str().c_str());
         ssfile.write(buffer,size);
         for(size_t s=0; s<nscalars; s++){
@@ -1880,10 +2019,11 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
             ssfile.write(buffer,size);
             size = sprintf(buffer,"LOOKUP_TABLE default\n");
             ssfile.write(buffer,size);
-            for(size_t k=0; k<vslices; k++){
+            for(size_t k=0; k<num_slices; k++){
+                size_t kk = k + first_slice;
                 for(size_t i=0; i<vrows; i++){
                     for(size_t j=0; j<vcols; j++){
-                        flippedfloat = pscalars(s)->operator ()(i,j,k);
+                        flippedfloat = pscalars(s)->operator ()(i,j,kk);
                         UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
                         ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
                     }
@@ -1908,11 +2048,12 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
 
             size = sprintf(buffer,"VECTORS %s %s\n",vector_names(v)->substr().c_str(),dtypename.c_str());
             ssfile.write(buffer,size);
-            for(size_t k=0; k<vslices; k++){
+            for(size_t k=0; k<num_slices; k++){
+                size_t kk = k + first_slice;
                 for(size_t i=0; i<vrows; i++){
                     for(size_t j=0; j<vcols; j++){
                         for(size_t l=0; l<n; l++){ /* Write components of vectors. */
-                            flippedfloat = pvectors(v)->operator ()(i,j,k,l);
+                            flippedfloat = pvectors(v)->operator ()(i,j,kk,l);
                             UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
                             ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
                         }
@@ -1954,48 +2095,10 @@ void UniformVolume3D<T>::VTKWriteBinaryBigEndian()
 
 
 template <class T>
-T UniformVolume3D<T>::ReverseFloat(const T inFloat, size_t numbytes = sizeof(T))
-{
-    /* Code from:
-     * http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian
-     */
-    T retval;
-    T incopy = inFloat;
-    char *floatToConvert = reinterpret_cast<char*>(&incopy);
-    char *returnFloat = reinterpret_cast<char*>(&retval);
-
-    for(size_t i=0; i<numbytes; i++){
-        returnFloat[i] = floatToConvert[numbytes-i-1];
-    }
-
-    return retval;
-}
-
-
-template <class T>
 void UniformVolume3D<T>::ByteSwap(void *value, size_t numbytes)
 {
     unsigned char *memp = reinterpret_cast<unsigned char*>(value);
     std::reverse(memp, memp + numbytes);
-}
-
-
-template <class T>
-T UniformVolume3D<T>::ReverseFloat_FloatOnly(const float inFloat, size_t numbytes = 4)
-{
-    /* Code from:
-     * http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian
-     */
-    float retval;
-    float incopy = inFloat;
-    char *floatToConvert = reinterpret_cast<char*>(&incopy);
-    char *returnFloat = reinterpret_cast<char*>(&retval);
-
-    for(size_t i=0; i<numbytes; i++){
-        returnFloat[i] = floatToConvert[numbytes-i-1];
-    }
-
-    return (T)retval;
 }
 
 

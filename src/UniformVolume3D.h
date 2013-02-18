@@ -186,6 +186,36 @@ public:
 
 
     /**
+    @brief Add an array to hold a scalar quantity at each grid point.
+    @pre UniformVolume3D object exists.
+    @param name Name of scalar quantity added.
+    @param data Pointer to data.
+    @post New scalar quantity has been added.
+    @return None.
+    */
+    void AddScalarQuantity(const std::string name, Array3D<T> *data);
+
+
+    /**
+    @brief Remove array containing scalar quantity at each grid point.
+
+    This removes the reference to the data array identified by quantity index 'qty'.
+    @pre UniformVolume3D object exists and scalar quantity exists.
+    @param qty 0-based index of quantity to be removed.
+    @post Scalar quantity removed.  Remaining quantities remain in their
+          same relative order, but their index numbers are updated to
+          remain contiguous.
+    @return None.
+    @warning All data stored in the quantity will be lost.
+    @warning Be aware of the index renumbering.  Order remains the same, but
+          index numbers are updated to remain contiguous.
+    @warning No data is actually deleted.  The pointer to the data array is simply
+        forgotten and the original data array is untouched.
+     */
+    void RemoveScalarQuantityRef(const size_t qty);
+
+
+    /**
     @brief Remove array containing scalar quantity at each grid point.
     @pre UniformVolume3D object exists and scalar quantity exists.
     @param qty 0-based index of quantity to be removed.
@@ -198,6 +228,20 @@ public:
           index numbers are updated to remain contiguous.
     */
     void RemoveScalarQuantity(const size_t qty);
+
+
+    /**
+     * @brief PointerToScalarData retrieves the pointer to the scalar data identified
+     *  by index 'qty'.
+     * @param qty 0-based index of scalar quantity to which a pointer is desired.
+     * @return Pointer to Array3D object containing data.
+     * @warning The data in this object is not forgotten by this object when this function
+     *  is called.  It is left to the programmer to ensure that the memory occupied by the
+     *  Array3D object containing data is only freed once.
+     * @see RemoveScalarQuantityRef() for information about having this UniformVolume3D object
+     *  "forget" about the data array.
+     */
+    Array3D<T>* PointerToScalarData(const size_t qty);
 
 
     /**
@@ -270,6 +314,12 @@ public:
 
 
     /**
+     * @brief RemoveAllData deletes all data arrays (scalar and vector).
+     */
+    void RemoveAllData();
+
+
+    /**
     * @brief Overload () operator to access scalar quantities.
     * @pre UniformVolume3D object exists.
     * @param ind1 Value of first index.
@@ -307,7 +357,7 @@ public:
     * @return Value stored at supplied indices.
     */
     T& operator()(const size_t ind1, const size_t ind2, const size_t ind3,
-                const size_t comp, const size_t qty);
+                  const size_t comp, const size_t qty);
 
 
     /**
@@ -322,7 +372,7 @@ public:
     * @return Value stored at supplied indices.
     */
     const T& operator()(const size_t ind1, const size_t ind2, const size_t ind3,
-                      const size_t comp, const size_t qty) const;
+                        const size_t comp, const size_t qty) const;
 
 
     /**
@@ -717,7 +767,7 @@ public:
     @return Minimum value of specified quantity.
     */
     T MinVal(const int scalarqty, const int vectorqty, const int vectorcomp,
-           int &loc_x, int &loc_y, int &loc_z) const;
+             int &loc_x, int &loc_y, int &loc_z) const;
 
 
     /**
@@ -736,7 +786,7 @@ public:
     @return Maximum value of specified quantity.
     */
     T MaxVal(const int scalarqty, const int vectorqty, const int vectorcomp,
-           int &loc_x, int &loc_y, int &loc_z) const;
+             int &loc_x, int &loc_y, int &loc_z) const;
 
 
     /**
@@ -917,7 +967,7 @@ protected:
 
 
 
-    private:
+private:
     /**
     @brief Initialization of object.
     @pre UniformVolume3D object exists.
@@ -939,9 +989,9 @@ protected:
     @return None.
     */
     void Initialize(const int nx, const int ny, const int nz,
-                  const T minx, const T maxx, const T miny, const T maxy,
-                  const T minz, const T maxz, const T initval,
-                  const int n_scalars, const int n_vectors, const int qty_label_size);
+                    const T minx, const T maxx, const T miny, const T maxy,
+                    const T minz, const T maxz, const T initval,
+                    const int n_scalars, const int n_vectors, const int qty_label_size);
 
 
     /**
@@ -986,37 +1036,7 @@ protected:
     * 		- Any other value: Failure
     */
     int WriteVOLFile(std::string fileName, size_t xx, size_t yy, size_t zz,
-          T *voxelIntensity);
-
-
-    /**
-     * @brief ReverseFloat reverses the byte-order of the floating-point values for
-     *      output using legacy VTK formats (necessary for ParaView).
-     *
-     * Code from
-     *      http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian.
-     * @param inFloat Value for which byte-order is to be flipped.
-     * @param numbytes Size of floating point value, in bytes.  This defaults to sizeof(T) if argument
-     *      is not explicitly specified.
-     * @return Float with the byte-order reversed.
-     */
-    T ReverseFloat(const T inFloat, size_t numbytes);
-
-
-
-    /**
-     * @brief ReverseFloat reverses the byte-order of the floating-point values for
-     *      output using legacy VTK formats (necessary for ParaView).
-     *
-     * Code from
-     *      http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian.
-     *      This is similar to ReverseFloat(), but only accepts 'float' input values.
-     * @param inFloat Value for which byte-order is to be flipped.
-     * @param numbytes Size of floating point value, in bytes.  This defaults to sizeof(T) if argument
-     *      is not explicitly specified.
-     * @return Float with the byte-order reversed.  Value is type-casted to type T for return.
-     */
-    T ReverseFloat_FloatOnly(const float inFloat, size_t numbytes);
+                     T *voxelIntensity);
 
 
     /**
@@ -1061,6 +1081,33 @@ protected:
      *      farther up the hierarchy).
      */
     void VTKReadLegacyASCII(std::fstream &file);
+
+
+    /**
+    @brief Write a portion of the volume data to the disk as a binary VTK file.
+
+    File type is set by VTKImageDataOutput() and VTKRectDataOutput() functions.
+        All data quantities in this volume will be written to the disk.
+    @param first_slice 0-based index of first slice to be written.
+    @param num_slices Number of slices to be written.
+    @param slice_min Z-coordinate value of first slice.
+    @warning This routine does not reverse the byte-order (endian-ness).
+    */
+    void VTKWriteBinaryPartial(const size_t first_slice, const size_t num_slices, const float slice_min);
+
+
+    /**
+     * @brief VTKWriteBigEndian writes a portion of the volume data to a VTK binary file using
+     *      Big Endian byte ordering (required ordering for use with ParaView).
+     *
+     * The endian-ness of the system is checked at run-time when this function
+     *      is called and the appropriate binary-output file routine (VTKWriteBinary()
+     *      or VTKWriteBinaryBitFlip()) is called.
+     * @param first_slice 0-based index of first slice to be written.
+     * @param num_slices Number of slices to be written.
+     * @param slice_min Z-coordinate value of first slice.
+     */
+    void VTKWriteBinaryBitFlipPartial(const size_t first_slice, const size_t num_slices, const float slice_min);
 
 };
 
