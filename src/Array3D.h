@@ -140,7 +140,7 @@ class Array3D : public ArrayBase<T>{
 	 * @return Array extent in the specified dimension.
 	 * @post Array extents remain unchanged.
 	 */
-	int GetDim(int dim) const;
+	size_t GetDim(int dim) const;
 
 	
 	/**

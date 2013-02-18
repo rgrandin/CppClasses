@@ -83,9 +83,7 @@ void QtIntermediaryBase::EmitFunctionProgress(const float frac, const std::strin
 #ifdef USEQT
 void QtIntermediaryBase::EmitFunctionDesc(QString desc)
 {
-#ifdef USEQT
     emit FunctionLabel(desc);
-#endif
 }
 #endif
 
