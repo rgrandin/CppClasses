@@ -735,6 +735,10 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
 
     /* By this point, the last element of both 'pscalars' and 'scalar_names' has not been set.  Create
      * the appropriate objects for each array and initialize values.  */
+//    std::stringstream procdesc;
+//    procdesc << "Allocating memory for scalar quantity '" << name << "'";
+//    qtsignals->EmitFunctionDesc2(procdesc.str());
+
     pscalars(nscalars-1) = new Array3D<T>;
     pscalars(nscalars-1)->ResetSize(vrows,vcols,vslices);
     pscalars(nscalars-1)->ResetVal((T)0.0e0);
@@ -742,6 +746,9 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
     scalar_names(nscalars-1) = new std::string;
     scalar_names(nscalars-1)->reserve(qtysize);
     scalar_names(nscalars-1)->assign(name);
+
+//    procdesc.str("");
+//    qtsignals->EmitFunctionDesc2(procdesc.str());
 }
 
 
@@ -986,6 +993,10 @@ void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t 
 
     /* By this point, the last element of both 'pscalars' and 'scalar_names' has not been set.  Create
      * the appropriate objects for each array and initialize values.  */
+//    std::stringstream procdesc;
+//    procdesc << "Allocating memory for vector quantity '" << name << "'";
+//    qtsignals->EmitFunctionDesc2(procdesc.str());
+
     pvectors(nvectors-1) = new Array4D<T>;
     pvectors(nvectors-1)->ResetSize(vrows,vcols,vslices,ncomp);
     pvectors(nvectors-1)->ResetVal((T)0.0e0);
@@ -993,6 +1004,9 @@ void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t 
     vector_names(nvectors-1) = new std::string;
     vector_names(nvectors-1)->reserve(qtysize);
     vector_names(nvectors-1)->assign(name);
+
+//    procdesc.str("");
+//    qtsignals->EmitFunctionDesc2(procdesc.str());
 }
 
 
@@ -1402,11 +1416,15 @@ template <class T>
 void UniformVolume3D<T>::ResetResolution(const size_t ny, const size_t nx, const size_t nz, const T initval)
 {
     for(size_t i=0; i<nscalars; i++){
-        pscalars(i)->ResetSize(ny,nx,nz,initval);
+        if(pscalars(i) != NULL){
+            pscalars(i)->ResetSize(ny,nx,nz,initval);
+        }
     }
     for(size_t i=0; i<nvectors; i++){
-        size_t n = pvectors(i)->GetDim(3);
-        pvectors(i)->ResetSize(ny,nx,nz,n,initval);
+        if(pvectors(i) != NULL){
+            size_t n = pvectors(i)->GetDim(3);
+            pvectors(i)->ResetSize(ny,nx,nz,n,initval);
+        }
     }
     vrows = ny;
     vcols = nx;
