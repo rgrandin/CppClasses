@@ -105,17 +105,17 @@ const T& Array3D<T>::operator()(size_t ind1, size_t ind2, size_t ind3) const
 
 // DATA ACCESS AND MODIFICATION FUNCTIONS
 template <class T>
-int Array3D<T>::GetDim(int dim) const
+size_t Array3D<T>::GetDim(int dim) const
 {
 	#ifndef RELEASE
 		assert(dim > 0 && dim < 4);
-		int retval = 0;
+        size_t retval = 0;
 		if(dim == 1){retval = size1;}
 		if(dim == 2){retval = size2;}
 		if(dim == 3){retval = size3;}
 		return retval;
 	#else
-		int retval = 0;
+        size_t retval = 0;
 		if(dim == 1){retval = size1;}
 		if(dim == 2){retval = size2;}
 		if(dim == 3){retval = size3;}
