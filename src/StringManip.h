@@ -24,7 +24,7 @@
  *
  * @section License
  *
- * Copyright (c) 2010, Robert Grandin
+ * Copyright (c) 2010-2013, Robert Grandin
  * All rights reserved.
  *
  * Redistribution and use of this file is permitted provided that the following
@@ -60,6 +60,7 @@
 #include <iomanip>
 #include <sstream>
 #include <math.h>
+#include <limits>
 
 
 
@@ -127,16 +128,23 @@ bool IntToBool(int i)
  * @param str String to be converted to an integer.
  * @post No changes to data.
  * @return Integer corresponding to the input string.
+ * @warning If the returned value is equal to the maximum value of an integer, an
+ *  error may have occurred.
  */
 inline
 int StrToUInt(std::string str)
 {
-    int n = (int)str.length();	// GET THE LENGTH OF THE INPUT STRING
-    int retval = 0;             // VALUE TO BE RETURNED TO CALLING FUNCTION
+    int n = (int)str.length();                      // GET THE LENGTH OF THE INPUT STRING
+    int retval = std::numeric_limits<int>::max();   // VALUE TO BE RETURNED TO CALLING FUNCTION
 
+    int powerten = 0;
     for(int i=n-1; i>=0; i--){
 		// DETERMINE POWER OF TEN ASSOCIATED WITH THIS POSITION
-        size_t powerten = n - i - 1;
+        powerten *= 10;
+
+        if(i == n-1){
+            powerten = 1;
+        }
 
 		// LOOP THROUGH THE NUMBER, FROM RIGHT TO LEFT
 		std::string sub;
@@ -161,9 +169,13 @@ int StrToUInt(std::string str)
 					// CHANGE FLAG STATUS
 					match = true;
 
+                    if(retval == std::numeric_limits<int>::max()){
+                        retval = 0;
+                    }
+
 					// ADD APPROPRIATE VALUE TO retval.  pow FUNCTION REQUIRES
 					// INPUT ARGUMENTS TO BE float
-					retval = retval + (int)(((double)j)*pow(10.0,(double)powerten));
+                    retval += j*powerten;
 				}
 			}
 		}
@@ -569,6 +581,51 @@ std::string FormattedNumber(const T val, const int width, const int precision, c
     tmpss << val;
 
     return tmpss.str();
+}
+
+
+/**
+ * @brief DetermFileStem determines the stem of a filename, size of numeric index used,
+ *  the numeric index of the provided filename, and extension of the file.
+ * @param filename Name of file for which the stem is to be determined.  It is expected that
+ *  this is just a file name, without a path.
+ * @param stem Stem of 'filename'.
+ * @param ndigits Number of digits used for the index number.
+ * @param ext Extension of filename.
+ * @param index_value Numerical value of index.
+ */
+inline
+void DetermFileStem(const std::string &filename, std::string &stem, size_t &ndigits,
+                    std::string &ext, size_t &index_value)
+{
+    size_t index_ext = filename.find_last_of(".");
+
+    std::string tmpstem;
+    tmpstem = filename.substr(0, index_ext);
+    size_t tmpsize = tmpstem.length();
+
+    bool character_found = false;
+    size_t idx = 0;
+    size_t maxint = (size_t)std::numeric_limits<int>::max();
+    while(!character_found){
+        std::string sub;
+        sub = tmpstem.substr(tmpsize-idx-1, 1);
+
+        size_t digit = (size_t)StringManip::StrToUInt(sub);
+
+        if(digit == maxint){
+            character_found = true;
+        } else {
+            idx++;
+        }
+    }
+
+    ndigits = idx;
+    stem = filename.substr(0,(tmpsize-ndigits));
+
+    ext = filename.substr(index_ext+1);
+
+    index_value = (size_t)StringManip::StrToUInt(tmpstem.substr(tmpsize-ndigits));
 }
 
 } /* StringManip Namespace */
