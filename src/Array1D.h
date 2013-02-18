@@ -123,17 +123,17 @@ public:
 
     /**
      * @brief Copy constructor.
-     * @param ab Reference to existing Array1D object to be copied.
+     * @param a Reference to existing Array1D object to be copied.
      */
-    Array1D(Array1D<T> &ab);
+    Array1D(Array1D<T> &a);
 
 
     /**
      * @brief Move constructor (C++11).
-     * @param ab Reference to existing Array1D object to be copied.
+     * @param a Reference to existing Array1D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
-    Array1D(Array1D<T> &&ab);
+    Array1D(Array1D<T> &&a);
 
 
 	/**
@@ -253,19 +253,19 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param a Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      */
-    Array1D& operator=(const Array1D<T> &ab);
+    Array1D& operator=(const Array1D<T> &a);
 
 
     /**
      * @brief Move-assignment operator (C++11).
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param a Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */
-    Array1D& operator=(const Array1D<T> &&ab);
+    Array1D& operator=(const Array1D<T> &&a);
 
 
 	/**

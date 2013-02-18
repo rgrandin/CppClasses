@@ -111,14 +111,14 @@ class Array3D : public ArrayBase<T>{
 
     /**
      * @brief Copy constructor.
-     * @param ab Reference to existing Array3D object to be copied.
+     * @param a Reference to existing Array3D object to be copied.
      */
     Array3D(Array3D<T> &a);
 
 
     /**
      * @brief Move constructor (C++11).
-     * @param ab Reference to existing Array3D object to be copied.
+     * @param a Reference to existing Array3D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array3D(Array3D<T> &&a);
@@ -245,7 +245,7 @@ class Array3D : public ArrayBase<T>{
 
     /**
      * @brief Copy-assignment operator.
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param a Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      */
     Array3D& operator=(const Array3D<T> &a);
@@ -253,7 +253,7 @@ class Array3D : public ArrayBase<T>{
 
     /**
      * @brief Move-assignment operator (C++11).
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param a Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */

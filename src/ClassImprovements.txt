@@ -15,14 +15,14 @@ Header Code
 
 /**
  * @brief Copy constructor.
- * @param ab Reference to existing ArrayBase object to be copied.
+ * @param a Reference to existing ArrayBase object to be copied.
  */
 ArrayBase(ArrayBase<T> &a);
 
 
 /**
  * @brief Move constructor (C++11).
- * @param ab Reference to existing ArrayBase object to be copied.
+ * @param a Reference to existing ArrayBase object to be copied.
  * @warning This function requires C++11 compiler support.
  */
 ArrayBase(ArrayBase<T> &&a);
@@ -30,7 +30,7 @@ ArrayBase(ArrayBase<T> &&a);
 
 /**
  * @brief Copy-assignment operator.
- * @param ab Reference to ArrayBase object being assigned.
+ * @param a Reference to ArrayBase object being assigned.
  * @return Pointer to instance of ArrayBase.
  */
 ArrayBase& operator=(const ArrayBase<T> &a);
@@ -38,7 +38,7 @@ ArrayBase& operator=(const ArrayBase<T> &a);
 
 /**
  * @brief Move-assignment operator (C++11).
- * @param ab Reference to ArrayBase object being assigned.
+ * @param a Reference to ArrayBase object being assigned.
  * @return Pointer to instance of ArrayBase.
  * @warning This function requires C++11 compiler support.
  */

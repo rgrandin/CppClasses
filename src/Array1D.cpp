@@ -44,16 +44,16 @@ Array1D<T>::Array1D(size_t dim1, const T initvalue)
 
 
 template <class T>
-Array1D<T>::Array1D(Array1D<T> &ab) : Array1D()
+Array1D<T>::Array1D(Array1D<T> &a) : Array1D()
 {
-    Array1DSwap(*this, ab);
+    Array1DSwap(*this, a);
 }
 
 
 template <class T>
-Array1D<T>::Array1D(Array1D<T> &&ab) : Array1D()
+Array1D<T>::Array1D(Array1D<T> &&a) : Array1D()
 {
-    Array1DSwap(*this, ab);
+    Array1DSwap(*this, a);
 }
 
 template <class T>
@@ -100,17 +100,17 @@ const T& Array1D<T>::operator()(size_t ind1) const
 
 
 template <class T>
-Array1D<T>& Array1D<T>::operator=(const Array1D<T> &ab)
+Array1D<T>& Array1D<T>::operator=(const Array1D<T> &a)
 {
-    Array1DSwap(*this, ab);
+    Array1DSwap(*this, a);
     return *this;
 }
 
 
 template <class T>
-Array1D<T>& Array1D<T>::operator=(const Array1D<T> &&ab)
+Array1D<T>& Array1D<T>::operator=(const Array1D<T> &&a)
 {
-    Array1DSwap(*this, ab);
+    Array1DSwap(*this, a);
     return *this;
 }
 

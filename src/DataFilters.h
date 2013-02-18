@@ -109,14 +109,14 @@ public:
 
     /**
      * @brief Copy constructor.
-     * @param ab Reference to existing DataFilters object to be copied.
+     * @param a Reference to existing DataFilters object to be copied.
      */
     DataFilters(DataFilters<T> &a);
 
 
     /**
      * @brief Move constructor (C++11).
-     * @param ab Reference to existing DataFilters object to be copied.
+     * @param a Reference to existing DataFilters object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     DataFilters(DataFilters<T> &&a);
@@ -133,7 +133,7 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param a Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      */
     DataFilters& operator=(const DataFilters<T> &a);
@@ -141,7 +141,7 @@ public:
 
     /**
      * @brief Move-assignment operator (C++11).
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param a Reference to ArrayBase object being assigned.
      * @return Pointer to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */
