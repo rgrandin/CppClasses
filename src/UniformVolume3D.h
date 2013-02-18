@@ -357,7 +357,7 @@ public:
     * @return Value stored at supplied indices.
     */
     T& operator()(const size_t ind1, const size_t ind2, const size_t ind3,
-                const size_t comp, const size_t qty);
+                  const size_t comp, const size_t qty);
 
 
     /**
@@ -372,7 +372,7 @@ public:
     * @return Value stored at supplied indices.
     */
     const T& operator()(const size_t ind1, const size_t ind2, const size_t ind3,
-                      const size_t comp, const size_t qty) const;
+                        const size_t comp, const size_t qty) const;
 
 
     /**
@@ -767,7 +767,7 @@ public:
     @return Minimum value of specified quantity.
     */
     T MinVal(const int scalarqty, const int vectorqty, const int vectorcomp,
-           int &loc_x, int &loc_y, int &loc_z) const;
+             int &loc_x, int &loc_y, int &loc_z) const;
 
 
     /**
@@ -786,7 +786,7 @@ public:
     @return Maximum value of specified quantity.
     */
     T MaxVal(const int scalarqty, const int vectorqty, const int vectorcomp,
-           int &loc_x, int &loc_y, int &loc_z) const;
+             int &loc_x, int &loc_y, int &loc_z) const;
 
 
     /**
@@ -967,7 +967,7 @@ protected:
 
 
 
-    private:
+private:
     /**
     @brief Initialization of object.
     @pre UniformVolume3D object exists.
@@ -989,9 +989,9 @@ protected:
     @return None.
     */
     void Initialize(const int nx, const int ny, const int nz,
-                  const T minx, const T maxx, const T miny, const T maxy,
-                  const T minz, const T maxz, const T initval,
-                  const int n_scalars, const int n_vectors, const int qty_label_size);
+                    const T minx, const T maxx, const T miny, const T maxy,
+                    const T minz, const T maxz, const T initval,
+                    const int n_scalars, const int n_vectors, const int qty_label_size);
 
 
     /**
@@ -1036,37 +1036,7 @@ protected:
     * 		- Any other value: Failure
     */
     int WriteVOLFile(std::string fileName, size_t xx, size_t yy, size_t zz,
-          T *voxelIntensity);
-
-
-    /**
-     * @brief ReverseFloat reverses the byte-order of the floating-point values for
-     *      output using legacy VTK formats (necessary for ParaView).
-     *
-     * Code from
-     *      http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian.
-     * @param inFloat Value for which byte-order is to be flipped.
-     * @param numbytes Size of floating point value, in bytes.  This defaults to sizeof(T) if argument
-     *      is not explicitly specified.
-     * @return Float with the byte-order reversed.
-     */
-    T ReverseFloat(const T inFloat, size_t numbytes);
-
-
-
-    /**
-     * @brief ReverseFloat reverses the byte-order of the floating-point values for
-     *      output using legacy VTK formats (necessary for ParaView).
-     *
-     * Code from
-     *      http://stackoverflow.com/questions/2782725/converting-float-values-from-big-endian-to-little-endian.
-     *      This is similar to ReverseFloat(), but only accepts 'float' input values.
-     * @param inFloat Value for which byte-order is to be flipped.
-     * @param numbytes Size of floating point value, in bytes.  This defaults to sizeof(T) if argument
-     *      is not explicitly specified.
-     * @return Float with the byte-order reversed.  Value is type-casted to type T for return.
-     */
-    T ReverseFloat_FloatOnly(const float inFloat, size_t numbytes);
+                     T *voxelIntensity);
 
 
     /**
@@ -1111,6 +1081,33 @@ protected:
      *      farther up the hierarchy).
      */
     void VTKReadLegacyASCII(std::fstream &file);
+
+
+    /**
+    @brief Write a portion of the volume data to the disk as a binary VTK file.
+
+    File type is set by VTKImageDataOutput() and VTKRectDataOutput() functions.
+        All data quantities in this volume will be written to the disk.
+    @param first_slice 0-based index of first slice to be written.
+    @param num_slices Number of slices to be written.
+    @param slice_min Z-coordinate value of first slice.
+    @warning This routine does not reverse the byte-order (endian-ness).
+    */
+    void VTKWriteBinaryPartial(const size_t first_slice, const size_t num_slices, const float slice_min);
+
+
+    /**
+     * @brief VTKWriteBigEndian writes a portion of the volume data to a VTK binary file using
+     *      Big Endian byte ordering (required ordering for use with ParaView).
+     *
+     * The endian-ness of the system is checked at run-time when this function
+     *      is called and the appropriate binary-output file routine (VTKWriteBinary()
+     *      or VTKWriteBinaryBitFlip()) is called.
+     * @param first_slice 0-based index of first slice to be written.
+     * @param num_slices Number of slices to be written.
+     * @param slice_min Z-coordinate value of first slice.
+     */
+    void VTKWriteBinaryBitFlipPartial(const size_t first_slice, const size_t num_slices, const float slice_min);
 
 };
 

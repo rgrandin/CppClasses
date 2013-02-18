@@ -75,7 +75,7 @@ void DataFilters<T>::Sinc2D_SetPlan(int plan, fftw_complex *input, fftw_complex 
 {
     /** @brief Define custom filter flags for FFTW. */
     #define PLANFLAGS FFTW_MEASURE|FFTW_UNALIGNED
-	//#define PLANFLAGS FFTW_ESTIMATE|FFTW_UNALIGNED
+    //#define PLANFLAGS FFTW_ESTIMATE|FFTW_UNALIGNED
 	//#define PLANFLAGS FFTW_PATIENT|FFTW_UNALIGNED
 	//#define PLANFLAGS FFTW_EXHAUSTIVE|FFTW_UNALIGNED
 
