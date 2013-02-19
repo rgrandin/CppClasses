@@ -2529,7 +2529,7 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
         return;
     }
     if(ival1 > 0 && ival2 > 0 && ival3 > 0){
-        UniformVolume<T>::ResetResolution(vrows, vcols, vslices, (T)0);
+        UniformVolume<T>::ResetResolution(ival2, ival1, ival3, (T)0);
     } else {
         std::cerr << "UniformVolume::VTKReadLegacyBinary() - Dimensions not read properly" << std::endl;
         std::cerr << "                                         Dimensions read: " << ival1 << " x " << ival2
@@ -2744,6 +2744,11 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
             if(scalar_data == NULL){
                 /* Add scalar quantity to this object. */
                 UniformVolume<T>::AddScalarQuantity(sval2);
+            } else {
+                scalar_names(0) = new std::string;
+                scalar_names(0)->reserve(qtysize);
+                scalar_names(0)->assign(sval2);
+                nscalars = 1;
             }
 
             /* Read lookup table line. */
@@ -2889,6 +2894,7 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
 
             /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
             scalar_data = NULL;
+            UniformVolume<T>::RemoveAllData();
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -3005,6 +3011,11 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
                 if(scalar_data == NULL){
                     /* Add scalar quantity to this object. */
                     UniformVolume<T>::AddScalarQuantity(sval2);
+                } else {
+                    scalar_names(0) = new std::string;
+                    scalar_names(0)->reserve(qtysize);
+                    scalar_names(0)->assign(sval2);
+                    nscalars = 1;
                 }
 
                 /* Read data values. */
@@ -3144,6 +3155,7 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
 
             /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
             scalar_data = NULL;
+            UniformVolume<T>::RemoveAllData();
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -3258,6 +3270,11 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
 
             if(scalar_data == NULL){
                 UniformVolume<T>::AddScalarQuantity(discard2);
+            } else {
+                scalar_names(0) = new std::string;
+                scalar_names(0)->reserve(qtysize);
+                scalar_names(0)->assign(discard2);
+                nscalars = 1;
             }
 
             progressstr = "Reading ASCII scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
@@ -3302,6 +3319,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
 
             /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
             scalar_data = NULL;
+            UniformVolume<T>::RemoveAllData();
 
             progressstr = "";
             qtsignals->EmitFunctionDesc(progressstr);
@@ -3387,6 +3405,11 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
 
                 if(scalar_data == NULL){
                     UniformVolume<T>::AddScalarQuantity(discard2);
+                } else {
+                    scalar_names(0) = new std::string;
+                    scalar_names(0)->reserve(qtysize);
+                    scalar_names(0)->assign(discard2);
+                    nscalars = 1;
                 }
 
                 progressstr = "Reading ASCII field scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
@@ -3432,6 +3455,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
 
                 /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
                 scalar_data = NULL;
+                UniformVolume<T>::RemoveAllData();
 
                 progressstr = "";
                 qtsignals->EmitFunctionDesc(progressstr);
