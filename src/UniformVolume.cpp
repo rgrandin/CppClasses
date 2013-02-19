@@ -113,6 +113,10 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
     conversion_options.output_VTKRectGrid = false;
     conversion_options.output_CNDEVOL_allowScaling = false;
     conversion_options.output_CNDEVOL_scalingRange = (T)1024.0e0;
+
+    scalar_data = NULL;
+    scalar_data_size = 0;
+    scalar_data_points_read = 0;
 }
 
 
@@ -428,12 +432,7 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
     /*
       Delete all scalar and vector quantities
      */
-    for(size_t i=0; i<nscalars; i++){
-        UniformVolume<T>::RemoveScalarQuantity(i);
-    }
-    for(size_t i=0; i<nvectors; i++){
-        UniformVolume<T>::RemoveVectorQuantity(i);
-    }
+    UniformVolume<T>::RemoveAllData();
 
     /* Define temporary variables */
     std::fstream vtkfile;
@@ -2530,9 +2529,7 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
         return;
     }
     if(ival1 > 0 && ival2 > 0 && ival3 > 0){
-        vcols = (size_t)ival1;
-        vrows = (size_t)ival2;
-        vslices = (size_t)ival3;
+        UniformVolume<T>::ResetResolution(vrows, vcols, vslices, (T)0);
     } else {
         std::cerr << "UniformVolume::VTKReadLegacyBinary() - Dimensions not read properly" << std::endl;
         std::cerr << "                                         Dimensions read: " << ival1 << " x " << ival2
@@ -2743,8 +2740,11 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
         if(sval1 == "SCALARS"){
             sval1 = "";
             sstmp >> sval2 >> sval3 >> ival1;
-            /* Add scalar quantity to this object. */
-            UniformVolume<T>::AddScalarQuantity(sval2);
+
+            if(scalar_data == NULL){
+                /* Add scalar quantity to this object. */
+                UniformVolume<T>::AddScalarQuantity(sval2);
+            }
 
             /* Read lookup table line. */
             file.getline(linedata,256);
@@ -2778,24 +2778,57 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
                 desc = "Reading binary scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                 qtsignals->EmitFunctionDesc(desc);
 
-                float ffloat = (float)0.0e0;
-                double dfloat = (double)0.0e0;
-                for(size_t k=0; k<vslices; k++){
-                    for(size_t i=0; i<vrows; i++){
-                        for(size_t j=0; j<vcols; j++){
-                            if(isfloat){
-                                file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                UniformVolume<T>::ByteSwap(&ffloat,datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                            }
-                            if(isdouble){
-                                file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                UniformVolume<T>::ByteSwap(&dfloat,datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                if(scalar_data == NULL){
+                    /* Read data into Array3D object which is a member of this object.  */
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                }
                             }
                         }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                     }
-                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                } else {
+                    /* Read data into existing array. */
+                    scalar_data_points_read = 0;
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                    scalar_data[scalar_data_points_read] = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                    scalar_data[scalar_data_points_read] = (T)dfloat;
+                                }
+
+                                /* Update number of points read.  If this value is greater than the size of the
+                                 * array, inform the user of the error and return. */
+                                scalar_data_points_read++;
+                                if(scalar_data_points_read > scalar_data_size){
+                                    std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                    return;
+                                }
+                            }
+                        }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    }
                 }
 
 
@@ -2805,24 +2838,57 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
 
                 /* No byte-swapping necessary.  Type-checking still performed, however, in case
                  * datatype in file does not match datatype of this object. */
-                float ffloat = (float)0.0e0;
-                double dfloat = (double)0.0e0;
-                for(size_t k=0; k<vslices; k++){
-                    for(size_t i=0; i<vrows; i++){
-                        for(size_t j=0; j<vcols; j++){
-                            if(isfloat){
-                                file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                            }
-                            if(isdouble){
-                                file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                if(scalar_data == NULL){
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                }
                             }
                         }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                     }
-                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                } else {
+                    /* Read data into existing array. */
+                    scalar_data_points_read = 0;
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    scalar_data[scalar_data_points_read] = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    scalar_data[scalar_data_points_read] = (T)dfloat;
+                                }
+
+                                /* Update number of points read.  If this value is greater than the size of the
+                                 * array, inform the user of the error and return. */
+                                scalar_data_points_read++;
+                                if(scalar_data_points_read > scalar_data_size){
+                                    std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                    return;
+                                }
+                            }
+                        }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    }
                 }
             }
+
+            /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+            scalar_data = NULL;
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -2936,8 +3002,10 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
                 sstmp >> sval2 >> ival1 >> ival2 >> sval3;
 
 
-                /* Add scalar quantity to this object. */
-                UniformVolume<T>::AddScalarQuantity(sval2);
+                if(scalar_data == NULL){
+                    /* Add scalar quantity to this object. */
+                    UniformVolume<T>::AddScalarQuantity(sval2);
+                }
 
                 /* Read data values. */
                 size_t datasize = 0;
@@ -2965,24 +3033,56 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
                     desc = "Reading binary field scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                     qtsignals->EmitFunctionDesc(desc);
 
-                    float ffloat = (float)0.0e0;
-                    double dfloat = (double)0.0e0;
-                    for(size_t k=0; k<vslices; k++){
-                        for(size_t i=0; i<vrows; i++){
-                            for(size_t j=0; j<vcols; j++){
-                                if(isfloat){
-                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                                }
-                                if(isdouble){
-                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                    if(scalar_data == NULL){
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                    }
                                 }
                             }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                         }
-                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    } else {
+                        /* Read data into existing array. */
+                        scalar_data_points_read = 0;
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                        scalar_data[scalar_data_points_read] = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                        scalar_data[scalar_data_points_read] = (T)dfloat;
+                                    }
+
+                                    /* Update number of points read.  If this value is greater than the size of the
+                                     * array, inform the user of the error and return. */
+                                    scalar_data_points_read++;
+                                    if(scalar_data_points_read > scalar_data_size){
+                                        std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                        return;
+                                    }
+                                }
+                            }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                        }
                     }
 
 
@@ -2992,25 +3092,58 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
 
                     /* No byte-swapping necessary.  Type-checking still performed, however, in case
                      * datatype in file does not match datatype of this object. */
-                    float ffloat = (float)0.0e0;
-                    double dfloat = (double)0.0e0;
-                    for(size_t k=0; k<vslices; k++){
-                        for(size_t i=0; i<vrows; i++){
-                            for(size_t j=0; j<vcols; j++){
-                                if(isfloat){
-                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                                }
-                                if(isdouble){
-                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                    if(scalar_data == NULL){
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                    }
                                 }
                             }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                         }
-                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    } else {
+                        /* Read data into existing array. */
+                        scalar_data_points_read = 0;
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        scalar_data[scalar_data_points_read] = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        scalar_data[scalar_data_points_read] = (T)dfloat;
+                                    }
+
+                                    /* Update number of points read.  If this value is greater than the size of the
+                                     * array, inform the user of the error and return. */
+                                    scalar_data_points_read++;
+                                    if(scalar_data_points_read > scalar_data_size){
+                                        std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                        return;
+                                    }
+                                }
+                            }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                        }
                     }
                 }
             }
+
+            /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+            scalar_data = NULL;
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -3122,23 +3255,53 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
             /* Add quantity and read-in values */
             T frac = 0.0e0;
             std::string progressstr;
-            UniformVolume<T>::AddScalarQuantity(discard2);
+
+            if(scalar_data == NULL){
+                UniformVolume<T>::AddScalarQuantity(discard2);
+            }
 
             progressstr = "Reading ASCII scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
             qtsignals->EmitFunctionProgress(frac);
             qtsignals->EmitFunctionProgress(frac,progressstr);
 
-            for(size_t s=0; s<vslices; s++){
-                for(size_t r=0; r<vrows; r++){
-                    for(size_t c=0; c<vcols; c++){
-                        file >> Tval;
-                        pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+            if(scalar_data == NULL){
+                for(size_t s=0; s<vslices; s++){
+                    for(size_t r=0; r<vrows; r++){
+                        for(size_t c=0; c<vcols; c++){
+                            file >> Tval;
+                            pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                        }
                     }
+                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    qtsignals->EmitFunctionProgress(frac);
+                    qtsignals->EmitFunctionProgress(frac,progressstr);
                 }
-                frac = ((T)s + 1.0e0)/(T)vslices;
-                qtsignals->EmitFunctionProgress(frac);
-                qtsignals->EmitFunctionProgress(frac,progressstr);
+            } else {
+                scalar_data_points_read = 0;
+                for(size_t s=0; s<vslices; s++){
+                    for(size_t r=0; r<vrows; r++){
+                        for(size_t c=0; c<vcols; c++){
+                            file >> Tval;
+                            scalar_data[scalar_data_points_read] = Tval;
+
+                            /* Update number of points read.  If this value is greater than the size of the
+                             * array, inform the user of the error and return. */
+                            scalar_data_points_read++;
+                            if(scalar_data_points_read > scalar_data_size){
+                                std::cerr << "UniformVolume::VTKReadLegacyASCII() ERROR: Insufficient array size provided." << std::endl;
+                                return;
+                            }
+                        }
+                    }
+
+                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    qtsignals->EmitFunctionProgress(frac);
+                    qtsignals->EmitFunctionProgress(frac,progressstr);
+                }
             }
+
+            /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+            scalar_data = NULL;
 
             progressstr = "";
             qtsignals->EmitFunctionDesc(progressstr);
@@ -3221,23 +3384,54 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
                 /* Add quantity and read-in values */
                 T frac = 0.0e0;
                 std::string progressstr;
-                UniformVolume<T>::AddScalarQuantity(discard2);
+
+                if(scalar_data == NULL){
+                    UniformVolume<T>::AddScalarQuantity(discard2);
+                }
 
                 progressstr = "Reading ASCII field scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                 qtsignals->EmitFunctionProgress(frac);
                 qtsignals->EmitFunctionProgress(frac,progressstr);
 
-                for(size_t s=0; s<vslices; s++){
-                    for(size_t r=0; r<vrows; r++){
-                        for(size_t c=0; c<vcols; c++){
-                            file >> Tval;
-                            pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                if(scalar_data == NULL){
+                    for(size_t s=0; s<vslices; s++){
+                        for(size_t r=0; r<vrows; r++){
+                            for(size_t c=0; c<vcols; c++){
+                                file >> Tval;
+                                pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                            }
                         }
+                        frac = ((T)s + 1.0e0)/(T)vslices;
+                        qtsignals->EmitFunctionProgress(frac);
+                        qtsignals->EmitFunctionProgress(frac,progressstr);
                     }
-                    frac = ((T)s + 1.0e0)/(T)vslices;
-                    qtsignals->EmitFunctionProgress(frac);
-                    qtsignals->EmitFunctionProgress(frac,progressstr);
+                } else {
+                    scalar_data_points_read = 0;
+                    for(size_t s=0; s<vslices; s++){
+                        for(size_t r=0; r<vrows; r++){
+                            for(size_t c=0; c<vcols; c++){
+                                file >> Tval;
+                                scalar_data[scalar_data_points_read] = Tval;
+
+                                /* Update number of points read.  If this value is greater than the size of the
+                                 * array, inform the user of the error and return. */
+                                scalar_data_points_read++;
+                                if(scalar_data_points_read > scalar_data_size){
+                                    std::cerr << "UniformVolume::VTKReadLegacyASCII() ERROR: Insufficient array size provided." << std::endl;
+                                    return;
+                                }
+                            }
+                        }
+
+                        frac = ((T)s + 1.0e0)/(T)vslices;
+                        qtsignals->EmitFunctionProgress(frac);
+                        qtsignals->EmitFunctionProgress(frac,progressstr);
+                    }
                 }
+
+
+                /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+                scalar_data = NULL;
 
                 progressstr = "";
                 qtsignals->EmitFunctionDesc(progressstr);
@@ -3255,3 +3449,18 @@ void UniformVolume<T>::PointCoordinates(const size_t row, const size_t col, cons
     y = ymin + yspacing*(T)row;
     z = zmin + zspacing*(T)slice;
 } /* UniformVolume::PointCoordinates() */
+
+
+template <class T>
+void UniformVolume<T>::setScalarDestinationArray(T* array, const size_t array_size)
+{
+    scalar_data = array;
+    scalar_data_size = array_size;
+}
+
+
+template <class T>
+size_t UniformVolume<T>::NumberScalarPointsRead()
+{
+    return scalar_data_points_read;
+}

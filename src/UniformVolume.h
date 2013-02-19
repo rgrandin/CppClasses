@@ -710,6 +710,22 @@ public:
 
 
     /**
+     * @brief Specify an existing array into which the next scalar quantity is to be
+     *  read.
+     * @param array Array into which data is to be read.
+     * @param array_size Number of points in array.
+     */
+    void setScalarDestinationArray(T* array, const size_t array_size);
+
+
+    /**
+     * @brief Get the number of points read during the last scalar quantity.
+     * @return points_read Number of points read.
+     */
+    size_t NumberScalarPointsRead();
+
+
+    /**
     @brief Calculate the arithmetic mean of the specified data quantity.
     @pre UniformVolume object exists.
     @param scalarqty Identifier for scalar quantity to be processed.  Ignored
@@ -967,6 +983,15 @@ protected:
 
     /** @brief Identifies if the current binary file-writing is Big-Endian. */
     bool writebigendian;
+
+    /** @brief Array to be used for reading-in scalar data. */
+    T* scalar_data;
+
+    /** @brief Number of points allowed for reading scalar data into pre-existing array. */
+    size_t scalar_data_size;
+
+    /** @brief Number of points actually read on most-recent scalar data read. */
+    size_t scalar_data_points_read;
 
 
 
