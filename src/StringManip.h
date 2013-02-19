@@ -599,9 +599,25 @@ void DetermFileStem(const std::string &filename, std::string &stem, size_t &ndig
                     std::string &ext, size_t &index_value)
 {
     size_t index_ext = filename.find_last_of(".");
+    ext = filename.substr(index_ext+1);
 
     std::string tmpstem;
     tmpstem = filename.substr(0, index_ext);
+
+    if(ext == "VTK" || ext == "vtk"){
+        /* Filename may contain "_BigEndian" if it was created by UniformVolume class. */
+        std::string tmp2;
+        size_t index_us = filename.find_last_of("_");
+
+        if(index_ext != filename.npos){
+            tmp2 = filename.substr(index_us,(index_ext-index_us));
+            if(tmp2 == "_BigEndian"){
+                tmpstem = filename.substr(0, index_us);
+            }
+        }
+    }
+
+
     size_t tmpsize = tmpstem.length();
 
     bool character_found = false;
@@ -622,8 +638,6 @@ void DetermFileStem(const std::string &filename, std::string &stem, size_t &ndig
 
     ndigits = idx;
     stem = filename.substr(0,(tmpsize-ndigits));
-
-    ext = filename.substr(index_ext+1);
 
     index_value = (size_t)StringManip::StrToUInt(tmpstem.substr(tmpsize-ndigits));
 }
