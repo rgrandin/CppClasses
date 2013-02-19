@@ -102,7 +102,7 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
         dtypename = "long double";
     }
 
-    qtsignals = new QtIntermediary;
+    qtsignals = new QtIntermediaryBase;
 
     writebigendian = false;
 
@@ -551,7 +551,7 @@ UniformVolume<T>::UniformVolume()
 
 
 template <class T>
-UniformVolume<T>::UniformVolume(UniformVolume<T> &uc3d) : QtIntermediary()
+UniformVolume<T>::UniformVolume(UniformVolume<T> &uc3d) : QtIntermediaryBase()
 {
     /* Set resolution and copy all data */
     nscalars = 0;

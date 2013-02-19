@@ -854,11 +854,11 @@ void DataFilters<T>::CustomFilter2D_Prepare(size_t nfft1, size_t nfft2, std::str
 		}
 	}
 
-	// Copy filter data to UniformVolume3DCore object and write VTK file to disk.
+    // Copy filter data to UniformVolumeCore object and write VTK file to disk.
 	// Note that this assumes the filter is real.  A complex filter will need an
-	// alternate approach since UniformVolume3DCore doesn't support direct access
+    // alternate approach since UniformVolumeCore doesn't support direct access
 	// to vector data.
-    UniformVolume3D<T> filteroutput(custom2d_nfft1,custom2d_nfft2,1,0.0e0);
+    UniformVolume<T> filteroutput(custom2d_nfft1,custom2d_nfft2,1,0.0e0);
 	filteroutput.SetDir(dir);
 	filteroutput.SetFileStem(filename);
 	filteroutput.SetImageOutput();
