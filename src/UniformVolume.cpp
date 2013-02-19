@@ -274,17 +274,15 @@ void UniformVolume<T>::ReadVOLFile(std::string filename)
      */
 
 
-    /*
-      Remove all but the first scalar quantity and all vector quantities
-     */
-    if(nscalars > 1){
-        for(size_t i=1; i<nscalars; i++){
-            UniformVolume<T>::RemoveScalarQuantity(i);
-        }
-    }
-
-    for(size_t i=0; i<nvectors; i++){
-        UniformVolume<T>::RemoveVectorQuantity(i);
+    /* Delete all data and create a single scalar quantity. */
+    UniformVolume<T>::RemoveAllData();
+    if(scalar_data == NULL){
+        UniformVolume<T>::AddScalarQuantity("cnde_vol_data");
+    } else {
+        scalar_names(0) = new std::string;
+        scalar_names(0)->reserve(qtysize);
+        scalar_names(0)->assign("cnde_vol_data");
+        nscalars = 1;
     }
 
     /*
@@ -393,15 +391,39 @@ void UniformVolume<T>::ReadVOLFile(std::string filename)
     qtsignals->EmitFunctionDesc(desc);
     qtsignals->EmitFunctionProgress(0.0e0);
 
-    float ftmp = (float)0.0e0;
-    for(size_t i=0; i<YY; i++){
-        for(size_t j=0; j<XX; j++){
-            for(size_t k=0; k<ZZ; k++){
-                fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
-                pscalars(0)->operator ()(i,j,k) = (T)ftmp;
+    if(scalar_data == NULL){
+        float ftmp = (float)0.0e0;
+        for(size_t i=0; i<YY; i++){
+            for(size_t j=0; j<XX; j++){
+                for(size_t k=0; k<ZZ; k++){
+                    fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                    pscalars(0)->operator ()(i,j,k) = (T)ftmp;
+                }
             }
+            qtsignals->EmitFunctionProgress((float)i/(float)YY);
         }
-        qtsignals->EmitFunctionProgress((float)i/(float)YY);
+    } else {
+
+        scalar_data_points_read = 0;
+
+        float ftmp = (float)0.0e0;
+        for(size_t i=0; i<YY; i++){
+            for(size_t j=0; j<XX; j++){
+                for(size_t k=0; k<ZZ; k++){
+                    fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                    scalar_data[scalar_data_points_read] = (T)ftmp;
+
+                    /* Update number of points read.  If this value is greater than the size of the
+                     * array, inform the user of the error and return. */
+                    scalar_data_points_read++;
+                    if(scalar_data_points_read > scalar_data_size){
+                        std::cerr << "UniformVolume::ReadVOLFile() ERROR: Insufficient array size provided." << std::endl;
+                        return;
+                    }
+                }
+            }
+            qtsignals->EmitFunctionProgress((float)i/(float)YY);
+        }
     }
 
     desc = "";
