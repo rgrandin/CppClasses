@@ -72,11 +72,13 @@ ArrayBase<T>::ArrayBase(ArrayBase<T> &ab) : ArrayBase()
 }
 
 
+#ifdef CXX11
 template <class T>
 ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab) : ArrayBase()
 {
     ArrayBaseSwap(*this, ab);
 }
+#endif
 
 
 template <class T>
@@ -90,19 +92,21 @@ ArrayBase<T>::~ArrayBase()
 
 
 template <class T>
-ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &ab)
+ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> ab)
 {
     ArrayBaseSwap(*this, ab);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &&ab)
+ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> &&ab)
 {
     ArrayBaseSwap(*this, ab);
     return *this;
 }
+#endif
 
 
 template <class T>

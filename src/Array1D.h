@@ -89,6 +89,8 @@
 
 /**
  * @brief Class definition for storing 1-dimensional data.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class Array1D : public ArrayBase<T>{
@@ -128,12 +130,14 @@ public:
     Array1D(Array1D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing Array1D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array1D(Array1D<T> &&a);
+#endif
 
 
 	/**
@@ -253,19 +257,21 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Array1D object being assigned.
+     * @return Reference to instance of Array1D.
      */
-    Array1D& operator=(const Array1D<T> &a);
+    Array1D& operator=(Array1D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Reference to Array1D object being assigned.
+     * @return Reference to instance of Array1D.
      * @warning This function requires C++11 compiler support.
      */
-    Array1D& operator=(const Array1D<T> &&a);
+    Array1D& operator=(Array1D<T> &&a);
+#endif
 
 
 	/**

@@ -85,6 +85,8 @@
 
 /**
  * @brief Base class for arrays of pointers.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class PArrayBase{
 
@@ -113,12 +115,14 @@ public:
     PArrayBase(PArrayBase<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing PArrayBase object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     PArrayBase(PArrayBase<T> &&a);
+#endif
 
 
 	/**
@@ -175,16 +179,18 @@ public:
      * @param a Reference to PArrayBase object being assigned.
      * @return Reference to instance of PArrayBase.
      */
-    PArrayBase& operator=(const PArrayBase<T> &a);
+    PArrayBase& operator=(PArrayBase<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to PArrayBase object being assigned.
      * @return Reference to instance of PArrayBase.
      * @warning This function requires C++11 compiler support.
      */
-    PArrayBase& operator=(const PArrayBase<T> &&a);
+    PArrayBase& operator=(PArrayBase<T> &&a);
+#endif
 
 
     /**

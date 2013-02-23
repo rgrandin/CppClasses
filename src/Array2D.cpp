@@ -50,12 +50,13 @@ Array2D<T>::Array2D(Array2D<T> &a) : Array2D()
 }
 
 
+#ifdef CXX11
 template <class T>
 Array2D<T>::Array2D(Array2D<T> &&a) : Array2D()
 {
     Array2DSwap(*this, a);
 }
-
+#endif
 
 
 template <class T>
@@ -148,20 +149,21 @@ const T& Array2D<T>::operator()(int ind1i, int ind2i) const
 
 
 template <class T>
-Array2D<T>& Array2D<T>::operator=(const Array2D<T> &a)
+Array2D<T>& Array2D<T>::operator=(Array2D<T> a)
 {
     Array2DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-Array2D<T>& Array2D<T>::operator=(const Array2D<T> &&a)
+Array2D<T>& Array2D<T>::operator=(Array2D<T> &&a)
 {
     Array2DSwap(*this, a);
     return *this;
 }
-
+#endif
 
 
 // DATA ACCESS AND MODIFICATION FUNCTIONS

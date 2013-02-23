@@ -48,11 +48,13 @@ Grid1D<T>::Grid1D(Grid1D<T> &a) : Grid1D()
 }
 
 
+#ifdef CXX11
 template <class T>
 Grid1D<T>::Grid1D(Grid1D<T> &&a) : Grid1D()
 {
     Grid1DSwap(*this, a);
 }
+#endif
 
 
 
@@ -570,19 +572,21 @@ const T& Grid1D<T>::operator()(int ind1, int ind2, int qty) const
 
 
 template <class T>
-Grid1D<T>& Grid1D<T>::operator=(const Grid1D<T> &a)
+Grid1D<T>& Grid1D<T>::operator=(Grid1D<T> a)
 {
     Grid1DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-Grid1D<T>& Grid1D<T>::operator=(const Grid1D<T> &&a)
+Grid1D<T>& Grid1D<T>::operator=(Grid1D<T> &&a)
 {
     Grid1DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T>

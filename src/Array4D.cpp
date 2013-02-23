@@ -69,11 +69,13 @@ Array4D<T>::Array4D(Array4D<T> &a) : Array4D()
 }
 
 
+#ifdef CXX11
 template <class T>
 Array4D<T>::Array4D(Array4D<T> &&a) : Array4D()
 {
     Array4DSwap(*this, a);
 }
+#endif
 
 
 template <class T>
@@ -127,19 +129,21 @@ const T& Array4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3,
 
 
 template <class T>
-Array4D<T>& Array4D<T>::operator=(const Array4D<T> &a)
+Array4D<T>& Array4D<T>::operator=(Array4D<T> a)
 {
     Array4DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-Array4D<T>& Array4D<T>::operator=(const Array4D<T> &&a)
+Array4D<T>& Array4D<T>::operator=(Array4D<T> &&a)
 {
     Array4DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 

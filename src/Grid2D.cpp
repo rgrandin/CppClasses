@@ -50,12 +50,13 @@ Grid2D<T>::Grid2D(Grid2D<T> &a) : Grid2D()
 }
 
 
+#ifdef CXX11
 template <class T>
 Grid2D<T>::Grid2D(Grid2D<T> &&a) : Grid2D()
 {
     Grid2DSwap(*this, a);
 }
-
+#endif
 
 
 template <class T>
@@ -1062,23 +1063,25 @@ const T& Grid2D<T>::operator()(int ind1, int ind2, int ind3, int qty) const
 
 
 template <class T>
-Grid2D<T>& Grid2D<T>::operator=(const Grid2D<T> &a)
+Grid2D<T>& Grid2D<T>::operator=(const Grid2D<T> a)
 {
     Grid2DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-Grid2D<T>& Grid2D<T>::operator=(const Grid2D<T> &&a)
+Grid2D<T>& Grid2D<T>::operator=(Grid2D<T> &&a)
 {
     Grid2DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T>
-void Grid2D<T>::setGridName(const std::string name)
+void Grid2D<T>::setGridName(std::string name)
 {
     gridname = name;
 }

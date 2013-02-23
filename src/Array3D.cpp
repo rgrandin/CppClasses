@@ -62,11 +62,13 @@ Array3D<T>::Array3D(Array3D<T> &a) : Array3D()
 }
 
 
+#ifdef CXX11
 template <class T>
 Array3D<T>::Array3D(Array3D<T> &&a) : Array3D()
 {
     Array3DSwap(*this, a);
 }
+#endif
 
 
 template <class T>
@@ -116,19 +118,21 @@ const T& Array3D<T>::operator()(size_t ind1, size_t ind2, size_t ind3) const
 
 
 template <class T>
-Array3D<T>& Array3D<T>::operator=(const Array3D<T> &a)
+Array3D<T>& Array3D<T>::operator=(Array3D<T> a)
 {
     Array3DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-Array3D<T>& Array3D<T>::operator=(const Array3D<T> &&a)
+Array3D<T>& Array3D<T>::operator=(Array3D<T> &&a)
 {
     Array3DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 

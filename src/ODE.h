@@ -68,6 +68,8 @@
 
 /**
  * @brief Class for routines used to solve ordinary differential equations.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class ODE{
 
@@ -88,13 +90,14 @@ public:
     ODE(ODE<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing ODE object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     ODE(ODE<T> &&a);
-
+#endif
 
 	/**
 	 * @brief Deconstructor.
@@ -110,16 +113,18 @@ public:
      * @param a Reference to ODE object being assigned.
      * @return Reference to instance of ODE.
      */
-    ODE& operator=(const ODE<T> &a);
+    ODE& operator=(ODE<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to ODE object being assigned.
      * @return Reference to instance of ODE.
      * @warning This function requires C++11 compiler support.
      */
-    ODE& operator=(const ODE<T> &&a);
+    ODE& operator=(ODE<T> &&a);
+#endif
 
 
 	/**

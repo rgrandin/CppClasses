@@ -10,6 +10,8 @@ Header Code
 ===========
 
 
+ @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
 
 
 
@@ -20,29 +22,33 @@ Header Code
 ArrayBase(ArrayBase<T> &a);
 
 
+#ifdef CXX11
 /**
  * @brief Move constructor (C++11).
  * @param a Reference to existing ArrayBase object to be copied.
  * @warning This function requires C++11 compiler support.
  */
 ArrayBase(ArrayBase<T> &&a);
+#endif
 
 
 /**
  * @brief Copy-assignment operator.
- * @param a Reference to ArrayBase object being assigned.
+ * @param a ArrayBase object being assigned.
  * @return Reference to instance of ArrayBase.
  */
-ArrayBase& operator=(const ArrayBase<T> &a);
+ArrayBase& operator=(ArrayBase<T> a);
 
 
+#ifdef CXX11
 /**
  * @brief Move-assignment operator (C++11).
  * @param a Reference to ArrayBase object being assigned.
  * @return Reference to instance of ArrayBase.
  * @warning This function requires C++11 compiler support.
  */
-ArrayBase& operator=(const ArrayBase<T> &&a);
+ArrayBase& operator=(ArrayBase<T> &&a);
+#endif
 
 
 /**
@@ -76,24 +82,28 @@ ArrayBase<T>::ArrayBase(ArrayBase<T> &a) : ArrayBase()
 }
 
 
+#ifdef CXX11
 template <class T>
 ArrayBase<T>::ArrayBase(ArrayBase<T> &&a) : ArrayBase()
 {
     ArrayBaseSwap(*this, a);
 }
+#endif
 
 
 template <class T>
-ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &a)
+ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> a)
 {
     ArrayBaseSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-ArrayBase<T>& ArrayBase<T>::operator=(const ArrayBase<T> &&a)
+ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> &&a)
 {
     ArrayBaseSwap(*this, a);
     return *this;
 }
+#endif

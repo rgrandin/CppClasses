@@ -5,7 +5,7 @@
  */
 
 
-#include "ProgressInfo.h"
+#include <ProgressInfo.h>
 
 
 ProgressInfo::ProgressInfo()
@@ -19,10 +19,37 @@ ProgressInfo::ProgressInfo()
 }
 
 
+ProgressInfo::ProgressInfo(ProgressInfo &a) : ProgressInfo()
+{
+    ProgressInfoSwap(*this, a);
+}
+
+
+#ifdef CXX11
+ProgressInfo::ProgressInfo(ProgressInfo &&a) : ProgressInfo()
+{
+    ProgressInfoSwap(*this, a);
+}
+#endif
+
+
 
 ProgressInfo::~ProgressInfo()
 {
 }
 
 
+ProgressInfo& ProgressInfo::operator=(ProgressInfo &a)
+{
+    ProgressInfoSwap(*this, a);
+    return *this;
+}
 
+
+#ifdef CXX11
+ProgressInfo& ProgressInfo::operator=(ProgressInfo &&a)
+{
+    ProgressInfoSwap(*this, a);
+    return *this;
+}
+#endif

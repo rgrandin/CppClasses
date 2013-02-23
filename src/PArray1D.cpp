@@ -43,11 +43,13 @@ PArray1D<T>::PArray1D(PArray1D<T> &a) : PArray1D()
 }
 
 
+#ifdef CXX11
 template <class T>
 PArray1D<T>::PArray1D(PArray1D<T> &&a) : PArray1D()
 {
     PArray1DSwap(*this, a);
 }
+#endif
 
 
 template <class T>
@@ -95,19 +97,21 @@ const T& PArray1D<T>::operator()(size_t ind1) const
 
 
 template <class T>
-PArray1D<T>& PArray1D<T>::operator=(const PArray1D<T> &a)
+PArray1D<T>& PArray1D<T>::operator=(PArray1D<T> a)
 {
     PArray1DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-PArray1D<T>& PArray1D<T>::operator=(const PArray1D<T> &&a)
+PArray1D<T>& PArray1D<T>::operator=(PArray1D<T> &&a)
 {
     PArray1DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T> inline

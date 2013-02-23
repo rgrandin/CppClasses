@@ -63,6 +63,8 @@
   @brief Class to contain function progress information.
   @warning This class contains no checks for thread-safety.  It is left to the programmer to ensure
     that the accessing and setting of member variables is done correctly.
+  @warning C++11 functionality, such as the move-constructor and move-assignment, requires the symbol "CXX11"
+    to be defined.
   @todo Implement thread-safety checks.
  */
 class ProgressInfo
@@ -81,9 +83,45 @@ public:
 
 
     /**
+     * @brief Copy constructor.
+     * @param a Reference to existing ProgressInfo object to be copied.
+     */
+    ProgressInfo(ProgressInfo &a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing ProgressInfo object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    ProgressInfo(ProgressInfo &&a);
+#endif
+
+
+    /**
       @brief Destructor.
      */
     virtual ~ProgressInfo();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to ProgressInfo object being assigned.
+     * @return Reference to instance of ProgressInfo.
+     */
+    ProgressInfo& operator=(ProgressInfo &a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to ProgressInfo object being assigned.
+     * @return Reference to instance of ProgressInfo.
+     * @warning This function requires C++11 compiler support.
+     */
+    ProgressInfo& operator=(ProgressInfo &&a);
+#endif
 
 
     /** @brief Function completion progress, expressed as a decimal between 0.0 and 1.0. */
@@ -94,6 +132,23 @@ public:
 
     /** @brief Alternate/additional function description. */
     std::string function_description2;
+
+
+
+private:
+
+    /**
+     * @brief ProgressInfoSwap swaps member information between two ProgressInfo objects.
+     * @param first First ProgressInfo object.
+     * @param second Second ProgressInfo object.
+     */
+    friend void ProgressInfoSwap(ProgressInfo &first, ProgressInfo &second)
+    {
+        std::swap(first.completion_progress, second.completion_progress);
+        std::swap(first.function_description, second.function_description);
+        std::swap(first.function_description2, second.function_description2);
+    }
+
 
 
 };

@@ -77,6 +77,8 @@
 /**
  * @brief One-dimensional grid generation and manipulation for use with
  * 			computational mechanics applications.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class Grid1D{
 
@@ -98,12 +100,14 @@ public:
     Grid1D(Grid1D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing Grid1D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Grid1D(Grid1D<T> &&a);
+#endif
 
 
 	/**
@@ -328,19 +332,21 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param a Reference to Grid1D object being assigned.
+     * @param a Grid1D object being assigned.
      * @return Reference to instance of Grid1D.
      */
-    Grid1D& operator=(const Grid1D<T> &a);
+    Grid1D& operator=(Grid1D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to Grid1D object being assigned.
      * @return Reference to instance of Grid1D.
      * @warning This function requires C++11 compiler support.
      */
-    Grid1D& operator=(const Grid1D<T> &&a);
+    Grid1D& operator=(Grid1D<T> &&a);
+#endif
 
 
     /** @brief 2D array containing the x-coordinates of the nodes of the

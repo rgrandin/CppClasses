@@ -88,6 +88,8 @@
 
 /**
  * @brief Class definition for storing 2-dimensional data.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class Array2D : public ArrayBase<T>{
@@ -120,12 +122,14 @@ public:
     Array2D(Array2D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing Array2D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array2D(Array2D<T> &&a);
+#endif
 
 
     // DECONSTRUCTOR
@@ -269,20 +273,21 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Array2D object being assigned.
+     * @return Reference to instance of Array2D.
      */
-    Array2D& operator=(const Array2D<T> &a);
+    Array2D& operator=(Array2D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Reference to Array2D object being assigned.
+     * @return Reference to instance of Array2D.
      * @warning This function requires C++11 compiler support.
      */
-    Array2D& operator=(const Array2D<T> &&a);
-
+    Array2D& operator=(Array2D<T> &&a);
+#endif
 
 
     /**

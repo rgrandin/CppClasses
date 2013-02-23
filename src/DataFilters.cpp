@@ -289,11 +289,13 @@ DataFilters<T>::DataFilters(DataFilters<T> &a) : DataFilters()
 }
 
 
+#ifdef CXX11
 template <class T>
 DataFilters<T>::DataFilters(DataFilters<T> &&a) : DataFilters()
 {
     DataFiltersSwap(*this, a);
 }
+#endif
 
 
 template <class T>
@@ -310,19 +312,21 @@ DataFilters<T>::~DataFilters()
 
 
 template <class T>
-DataFilters<T>& DataFilters<T>::operator=(const DataFilters<T> &a)
+DataFilters<T>& DataFilters<T>::operator=(DataFilters<T> a)
 {
     DataFiltersSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-DataFilters<T>& DataFilters<T>::operator=(const DataFilters<T> &&a)
+DataFilters<T>& DataFilters<T>::operator=(DataFilters<T> &&a)
 {
     DataFiltersSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T>

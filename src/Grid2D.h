@@ -99,6 +99,8 @@
 /**
  * @brief Two-dimensional grid generation and manipulation for use with
  * 			computational mechanics applications.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class Grid2D{
 
@@ -120,12 +122,14 @@ public:
     Grid2D(Grid2D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing Grid2D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Grid2D(Grid2D<T> &&a);
+#endif
 
 
 	/**
@@ -481,19 +485,21 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Grid2D object being assigned.
+     * @return Reference to instance of Grid2D.
      */
-    Grid2D& operator=(const Grid2D<T> &a);
+    Grid2D& operator=(Grid2D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Reference to Grid2D object being assigned.
+     * @return Reference to instance of Grid2D.
      * @warning This function requires C++11 compiler support.
      */
-    Grid2D& operator=(const Grid2D<T> &&a);
+    Grid2D& operator=(Grid2D<T> &&a);
+#endif
 
 
     /**

@@ -58,11 +58,13 @@ PArrayBase<T>::PArrayBase(PArrayBase<T> &a) : PArrayBase()
 }
 
 
+#ifdef CXX11
 template <class T>
 PArrayBase<T>::PArrayBase(PArrayBase<T> &&a) : PArrayBase()
 {
     PArrayBaseSwap(*this, a);
 }
+#endif
 
 
 template <class T>
@@ -132,19 +134,21 @@ double PArrayBase<T>::GetMemoryUsage() const
 
 
 template <class T>
-PArrayBase<T>& PArrayBase<T>::operator=(const PArrayBase<T> &a)
+PArrayBase<T>& PArrayBase<T>::operator=(PArrayBase<T> a)
 {
     PArrayBaseSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-PArrayBase<T>& PArrayBase<T>::operator=(const PArrayBase<T> &&a)
+PArrayBase<T>& PArrayBase<T>::operator=(PArrayBase<T> &&a)
 {
     PArrayBaseSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T>

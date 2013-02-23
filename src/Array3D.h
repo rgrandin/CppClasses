@@ -73,6 +73,8 @@
 
 /**
  * @brief Class definition for storing 3-dimensional data.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class Array3D : public ArrayBase<T>{
@@ -116,12 +118,14 @@ class Array3D : public ArrayBase<T>{
     Array3D(Array3D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing Array3D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array3D(Array3D<T> &&a);
+#endif
 
 	
 	/**
@@ -245,19 +249,21 @@ class Array3D : public ArrayBase<T>{
 
     /**
      * @brief Copy-assignment operator.
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Array3D object being assigned.
+     * @return Reference to instance of Array3D.
      */
-    Array3D& operator=(const Array3D<T> &a);
+    Array3D& operator=(Array3D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Reference to Array3D object being assigned.
+     * @return Reference to instance of Array3D.
      * @warning This function requires C++11 compiler support.
      */
-    Array3D& operator=(const Array3D<T> &&a);
+    Array3D& operator=(Array3D<T> &&a);
+#endif
 
 
 	/**

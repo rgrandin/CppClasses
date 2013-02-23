@@ -83,6 +83,8 @@
 /**
  * @brief Class to represent physical vectors, such as those that occur in science
  * and engineering.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class PhysVec1D : public Array1D<T> {
@@ -108,8 +110,14 @@ public:
 	 * @warning This is a true copy.  After this object is created, changes to the
 	 * 		input vector will not be reflected in this vector.
 	 */
-	PhysVec1D(PhysVec1D<T> &vec);
+    PhysVec1D(PhysVec1D<T> &vec);
 
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing PhysVec1D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    PhysVec1D(PhysVec1D<T> &&a);
 
 	/**
 	 * @brief Generalized constructor.
@@ -119,7 +127,7 @@ public:
 	 * @post Vector created as-specified.
 	 * @return None.
 	 */
-	PhysVec1D(int n, const T initval);
+    PhysVec1D(size_t n, const T initval);
 
 
 	/**
@@ -140,7 +148,16 @@ public:
 	 * @post Values assigned.
 	 * @return Reference to self, which has been updated to match vectors.
 	 */
-	PhysVec1D<T>& operator=(const PhysVec1D<T>& vec);
+    PhysVec1D<T>& operator=(PhysVec1D<T> vec);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to PhysVec1D object being assigned.
+     * @return Reference to instance of PhysVec1D.
+     * @warning This function requires C++11 compiler support.
+     */
+    PhysVec1D& operator=(PhysVec1D<T> &&a);
 
 
 	/**
@@ -171,13 +188,12 @@ public:
      * Specifically, the operation is (this) cross (other_vector).
 	 * @pre PhysVec1D objects exits.
 	 * @param ivec Vector with which this is crossed.
-	 * @param ovec Vector which contains result.
 	 * @post No changes to this vector or input vector.
-	 * @return None.
-	 * @warning If input vectors are 2-element vectors, the result contains 3-elements.
-	 * 		Use of 3-element input vectors produce a 3-element output vector.
+     * @return Vector cross product result.
+     * @warning If input vector is a 2-element vector, the 3rd component is assumed to be 0.
+     * @warning Only 2-element or 3-element vectors are supported.
 	 */
-	void Cross(const PhysVec1D<T> &ivec, PhysVec1D<T> &ovec);
+    PhysVec1D& Cross(const PhysVec1D<T> &ivec);
 
 
 	/**
@@ -197,6 +213,19 @@ public:
 	void Rotate(const T alpha, const T beta, const T gamma);
 
 
+
+private:
+
+    /**
+     * @brief PhysVec1DSwap swaps member information between two PhysVec1D objects.
+     * @param first First PhysVec1D object.
+     * @param second Second PhysVec1D object.
+     */
+    friend void PhysVec1DSwap(PhysVec1D<T> &first, PhysVec1D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+    }
 
 };
 

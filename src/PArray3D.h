@@ -76,7 +76,9 @@
 #include <PArrayBase.h>
 
 /**
- * @brief Class definition for storing 3-dimensional data.
+ * @brief Class definition for storing 3-dimensional array of pointers.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class PArray3D : public PArrayBase<T>{
@@ -108,12 +110,14 @@ public:
     PArray3D(PArray3D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing PArray3D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     PArray3D(PArray3D<T> &&a);
+#endif
 
 
 	/**
@@ -188,16 +192,18 @@ public:
      * @param a Reference to PArray3D object being assigned.
      * @return Reference to instance of PArray3D.
      */
-    PArray3D& operator=(const PArray3D<T> &a);
+    PArray3D& operator=(PArray3D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to PArray3D object being assigned.
      * @return Reference to instance of PArray3D.
      * @warning This function requires C++11 compiler support.
      */
-    PArray3D& operator=(const PArray3D<T> &&a);
+    PArray3D& operator=(PArray3D<T> &&a);
+#endif
 
 
 	/**

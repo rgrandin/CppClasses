@@ -76,6 +76,8 @@
 
 /**
  * @brief Class definition for storing 4-dimensional data.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class Array4D : public ArrayBase<T>{
@@ -124,13 +126,14 @@ public:
     Array4D(Array4D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing Array4D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array4D(Array4D<T> &&a);
-
+#endif
 
 
     // DECONSTRUCTOR
@@ -263,19 +266,21 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Array4D object being assigned.
+     * @return Reference to instance of Array4D.
      */
-    Array4D& operator=(const Array4D<T> &a);
+    Array4D& operator=(Array4D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
+     * @param a Reference to Array4D object being assigned.
+     * @return Reference to instance of Array4D.
      * @warning This function requires C++11 compiler support.
      */
-    Array4D& operator=(const Array4D<T> &&a);
+    Array4D& operator=(Array4D<T> &&a);
+#endif
 
 
     /**

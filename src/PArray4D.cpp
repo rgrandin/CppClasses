@@ -52,11 +52,14 @@ PArray4D<T>::PArray4D(PArray4D<T> &a) : PArray4D()
 }
 
 
+#ifdef CXX11
 template <class T>
 PArray4D<T>::PArray4D(PArray4D<T> &&a) : PArray4D()
 {
     PArray4DSwap(*this, a);
 }
+#endif
+
 
 
 template <class T>
@@ -135,19 +138,21 @@ size_t PArray4D<T>::GetDim(int dim) const
 
 
 template <class T>
-PArray4D<T>& PArray4D<T>::operator=(const PArray4D<T> &a)
+PArray4D<T>& PArray4D<T>::operator=(PArray4D<T> a)
 {
     PArray4DSwap(*this, a);
     return *this;
 }
 
 
+#ifdef CXX11
 template <class T>
-PArray4D<T>& PArray4D<T>::operator=(const PArray4D<T> &&a)
+PArray4D<T>& PArray4D<T>::operator=(PArray4D<T> &&a)
 {
     PArray4DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T>

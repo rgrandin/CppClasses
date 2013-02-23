@@ -84,6 +84,9 @@
  * 		node.  Multiple datatypes at each node is not supported.
  * @param T Datatype used to store the data at each node.
  * @param I Number of elements of datatype T stored at each node.
+ *
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T, int I>
 class DLList {
@@ -133,12 +136,14 @@ public:
     DLList(DLList<T, I> &list);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing DLList object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     DLList(DLList<T,I> &&a);
+#endif
 
 
     /**
@@ -350,17 +355,18 @@ public:
      * @post DLList pointer addresses to head and current nodes copied.
      * @return Reference to instance of DLList.
      */
-    DLList<T,I>& operator=(const DLList<T,I>& sourcelist);
+    DLList<T,I>& operator=(DLList<T,I> sourcelist);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to DLList object being assigned.
      * @return Reference to instance of DLList.
      * @warning This function requires C++11 compiler support.
      */
-    DLList& operator=(const DLList<T,I> &&a);
-
+    DLList& operator=(DLList<T,I> &&a);
+#endif
 
 
 

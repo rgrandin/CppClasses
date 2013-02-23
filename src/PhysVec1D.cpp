@@ -17,24 +17,21 @@ PhysVec1D<T>::PhysVec1D()
 
 
 template <class T>
-PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &vec) : Array1D<T>::Array1D()
+PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &a) : PhysVec1D()
 {
-	// REQUIRE THAT THE INPUT VECTOR IS DIFFERENT THAN THIS ONE
-	assert(this != &vec);
-
-	// GET NUMBER OF ELEMENTS AND INITIALIZE VECTOR
-	int n = vec.GetDim();
-	ArrayBase<T>::initialize(n,(T)0.0e0);
-
-	// SET LOCAL VALUES TO MATCH INPUT VECTOR VALUES
-	for(int i=0; i<n; i++){
-		ArrayBase<T>::array[i] = vec(i);
-	}
+    PhysVec1DSwap(*this, a);
 }
 
 
 template <class T>
-PhysVec1D<T>::PhysVec1D(int n, const T initval)
+PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &&a) : PhysVec1D()
+{
+    PhysVec1DSwap(*this, a);
+}
+
+
+template <class T>
+PhysVec1D<T>::PhysVec1D(size_t n, const T initval)
 {
     ArrayBase<T>::initialize(n,(T)initval);
 }
@@ -48,20 +45,18 @@ PhysVec1D<T>::~PhysVec1D()
 
 
 template <class T>
-PhysVec1D<T>& PhysVec1D<T>::operator=(const PhysVec1D<T>& vec)
+PhysVec1D<T>& PhysVec1D<T>::operator=(PhysVec1D<T> a)
 {
-	// REQUIRE THAT THIS ISN'T A SELF-REFERENCE
-	assert(this != &vec);
+    PhysVec1DSwap(*this, a);
+    return *this;
+}
 
-	int n = vec.GetDim();
 
-	ArrayBase<T>::ResetSize(n,(T)0.0e0);
-
-	for(int i=0; i<n; i++){
-		ArrayBase<T>::array[i] = vec(i);
-	}
-
-	return *this;
+template <class T>
+PhysVec1D<T>& PhysVec1D<T>::operator=(PhysVec1D<T> &&a)
+{
+    PhysVec1DSwap(*this, a);
+    return *this;
 }
 
 
@@ -101,12 +96,13 @@ const T PhysVec1D<T>::Dot(const PhysVec1D<T> &vec) const
 
 
 template <class T>
-void PhysVec1D<T>::Cross(const PhysVec1D<T> &ivec, PhysVec1D<T> &ovec)
+PhysVec1D& PhysVec1D<T>::Cross(const PhysVec1D<T> &ivec)
 {
 	// CHECK VECTOR DIMENSIONS
 	assert(ArrayBase<T>::npoints == 2 || ArrayBase<T>::npoints == 3);
 	assert(ivec.GetDim() == 2 || ivec.GetDim() == 3);
-	assert(ovec.GetDim() == 3);
+
+    PhysVec1D result(ivec);
 
 	T a1 = (T)0.0e0;
 	T a2 = (T)0.0e0;
@@ -121,9 +117,11 @@ void PhysVec1D<T>::Cross(const PhysVec1D<T> &ivec, PhysVec1D<T> &ovec)
 	b2 = ivec(1);
 	if(ivec.GetDim() == 3){ b3 = ivec(2); }
 
-	ovec(0) = a2*b3 - a3*b2;
-	ovec(1) = a3*b1 - a1*b3;
-	ovec(2) = a1*b2 - a2*b1;
+    result(0) = a2*b3 - a3*b2;
+    result(1) = a3*b1 - a1*b3;
+    result(2) = a1*b2 - a2*b1;
+
+    return &result;
 }
 
 

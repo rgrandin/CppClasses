@@ -93,6 +93,8 @@
 
 /**
  * @brief 1-dimensional array of pointers.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class PArray1D : public PArrayBase<T>{
@@ -122,12 +124,14 @@ public:
     PArray1D(PArray1D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing PArray1D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     PArray1D(PArray1D<T> &&a);
+#endif
 
 
 	/**
@@ -217,17 +221,18 @@ public:
      * @param a Reference to PArray1D object being assigned.
      * @return Reference to instance of PArray1D.
      */
-    PArray1D& operator=(const PArray1D<T> &a);
+    PArray1D& operator=(PArray1D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to PArray1D object being assigned.
      * @return Reference to instance of PArray1D.
      * @warning This function requires C++11 compiler support.
      */
-    PArray1D& operator=(const PArray1D<T> &&a);
-
+    PArray1D& operator=(PArray1D<T> &&a);
+#endif
 
 
 private:

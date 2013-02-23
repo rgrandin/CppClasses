@@ -42,11 +42,13 @@ DLList<T,I>::DLList(DLList<T,I> &list)
 }
 
 
+#ifdef CXX11
 template <class T, int I>
 DLList<T,I>::DLList(DLList<T,I> &&a) : DLList()
 {
     DLListSwap(*this, a);
 }
+#endif
 
 
 
@@ -80,7 +82,7 @@ DLList<T,I>::~DLList()
  */
 
 template <class T, int I>
-DLList<T,I>& DLList<T,I>::operator=(const DLList<T,I>& sourcelist)
+DLList<T,I>& DLList<T,I>::operator=(DLList<T,I> sourcelist)
 {
     DLListSwap(*this, sourcelist);
 
@@ -91,9 +93,9 @@ DLList<T,I>& DLList<T,I>::operator=(const DLList<T,I>& sourcelist)
 }
 
 
-
+#ifdef CXX11
 template <class T, int I>
-DLList<T,I>& DLList<T,I>::operator=(const DLList<T,I>&& sourcelist)
+DLList<T,I>& DLList<T,I>::operator=(DLList<T,I>&& sourcelist)
 {
     DLListSwap(*this, sourcelist);
 
@@ -102,7 +104,7 @@ DLList<T,I>& DLList<T,I>::operator=(const DLList<T,I>&& sourcelist)
 
     return *this;
 }
-
+#endif
 
 
 template <class T, int I>

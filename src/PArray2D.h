@@ -85,7 +85,9 @@
 // ================
 
 /**
- * @brief Class definition for storing 2-dimensional data.
+ * @brief Class definition for storing 2-dimensional array of pointers.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class PArray2D : public PArrayBase<T>{
@@ -118,13 +120,15 @@ class PArray2D : public PArrayBase<T>{
     PArray2D(PArray2D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing PArray2D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     PArray2D(PArray2D<T> &&a);
-	
+#endif
+
 	
 	// DECONSTRUCTOR
 	/**
@@ -197,16 +201,18 @@ class PArray2D : public PArrayBase<T>{
      * @param a Reference to PArray2D object being assigned.
      * @return Reference to instance of PArray2D.
      */
-    PArray2D& operator=(const PArray2D<T> &a);
+    PArray2D& operator=(PArray2D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to PArray2D object being assigned.
      * @return Reference to instance of PArray2D.
      * @warning This function requires C++11 compiler support.
      */
-    PArray2D& operator=(const PArray2D<T> &&a);
+    PArray2D& operator=(PArray2D<T> &&a);
+#endif
 
 
 	/**

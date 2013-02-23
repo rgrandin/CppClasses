@@ -79,7 +79,9 @@
 #include <PArrayBase.h>
 
 /**
- * @brief Class definition for storing 4-dimensional data.
+ * @brief Class definition for storing 4-dimensional array of pointers.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class PArray4D : public PArrayBase<T>{
@@ -115,12 +117,14 @@ class PArray4D : public PArrayBase<T>{
     PArray4D(PArray4D<T> &a);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param a Reference to existing PArray4D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     PArray4D(PArray4D<T> &&a);
+#endif
 
 
 	// DECONSTRUCTOR
@@ -201,16 +205,18 @@ class PArray4D : public PArrayBase<T>{
      * @param a Reference to PArray4D object being assigned.
      * @return Reference to instance of PArray4D.
      */
-    PArray4D& operator=(const PArray4D<T> &a);
+    PArray4D& operator=(PArray4D<T> a);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to PArray4D object being assigned.
      * @return Reference to instance of PArray4D.
      * @warning This function requires C++11 compiler support.
      */
-    PArray4D& operator=(const PArray4D<T> &&a);
+    PArray4D& operator=(PArray4D<T> &&a);
+#endif
 
 	
 	/**

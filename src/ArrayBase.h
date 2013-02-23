@@ -85,7 +85,9 @@
 // ================
 
 /**
- * @brief Class definition for storing 1-dimensional data.
+ * @brief Base class for numerical arrays.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class ArrayBase{
 
@@ -124,12 +126,14 @@ public:
     ArrayBase(ArrayBase<T> &ab);
 
 
+#ifdef CXX11
     /**
      * @brief Move constructor (C++11).
      * @param ab Reference to existing ArrayBase object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     ArrayBase(ArrayBase<T> &&ab);
+#endif
 
 
 	/**
@@ -144,19 +148,21 @@ public:
 
     /**
      * @brief Copy-assignment operator.
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param ab ArrayBase object being assigned.
      * @return Reference to instance of ArrayBase.
      */
-    ArrayBase& operator=(const ArrayBase<T> &ab);
+    ArrayBase& operator=(ArrayBase<T> ab);
 
 
+#ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
      * @param ab Reference to ArrayBase object being assigned.
      * @return Reference to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */
-    ArrayBase& operator=(const ArrayBase<T> &&ab);
+    ArrayBase& operator=(ArrayBase<T> &&ab);
+#endif
 
 
     /**
