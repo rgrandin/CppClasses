@@ -134,7 +134,7 @@ public:
     /**
      * @brief Copy-assignment operator.
      * @param a Reference to ArrayBase object being assigned.
-     * @return Pointer to instance of ArrayBase.
+     * @return Reference to instance of ArrayBase.
      */
     DataFilters& operator=(const DataFilters<T> &a);
 
@@ -142,7 +142,7 @@ public:
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to ArrayBase object being assigned.
-     * @return Pointer to instance of ArrayBase.
+     * @return Reference to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */
     DataFilters& operator=(const DataFilters<T> &&a);

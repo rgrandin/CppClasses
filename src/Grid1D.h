@@ -329,7 +329,7 @@ public:
     /**
      * @brief Copy-assignment operator.
      * @param a Reference to Grid1D object being assigned.
-     * @return Pointer to instance of Grid1D.
+     * @return Reference to instance of Grid1D.
      */
     Grid1D& operator=(const Grid1D<T> &a);
 
@@ -337,7 +337,7 @@ public:
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to Grid1D object being assigned.
-     * @return Pointer to instance of Grid1D.
+     * @return Reference to instance of Grid1D.
      * @warning This function requires C++11 compiler support.
      */
     Grid1D& operator=(const Grid1D<T> &&a);

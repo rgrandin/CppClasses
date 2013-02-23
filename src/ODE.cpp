@@ -117,9 +117,39 @@ ODE<T>::ODE()
 
 
 template <class T>
+ODE<T>::ODE(ODE<T> &a) : ODE()
+{
+    ODESwap(*this, a);
+}
+
+
+template <class T>
+ODE<T>::ODE(ODE<T> &&a) : ODE()
+{
+    ODESwap(*this, a);
+}
+
+
+template <class T>
 ODE<T>::~ODE()
 {
 	;	// NOTHING TO DO IN DECONSTRUCTOR
+}
+
+
+template <class T>
+ODE<T>& ODE<T>::operator=(const ODE<T> &a)
+{
+    ODESwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+ODE<T>& ODE<T>::operator=(const ODE<T> &&a)
+{
+    ODESwap(*this, a);
+    return *this;
 }
 
 

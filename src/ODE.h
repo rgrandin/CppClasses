@@ -81,6 +81,21 @@ public:
 	ODE();
 
 
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing ODE object to be copied.
+     */
+    ODE(ODE<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing ODE object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    ODE(ODE<T> &&a);
+
+
 	/**
 	 * @brief Deconstructor.
 	 * @pre ODE object exists.
@@ -88,6 +103,23 @@ public:
 	 * @return None.
 	 */
     virtual ~ODE();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to ODE object being assigned.
+     * @return Reference to instance of ODE.
+     */
+    ODE& operator=(const ODE<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to ODE object being assigned.
+     * @return Reference to instance of ODE.
+     * @warning This function requires C++11 compiler support.
+     */
+    ODE& operator=(const ODE<T> &&a);
 
 
 	/**
@@ -355,6 +387,26 @@ private:
 	 * @return None.
 	 */
 	void AssignRKF45Weights();
+
+
+
+    /**
+     * @brief ODESwap swaps member information between two ODE objects.
+     * @param first First ODE object.
+     * @param second Second ODE object.
+     */
+    friend void ODESwap(ODE<T> &first, ODE<T> &second)
+    {
+        std::swap(first.rk4butcherset, second.rk4butcherset);
+        std::swap(first.rkf45butcherset, second.rkf45butcherset);
+        std::swap(first.alpha_rk4, second.alpha_rk4);
+        std::swap(first.beta_rk4, second.beta_rk4);
+        std::swap(first.gamma_rk4, second.gamma_rk4);
+        std::swap(first.alpha_rkf45, second.alpha_rkf45);
+        std::swap(first.beta_rkf45, second.beta_rkf45);
+        std::swap(first.gamma4_rkf45, second.gamma4_rkf45);
+        std::swap(first.gamma5_rkf45, second.gamma5_rkf45);
+    }
 
 };
 

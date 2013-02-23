@@ -348,7 +348,7 @@ public:
      * @pre DLList object exists.
      * @param sourcelist List from which values are to be copied.
      * @post DLList pointer addresses to head and current nodes copied.
-     * @return None.
+     * @return Reference to instance of DLList.
      */
     DLList<T,I>& operator=(const DLList<T,I>& sourcelist);
 
@@ -356,7 +356,7 @@ public:
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to DLList object being assigned.
-     * @return Pointer to instance of DLList.
+     * @return Reference to instance of DLList.
      * @warning This function requires C++11 compiler support.
      */
     DLList& operator=(const DLList<T,I> &&a);

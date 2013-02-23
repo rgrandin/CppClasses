@@ -254,7 +254,7 @@ public:
     /**
      * @brief Copy-assignment operator.
      * @param a Reference to ArrayBase object being assigned.
-     * @return Pointer to instance of ArrayBase.
+     * @return Reference to instance of ArrayBase.
      */
     Array1D& operator=(const Array1D<T> &a);
 
@@ -262,7 +262,7 @@ public:
     /**
      * @brief Move-assignment operator (C++11).
      * @param a Reference to ArrayBase object being assigned.
-     * @return Pointer to instance of ArrayBase.
+     * @return Reference to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */
     Array1D& operator=(const Array1D<T> &&a);
