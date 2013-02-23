@@ -123,7 +123,11 @@
 #include <QtIntermediaryBase.h>
 
 
-/** @brief Representation of 3-dimensional volumetric data */
+/**
+ * @brief Representation of 3-dimensional volumetric data.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
+ */
 template <class T>
 class UniformVolume : public QtIntermediaryBase
 {
@@ -151,6 +155,16 @@ public:
     UniformVolume(UniformVolume<T> &uc3d);
 
 
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing UniformVolume object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    UniformVolume(UniformVolume<T> &&a);
+#endif
+
+
     /**
       @brief Destructor.
       @pre UniformVolume object exists.
@@ -158,6 +172,25 @@ public:
       @return None.
      */
     virtual ~UniformVolume();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a UniformVolume object being assigned.
+     * @return Reference to instance of UniformVolume.
+     */
+    UniformVolume& operator=(UniformVolume<T> a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to UniformVolume object being assigned.
+     * @return Reference to instance of UniformVolume.
+     * @warning This function requires C++11 compiler support.
+     */
+    UniformVolume& operator=(UniformVolume<T> &&a);
+#endif
 
 
     /**
@@ -1136,6 +1169,56 @@ private:
      * @param slice_min Z-coordinate value of first slice.
      */
     void VTKWriteBinaryBitFlipPartial(const size_t first_slice, const size_t num_slices, const float slice_min);
+
+
+    /**
+     * @brief UniformVolumeSwap swaps member information between two UniformVolume objects.
+     * @param first First UniformVolume object.
+     * @param second Second UniformVolume object.
+     */
+    friend void UniformVolumeSwap(UniformVolume<T> &first, UniformVolume<T> &second)
+    {
+        std::swap(first.conversion_options, second.conversion_options);
+        std::swap(first.xmin, second.xmin);
+        std::swap(first.xmax, second.xmax);
+        std::swap(first.ymin, second.ymin);
+        std::swap(first.ymax, second.ymax);
+        std::swap(first.zmin, second.zmin);
+        std::swap(first.zmax, second.zmax);
+        std::swap(first.xspacing, second.xspacing);
+        std::swap(first.yspacing, second.yspacing);
+        std::swap(first.zspacing, second.zspacing);
+        std::swap(first.xminset, second.xminset);
+        std::swap(first.xmaxset, second.xmaxset);
+        std::swap(first.yminset, second.yminset);
+        std::swap(first.ymaxset, second.ymaxset);
+        std::swap(first.zminset, second.zminset);
+        std::swap(first.zmaxset, second.zmaxset);
+        std::swap(first.filenamestem, second.filenamestem);
+        std::swap(first.outputdir, second.outputdir);
+        std::swap(first.imageoutput, second.imageoutput);
+        std::swap(first.rectoutput, second.rectoutput);
+        std::swap(first.volname, second.volname);
+        std::swap(first.volnameset, second.volnameset);
+        std::swap(first.vrows, second.vrows);
+        std::swap(first.vcols, second.vrows);
+        std::swap(first.vslices, second.vslices);
+        std::swap(first.unitslength, second.unitslength);
+        std::swap(first.intensitysubtractgradient, second.intensitysubtractgradient);
+        std::swap(first.intensitysubtractlaplacian, second.intensitysubtractlaplacian);
+        std::swap(first.nscalars, second.nscalars);
+        std::swap(first.nvectors, second.nvectors);
+        std::swap(first.pscalars, second.pscalars);
+        std::swap(first.pvectors, second.pvectors);
+        std::swap(first.scalar_names, second.scalar_names);
+        std::swap(first.vector_names, second.vector_names);
+        std::swap(first.qtysize, second.qtysize);
+        std::swap(first.dtypename, second.dtypename);
+        std::swap(first.writebigendian, second.writebigendian);
+        std::swap(first.scalar_data, second.scalar_data);
+        std::swap(first.scalar_data_size, second.scalar_data_size);
+        std::swap(first.scalar_data_points_read, second.scalar_data_points_read);
+    }
 
 };
 

@@ -69,197 +69,235 @@
 
 /**
  * @brief Class for routines used to find roots of equations.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class RootFinding{
 
 public:
 
-	/**
-	 * @brief Constructor.
-	 * @pre None.
-	 * @post RootFinding object created.
-	 * @return None.
-	 */
-	RootFinding();
+    /**
+     * @brief Constructor.
+     * @pre None.
+     * @post RootFinding object created.
+     * @return None.
+     */
+    RootFinding();
 
 
-	/**
-	 * @brief Deconstructor.
-	 * @pre RootFinding object exists.
-	 * @post RootFinding object destroyed.
-	 * @return None.
-	 */
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing RootFinding object to be copied.
+     */
+    RootFinding(RootFinding<T> &a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing RootFinding object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    RootFinding(RootFinding<T> &&a);
+#endif
+
+
+    /**
+     * @brief Deconstructor.
+     * @pre RootFinding object exists.
+     * @post RootFinding object destroyed.
+     * @return None.
+     */
     virtual ~RootFinding();
 
 
-	/**
-	 * @brief Example of format for defining the function for which zero is to
-	 * 			be found.
-	 * @pre None.
-	 * @param varval Array1D containing the values for all variables used in the
-	 * 			function.
-	 * @post None.
-	 * @return Value of the function with the specified variable values.
-	 */
-	T f(Array1D<T> &varval);
+    /**
+     * @brief Copy-assignment operator.
+     * @param a RootFinding object being assigned.
+     * @return Reference to instance of RootFinding.
+     */
+    RootFinding& operator=(RootFinding<T> a);
 
 
-	/**
-	 * @brief Bisection method for finding roots.
-	 * @pre RootFinding object exists.
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to RootFinding object being assigned.
+     * @return Reference to instance of RootFinding.
+     * @warning This function requires C++11 compiler support.
+     */
+    RootFinding& operator=(RootFinding<T> &&a);
+#endif
+
+
+    /**
+     * @brief Example of format for defining the function for which zero is to
+     * 			be found.
+     * @pre None.
+     * @param varval Array1D containing the values for all variables used in the
+     * 			function.
+     * @post None.
+     * @return Value of the function with the specified variable values.
+     */
+    T f(Array1D<T> &varval);
+
+
+    /**
+     * @brief Bisection method for finding roots.
+     * @pre RootFinding object exists.
      * @param varval Array1D containing the values for all variables used in the
      *  function for which zeros are found.
      * @param rvar Index of varval which contains the variable to be modified
      *  when searching for the function's root.
      * @param a Starting point of section to be searched.
      * @param b Ending point of section to be searched.
-	 * @param tol Tolerance required to declare convergence.
-	 * @param maxiter Maximum number of iterations allowed.
+     * @param tol Tolerance required to declare convergence.
+     * @param maxiter Maximum number of iterations allowed.
      * @param tolachieved Actual tolerance achieved.  This is the function value at
      *  the determined root location.
      * @param itersused Number of iterations used.
      * @param fevals Number of function evaluations required.
-	 * @param f Function for which the root is to be found.
+     * @param f Function for which the root is to be found.
      * @param warn Enable/disable warning message output from function.
-	 * @return Variable value for which the function is equal to zero.  Note
+     * @return Variable value for which the function is equal to zero.  Note
      * 			that this is the variable identified by rvar.
      * @warning The function must have a zero-value within the range [a,b].
      * @warning It is expected that a < b.  If this is not true, their values will
      *      be swapped to satisfy this condition.
-	 */
+     */
     T Bisection(Array1D<T> &varval, const int rvar, const T a, const T b, const T tol, const int maxiter,
-            T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
+                T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
 
 
 
-	/**
-	 * @brief Newton's method for finding roots.
-	 * @pre RootFinding object exists.
+    /**
+     * @brief Newton's method for finding roots.
+     * @pre RootFinding object exists.
      * @param varval Array1D containing the values for all variables used in the
      *  function for which zeros are found.
      * @param rvar Index of varval which contains the variable to be modified
      *  when searching for the function's root.
-	 * @param p Perterbation amount as a fraction of the variable's value.  A
-	 * 			typical value is in the neighborhood of 0.01 (1%).
-	 * @param tol Tolerance required to declare convergence.
-	 * @param maxiter Maximum number of iterations allowed.
+     * @param p Perterbation amount as a fraction of the variable's value.  A
+     * 			typical value is in the neighborhood of 0.01 (1%).
+     * @param tol Tolerance required to declare convergence.
+     * @param maxiter Maximum number of iterations allowed.
      * @param tolachieved Actual tolerance achieved.  This is the function value at
      *  the determined root location.
      * @param itersused Number of iterations used.
      * @param fevals Number of function evaluations required.
-	 * @param f Function for which the root is to be found.
+     * @param f Function for which the root is to be found.
      * @param warn Enable/disable warning message output from function.
-	 * @post Number of iterations used saved to public attribute
-	 * 			"iterations_used".
-	 * @return Variable value for which the function is equal to zero.  Note
-	 * 			that this is the variable identified by rvar.
-	 */
+     * @post Number of iterations used saved to public attribute
+     * 			"iterations_used".
+     * @return Variable value for which the function is equal to zero.  Note
+     * 			that this is the variable identified by rvar.
+     */
     T Newton(Array1D<T> &varval, const int rvar, const T p, const T tol, const int maxiter,
-            T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
+             T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
 
 
-	/**
-	 * @brief Secant method for finding roots.
-	 * @pre RootFinding object exists.
+    /**
+     * @brief Secant method for finding roots.
+     * @pre RootFinding object exists.
      * @param varval Array1D containing the values for all variables used in the
      *  function for which zeros are found.
      * @param rvar Index of varval which contains the variable to be modified
      *  when searching for the function's root.
      * @param p Perterbation amount as a fraction of the variable's value.  A
      *  typical value is in the neighborhood of 0.01 (1%).
-	 * @param tol Tolerance required to declare convergence.
-	 * @param maxiter Maximum number of iterations allowed.
+     * @param tol Tolerance required to declare convergence.
+     * @param maxiter Maximum number of iterations allowed.
      * @param tolachieved Actual tolerance achieved.  This is the function value at
      *  the determined root location.
      * @param itersused Number of iterations used.
      * @param fevals Number of function evaluations required.
-	 * @param f Function for which the root is to be found.
+     * @param f Function for which the root is to be found.
      * @param warn Enable/disable warning message output from function.
-	 * @post Number of iterations used saved to public attribute
-	 * 			"iterations_used".
-	 * @return Variable value for which the function is equal to zero.  Note
-	 * 			that this is the variable identified by rvar.
-	 */
+     * @post Number of iterations used saved to public attribute
+     * 			"iterations_used".
+     * @return Variable value for which the function is equal to zero.  Note
+     * 			that this is the variable identified by rvar.
+     */
     T Secant(Array1D<T> &varval, const int rvar, const T p, const T tol, const int maxiter,
-            T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
+             T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
 
 
-	/**
-	 * @brief Fixed-Point-Iteration method for finding roots.
-	 * @pre RootFinding object exists.
+    /**
+     * @brief Fixed-Point-Iteration method for finding roots.
+     * @pre RootFinding object exists.
      * @param varval Array1D containing the values for all variables used in the
      *  function for which zeros are found.
      * @param rvar Index of varval which contains the variable to be modified
      *  when searching for the function's root.
      * @param p Perterbation amount as a fraction of the variable's value.  A
      *  typical value is in the neighborhood of 0.01 (1%).
-	 * @param tol Tolerance required to declare convergence.
-	 * @param maxiter Maximum number of iterations allowed.
+     * @param tol Tolerance required to declare convergence.
+     * @param maxiter Maximum number of iterations allowed.
      * @param tolachieved Actual tolerance achieved.  This is the function value at
      *  the determined root location.
      * @param itersused Number of iterations used.
      * @param fevals Number of function evaluations required.
-	 * @param f Function for which the root is to be found.
+     * @param f Function for which the root is to be found.
      * @param warn Enable/disable warning message output from function.
-	 * @post Number of iterations used saved to public attribute
-	 * 			"iterations_used".
-	 * @return Variable value for which the function is equal to zero.  Note
-	 * 			that this is the variable identified by rvar.
-	 */
+     * @post Number of iterations used saved to public attribute
+     * 			"iterations_used".
+     * @return Variable value for which the function is equal to zero.  Note
+     * 			that this is the variable identified by rvar.
+     */
     T FixedPointIteration(Array1D<T> &varval, const int rvar, const T p, const T tol, const int maxiter,
-            T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
+                          T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
 
 
-	/**
-	 * @brief Inverse-Parabolic method for finding roots.
-	 * @pre RootFinding object exists.
+    /**
+     * @brief Inverse-Parabolic method for finding roots.
+     * @pre RootFinding object exists.
      * @param varval Array1D containing the values for all variables used in the
      *  function for which zeros are found.
      * @param rvar Index of varval which contains the variable to be modified
      *  when searching for the function's root.
      * @param p Perterbation amount as a fraction of the variable's value.  A
      *  typical value is in the neighborhood of 0.01 (1%).
-	 * @param tol Tolerance required to declare convergence.
-	 * @param maxiter Maximum number of iterations allowed.
+     * @param tol Tolerance required to declare convergence.
+     * @param maxiter Maximum number of iterations allowed.
      * @param tolachieved Actual tolerance achieved.  This is the function value at
      *  the determined root location.
      * @param itersused Number of iterations used.
      * @param fevals Number of function evaluations required.
-	 * @param f Function for which the root is to be found.
+     * @param f Function for which the root is to be found.
      * @param warn Enable/disable warning message output from function.
-	 * @post Number of iterations used saved to public attribute
-	 * 			"iterations_used".
-	 * @return Variable value for which the function is equal to zero.  Note
-	 * 			that this is the variable identified by rvar.
-	 */
+     * @post Number of iterations used saved to public attribute
+     * 			"iterations_used".
+     * @return Variable value for which the function is equal to zero.  Note
+     * 			that this is the variable identified by rvar.
+     */
     T InverseParabolic(Array1D<T> &varval, const int rvar, const T p, const T tol, const int maxiter,
-            T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
+                       T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
 
 
-	/**
-	 * @brief Muller's method for finding roots.
-	 * @pre RootFinding object exists.
+    /**
+     * @brief Muller's method for finding roots.
+     * @pre RootFinding object exists.
      * @param varval Array1D containing the values for all variables used in the
      *  function for which zeros are found.
      * @param rvar Index of varval which contains the variable to be modified
      *  when searching for the function's root.
      * @param p Perterbation amount as a fraction of the variable's value.  A
      *  typical value is in the neighborhood of 0.01 (1%).
-	 * @param tol Tolerance required to declare convergence.
-	 * @param maxiter Maximum number of iterations allowed.
+     * @param tol Tolerance required to declare convergence.
+     * @param maxiter Maximum number of iterations allowed.
      * @param tolachieved Actual tolerance achieved.  This is the function value at
      *  the determined root location.
      * @param itersused Number of iterations used.
      * @param fevals Number of function evaluations required.
-	 * @param f Function for which the root is to be found.
+     * @param f Function for which the root is to be found.
      * @param warn Enable/disable warning message output from function.
-	 * @post Number of iterations used saved to public attribute
-	 * 			"iterations_used".
-	 * @return Variable value for which the function is equal to zero.  Note
-	 * 			that this is the variable identified by rvar.
-	 */
+     * @post Number of iterations used saved to public attribute
+     * 			"iterations_used".
+     * @return Variable value for which the function is equal to zero.  Note
+     * 			that this is the variable identified by rvar.
+     */
     T Muller(Array1D<T> &varval, const int rvar, const T tol, const T p, const int maxiter,
-            T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
+             T &tolachieved, int &itersused, int &fevals, T(*f)(Array1D<T>&), const bool warn);
 
 
 
@@ -268,8 +306,19 @@ private:
     bool warnenabled;
 
 
+    /**
+     * @brief RootFindingSwap swaps member information between two RootFinding objects.
+     * @param first First RootFinding object.
+     * @param second Second RootFinding object.
+     */
+    friend void RootFindingSwap(RootFinding<T> &first, RootFinding<T> &second)
+    {
+        std::swap(first.warnenabled, second.warnenabled);
+    }
+
+
 };
- 
+
 #include "RootFinding.cpp"
 
 #endif /* RootFinding_ */

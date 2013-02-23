@@ -91,6 +91,8 @@
  *  nodes.  Multiple datatypes for these links within the same tree is not permitted.
  *  @image html tree2.png
  * @param T Datatype used to quantify the inter-node links.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T>
 class Tree2 {
@@ -138,6 +140,23 @@ public:
     Tree2();
 
 
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing Tree2 object to be copied.
+     */
+    Tree2(Tree2<T> &a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing Tree2 object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    Tree2(Tree2<T> &&a);
+#endif
+
+
 	/**
 	 * @brief Destructor.  All nodes and member data deleted.
      * @pre Tree2 object exists.
@@ -150,6 +169,25 @@ public:
 	 * 		operations.
 	 */
     virtual ~Tree2();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Tree2 object being assigned.
+     * @return Reference to instance of Tree2.
+     */
+    Tree2& operator=(Tree2<T> a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to Tree2 object being assigned.
+     * @return Reference to instance of Tree2.
+     * @warning This function requires C++11 compiler support.
+     */
+    Tree2& operator=(Tree2<T> &&a);
+#endif
 
 
 	/**
@@ -400,6 +438,24 @@ protected:
 
     /** @brief NaN */
     T nanval;
+
+
+private:
+    /**
+     * @brief Tree2Swap swaps member information between two Tree2 objects.
+     * @param first First Tree2 object.
+     * @param second Second Tree2 object.
+     */
+    friend void Tree2Swap(Tree2<T> &first, Tree2<T> &second)
+    {
+        std::swap(first.pHead, second.pHead);
+        std::swap(first.pCurrent, second.pCurrent);
+        std::swap(first.nodecount, second.nodecount);
+        std::swap(first.iscopy, second.iscopy);
+        std::swap(first.usedids, second.usedids);
+        std:;swap(first.nanval, second.nanval);
+    }
+
 };
 
 #include "Tree2.cpp"

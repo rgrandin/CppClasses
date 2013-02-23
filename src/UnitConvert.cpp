@@ -853,10 +853,44 @@ UnitConvert<T>::UnitConvert()
 
 
 template <class T>
+UnitConvert<T>::UnitConvert(UnitConvert<T> &a) : UnitConvert()
+{
+    UnitConvertSwap(*this, a);
+}
+
+
+#ifdef CXX11
+template <class T>
+UnitConvert<T>::UnitConvert(UnitConvert<T> &&a) : UnitConvert()
+{
+    UnitConvertSwap(*this, a);
+}
+#endif
+
+
+template <class T>
 UnitConvert<T>::~UnitConvert()
 {
 	// NOTHING TO DO
 }
+
+
+template <class T>
+UnitConvert<T>& UnitConvert<T>::operator=(UnitConvert<T> a)
+{
+    UnitConvertSwap(*this, a);
+    return *this;
+}
+
+
+#ifdef CXX11
+template <class T>
+UnitConvert<T>& UnitConvert<T>::operator=(UnitConvert<T> &&a)
+{
+    UnitConvertSwap(*this, a);
+    return *this;
+}
+#endif
 
 
 template <class T>

@@ -33,10 +33,44 @@ RootFinding<T>::RootFinding()
 
 
 template <class T>
+RootFinding<T>::RootFinding(ArrayBaRootFindingse<T> &a) : RootFinding()
+{
+    RootFindingSwap(*this, a);
+}
+
+
+#ifdef CXX11
+template <class T>
+RootFinding<T>::RootFinding(RootFinding<T> &&a) : RootFinding()
+{
+    RootFindingSwap(*this, a);
+}
+#endif
+
+
+template <class T>
 RootFinding<T>::~RootFinding()
 {
 	; // NOTHING TO BE DONE
 }
+
+
+template <class T>
+RootFinding<T>& RootFinding<T>::operator=(RootFinding<T> a)
+{
+    RootFindingSwap(*this, a);
+    return *this;
+}
+
+
+#ifdef CXX11
+template <class T>
+RootFinding<T>& RootFinding<T>::operator=(RootFinding<T> &&a)
+{
+    RootFindingSwap(*this, a);
+    return *this;
+}
+#endif
 
 
 template <class T>

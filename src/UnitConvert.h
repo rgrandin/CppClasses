@@ -212,6 +212,8 @@
  * @brief Class defining a particular unit.  This class is intended to simply
  * hold the data and only be accessed from the UnitConvert object.  All members
  * are public and can be directly-accessed without Set/Get functions.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T> class Unit {
 
@@ -386,6 +388,23 @@ public:
 	UnitConvert();
 
 
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing ArrayBase object to be copied.
+     */
+    UnitConvert(UnitConvert<T> &a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing UnitConvert object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    UnitConvert(UnitConvert<T> &&a);
+#endif
+
+
 	/**
 	 * @brief Deconstructor.
 	 * @pre UnitConvert object exists.
@@ -393,6 +412,25 @@ public:
 	 * @return None.
 	 */
     virtual ~UnitConvert();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a UnitConvert object being assigned.
+     * @return Reference to instance of UnitConvert.
+     */
+    UnitConvert& operator=(UnitConvert<T> a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to UnitConvert object being assigned.
+     * @return Reference to instance of UnitConvert.
+     * @warning This function requires C++11 compiler support.
+     */
+    UnitConvert& operator=(UnitConvert<T> &&a);
+#endif
 
 
 	/**
@@ -668,6 +706,23 @@ private:
 
 	/** @brief Yotta: 10^24 */
 	T prefix_p24;
+
+
+
+    /**
+     * @brief UnitConvertSwap swaps member information between two UnitConvert objects.
+     * @param first First UnitConvert object.
+     * @param second Second UnitConvert object.
+     */
+    friend void UnitConvertSwap(UnitConvert<T> &first, UnitConvert<T> &second)
+    {
+        std::swap(first.unitsin, second.unitsin);
+        std::swap(first.unitsout, second.unitsout);
+        std::swap(first.internalvalue, second.internalvalue);
+
+        /* Other member values are set during class initialization and do not need to be
+         * copied since they do not change with class usage. */
+    }
 
 };
  

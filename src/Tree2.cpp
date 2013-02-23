@@ -25,6 +25,22 @@ Tree2<T>::Tree2()
 }
 
 
+template <class T>
+Tree2<T>::Tree2(Tree2<T> &a) : Tree2()
+{
+    Tree2Swap(*this, a);
+}
+
+
+#ifdef CXX11
+template <class T>
+Tree2<T>::Tree2(Tree2<T> &&a) : Tree2()
+{
+    Tree2Swap(*this, a);
+}
+#endif
+
+
 
 /*
  * DESTRUCTOR
@@ -50,6 +66,27 @@ Tree2<T>::~Tree2()
 /*
  * PUBLIC MEMBER FUNCTIONS
  */
+
+
+template <class T>
+Tree2<T>& Tree2<T>::operator=(Tree2<T> a)
+{
+    Tree2Swap(*this, a);
+    return *this;
+}
+
+
+#ifdef CXX11
+template <class T>
+Tree2<T>& Tree2<T>::operator=(Tree2<T> &&a)
+{
+    Tree2Swap(*this, a);
+    return *this;
+}
+#endif
+
+
+
 template <class T>
 void Tree2<T>::Initialize()
 {

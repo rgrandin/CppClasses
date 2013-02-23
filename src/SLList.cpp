@@ -38,21 +38,21 @@ SLList<T,I>::SLList()
 
 
 template <class T, int I>
-SLList<T,I>::SLList(SLList<T,I> &list)
+SLList<T>::SLList(SLList<T,I> &list) : SLList()
 {
-	// IDENTIFY THIS INSTANCE AS A COPY
-	iscopy = true;
-
-	// APPLY POINTER VALUES TO LOCAL MEMBER VARIABLES
-	pHead = list.GetPointerToHead();
-	pCurrent = pHead;
-
-	// NOTE: NO NODE-INITIALIZATION SINCE THAT WOULD OVERWRITE THE DATA STORED
-	//		 IN list.
-
-	// SET THE NODECOUNT
-	nodecount = list.GetNumNodes();
+    SLListSwap(*this, list);
+    iscopy = true;
 }
+
+
+#ifdef CXX11
+template <class T, int I>
+SLList<T>::SLList(SLList<T,I> &&a) : SLList()
+{
+    SLListSwap(*this, a);
+    iscopy = true;
+}
+#endif
 
 
 
@@ -85,6 +85,29 @@ SLList<T,I>::~SLList()
 /*
  * PUBLIC MEMBER FUNCTIONS
  */
+
+
+
+template <class T, int I>
+SLList<T>& SLList<T,I>::operator=(SLList<T,I> a)
+{
+    SLListSwap(*this, a);
+    iscopy = true;
+    return *this;
+}
+
+
+#ifdef CXX11
+template <class T, int I>
+SLList<T>& SLList<T,I>::operator=(SLList<T,I> &&a)
+{
+    SLListSwap(*this, a);
+    iscopy = true;
+    return *this;
+}
+#endif
+
+
 
 template <class T, int I>
 SLList<T,I>& SLList<T,I>::operator=(const SLList<T,I>& sourcelist)

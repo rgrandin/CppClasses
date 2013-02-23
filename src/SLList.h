@@ -90,246 +90,293 @@
  * 	node.  Multiple datatypes at each node is not supported.
  * @param T Datatype used to store the data at each node.
  * @param I Number of elements of datatype T stored at each node.
+ * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+ *  "CXX11" to be defined.
  */
 template <class T, int I>
 class SLList {
 
 public:
-	/** @brief Node definition */
-	struct node
-	{
-		/** @brief Array of values stored at node */
-		T value[I];
+    /** @brief Node definition */
+    struct node
+    {
+        /** @brief Array of values stored at node */
+        T value[I];
 
-		/** @brief Pointer to node following this node */
-		node *pNext;
-	};
+        /** @brief Pointer to node following this node */
+        node *pNext;
+    };
 
 
-	/**
+    /**
      * @brief Default constructor.
      *
      * The resulting list contains a single node with
      * 	data initialized to 0.
-	 * @pre Memory exists to create this list.
-	 * @post SLList object created.
-	 * @return None.
-	 */
-	SLList();
+     * @pre Memory exists to create this list.
+     * @post SLList object created.
+     * @return None.
+     */
+    SLList();
 
 
-	/**
+    /**
      * @brief Copy constructor.
      *
      * The newly-created list contains the same nodes
      * 	as the previously-existing list.  The current position in the newly-
      * 	created list is the head node.
-	 * @pre Memory exists to create this list and the input list exists.
-	 * @param list List copied to  make a new list.
-	 * @post SLList object created.
-	 * @return None.
-	 * @warning Copying a SLList object only copies the pointers to the head and
-	 * 		current nodes.  The node data itself is not copied.  Use this copy
-	 * 		functionality carefully as the addition or deletion of nodes will be
-	 * 		seen by all SLList objects that share the same head node.
-	 */
-	SLList(SLList<T,I> &list);
+     * @pre Memory exists to create this list and the input list exists.
+     * @param list List copied to  make a new list.
+     * @post SLList object created.
+     * @return None.
+     * @warning Copying a SLList object only copies the pointers to the head and
+     * 		current nodes.  The node data itself is not copied.  Use this copy
+     * 		functionality carefully as the addition or deletion of nodes will be
+     * 		seen by all SLList objects that share the same head node.
+     */
+    SLList(SLList<T,I> &list);
 
 
-	/**
-	 * @brief Destructor.  All nodes and member data deleted.
-	 * @pre SLList object exists.
-	 * @post SLList object destroyed, along with all nodes.
-	 * @return None.
-	 * @warning This destructor only deletes pointers/data if the list being
-	 * 		destroyed is not a copy of another list (i.e., created with the copy
-	 * 		constructor).  Since copied lists share the same nodes, only the
-	 * 		original list for a set of nodes will perform the necessary delete
-	 * 		operations.
-	 */
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing SLList object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    SLList(SLList<T> &&a);
+#endif
+
+    /**
+     * @brief Destructor.  All nodes and member data deleted.
+     * @pre SLList object exists.
+     * @post SLList object destroyed, along with all nodes.
+     * @return None.
+     * @warning This destructor only deletes pointers/data if the list being
+     * 		destroyed is not a copy of another list (i.e., created with the copy
+     * 		constructor).  Since copied lists share the same nodes, only the
+     * 		original list for a set of nodes will perform the necessary delete
+     * 		operations.
+     */
     virtual ~SLList();
 
 
-	/**
-	 * @brief Add a single node to the end of the list.
-	 * @pre SLList object exists.
-	 * @post Node appended to end of list.
-	 * @return None.
-	 * @warning Only the original instance of an SLList object can add a node.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void AddNode();
+    /**
+     * @brief Copy-assignment operator.
+     * @param a SLList object being assigned.
+     * @return Reference to instance of SLList.
+     */
+    SLList& operator=(SLList<T,I> a);
 
 
-	/**
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to SLList object being assigned.
+     * @return Reference to instance of SLList.
+     * @warning This function requires C++11 compiler support.
+     */
+    SLList& operator=(SLList<T,I> &&a);
+#endif
+
+
+    /**
+     * @brief Add a single node to the end of the list.
+     * @pre SLList object exists.
+     * @post Node appended to end of list.
+     * @return None.
+     * @warning Only the original instance of an SLList object can add a node.  Any
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void AddNode();
+
+
+    /**
      * @brief Advance forward in the list one node.
      *
      * If current node is the end
      * 	of the list, the pointer will remain on the last node.
-	 * @pre SLList object exists.
-	 * @post Current node advanced to next node.
-	 * @return None.
-	 */
-	void Advance();
+     * @pre SLList object exists.
+     * @post Current node advanced to next node.
+     * @return None.
+     */
+    void Advance();
 
 
-	/**
+    /**
      * @brief Move backward in the list one node.
      *
      * If the current node is the head
      * 	of the list, the pointer will remain on the first node.
-	 * @pre SLList object exists.
-	 * @post Current node moved to previous node.
-	 * @return None.
-	 */
-	void Rewind();
+     * @pre SLList object exists.
+     * @post Current node moved to previous node.
+     * @return None.
+     */
+    void Rewind();
 
 
-	/**
+    /**
      * @brief Delete current node from the list.
      *
      * After deletion, the current position
      *  within the list is set to the first node.
-	 * @pre SLList object exists.
-	 * @post Current node removed from list
-	 * @return None.
-	 * @warning Data stored in the current node will be lost.
-	 * @warning Only the original instance of an SLList object can delete a node.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void DeleteNode();
+     * @pre SLList object exists.
+     * @post Current node removed from list
+     * @return None.
+     * @warning Data stored in the current node will be lost.
+     * @warning Only the original instance of an SLList object can delete a node.  Any
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void DeleteNode();
 
 
-	/**
+    /**
      * @brief Delete all nodes from the list.
      *
      * After deletion a single node will
      * 	be created with its data initialized to 0.
-	 * @pre SLList object exists.
-	 * @post All nodes deleted.
-	 * @return None.
-	 * @warning All data stored in the nodes will be lost.
-	 * @warning Only the original instance of an SLList object can delete all nodes.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void DeleteAllNodes();
+     * @pre SLList object exists.
+     * @post All nodes deleted.
+     * @return None.
+     * @warning All data stored in the nodes will be lost.
+     * @warning Only the original instance of an SLList object can delete all nodes.  Any
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void DeleteAllNodes();
 
 
-	/**
-	 * @brief Get data from current node.
-	 * @pre SLList object exists.
-	 * @param idx 0-based index of the data to be retrieved.
-	 * @post No changes to object.
-	 * @return Value stored in current node at index 'idx'.
-	 */
+    /**
+     * @brief Get data from current node.
+     * @pre SLList object exists.
+     * @param idx 0-based index of the data to be retrieved.
+     * @post No changes to object.
+     * @return Value stored in current node at index 'idx'.
+     */
     T GetDataValue(int idx) const;
 
 
-	/**
-	 * @brief Set data in current node.
-	 * @pre SLList object exists.
-	 * @param val Value to be placed in node.
-	 * @param idx 0-based index of the data to be set.
-	 * @post Data value set.
-	 * @return None.
-	 * @warning Only the original instance of an SLList object can modify a node.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void SetDataValue(const T val, int idx);
+    /**
+     * @brief Set data in current node.
+     * @pre SLList object exists.
+     * @param val Value to be placed in node.
+     * @param idx 0-based index of the data to be set.
+     * @post Data value set.
+     * @return None.
+     * @warning Only the original instance of an SLList object can modify a node.  Any
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void SetDataValue(const T val, int idx);
 
 
-	/**
-	 * @brief Get the number of nodes in the list.
-	 * @pre SLList object exists.
-	 * @post No changes to object.
-	 * @return Number of nodes in the list.
-	 */
+    /**
+     * @brief Get the number of nodes in the list.
+     * @pre SLList object exists.
+     * @post No changes to object.
+     * @return Number of nodes in the list.
+     */
     int GetNumNodes() const;
 
 
-	/**
-	 * @brief Print the node values to the screen.
-	 * @pre SLList object exists.
-	 * @param wraplim Number of nodes to print on a single line before wrapping
-	 * 		output to another line.  Default value is 10.
-	 * @param blankline Specify if a blank line should be printed between each
-	 * 		node's output.  Default is false.
-	 * @post Current position within the list set to first node.
-	 * @return None.
-	 */
-	void PrintNodes(int wraplim, bool blankline);
+    /**
+     * @brief Print the node values to the screen.
+     * @pre SLList object exists.
+     * @param wraplim Number of nodes to print on a single line before wrapping
+     * 		output to another line.  Default value is 10.
+     * @param blankline Specify if a blank line should be printed between each
+     * 		node's output.  Default is false.
+     * @post Current position within the list set to first node.
+     * @return None.
+     */
+    void PrintNodes(int wraplim, bool blankline);
 
 
-	/**
-	 * @brief Set position in list to specified node.
-	 * @pre SLList object exists.
-	 * @param nodenum 1-based index node number corresponding to the position desired.
-	 * @post Current position at specified node.
-	 * @return None.
-	 * @warning If the node number specified is greater than the number of nodes
-	 * 		in the list, the position when this function exits will be the final
-	 * 		node in the list.
-	 */
-	void GoToNode(const int nodenum);
+    /**
+     * @brief Set position in list to specified node.
+     * @pre SLList object exists.
+     * @param nodenum 1-based index node number corresponding to the position desired.
+     * @post Current position at specified node.
+     * @return None.
+     * @warning If the node number specified is greater than the number of nodes
+     * 		in the list, the position when this function exits will be the final
+     * 		node in the list.
+     */
+    void GoToNode(const int nodenum);
 
 
-	/**
-	 * @brief Set position in list to final node.
-	 * @pre SLList object exists.
-	 * @post Current position at final node.
-	 * @return None.
-	 */
-	void GoToFinalNode();
+    /**
+     * @brief Set position in list to final node.
+     * @pre SLList object exists.
+     * @post Current position at final node.
+     * @return None.
+     */
+    void GoToFinalNode();
 
 
-	/**
-	 * @brief Get pointer to the first data node in the list.
-	 * @pre SLList object exists.
-	 * @post No changes to object.
-	 * @return Pointer to first data node.
-	 */
-	node* GetPointerToHead();
+    /**
+     * @brief Get pointer to the first data node in the list.
+     * @pre SLList object exists.
+     * @post No changes to object.
+     * @return Pointer to first data node.
+     */
+    node* GetPointerToHead();
 
 
-	/**
-	 * @brief Get pointer to the current data node in the list.
-	 * @pre SLList object exists.
-	 * @post No changes to object.
-	 * @return Pointer to current data node.
-	 */
-	node* GetPointerToCurrent();
+    /**
+     * @brief Get pointer to the current data node in the list.
+     * @pre SLList object exists.
+     * @post No changes to object.
+     * @return Pointer to current data node.
+     */
+    node* GetPointerToCurrent();
 
 
-	/**
-	 * @brief Copy values from one SLList object to another.  This is a true copy
-	 * 		and not a reference.
-	 * @pre SLList object exists.
-	 * @param sourcelist List from which values are to be copied.
-	 * @post SLList pointer addresses to head and current nodes copied.
-	 * @return None.
-	 */
-	SLList<T,I>& operator=(const SLList<T,I>& sourcelist);
+    /**
+     * @brief Copy values from one SLList object to another.  This is a true copy
+     * 		and not a reference.
+     * @pre SLList object exists.
+     * @param sourcelist List from which values are to be copied.
+     * @post SLList pointer addresses to head and current nodes copied.
+     * @return None.
+     */
+    SLList<T,I>& operator=(const SLList<T,I>& sourcelist);
 
 
 
 protected:
-	/** @brief Pointer to head element in list */
-	node* pHead;
+    /** @brief Pointer to head element in list */
+    node* pHead;
 
-	/** @brief Pointer to current element in list */
-	node* pCurrent;
+    /** @brief Pointer to current element in list */
+    node* pCurrent;
 
-	/** @brief Number of nodes in the list */
-	int nodecount;
+    /** @brief Number of nodes in the list */
+    int nodecount;
 
-	/** @brief Track if instance of list was created as a copy of another list.
-	 * 		If so, the destructor doesn't perform any action and the original
-	 * 		list's destructor will handle the pointer-deletion.	 */
-	bool iscopy;
+    /** @brief Track if instance of list was created as a copy of another list.
+     * 		If so, the destructor doesn't perform any action and the original
+     * 		list's destructor will handle the pointer-deletion.	 */
+    bool iscopy;
+
+
+
+private:
+
+    /**
+     * @brief SLListSwap swaps member information between two SLList objects.
+     * @param first First SLList object.
+     * @param second Second SLList object.
+     */
+    friend void SLListSwap(SLList<T,I> &first, SLList<T,I> &second)
+    {
+        std::swap(first.pHead, second.pHead);
+        std::swap(first.pCurrent, second.pCurrent);
+        std::swap(first.nodecount, second.nodecount);
+        std::swap(first.iscopy, second.iscopy);
+    }
 };
 
 #include "SLList.cpp"

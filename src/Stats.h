@@ -72,6 +72,8 @@
 
 /**
   @brief Class to contain statistical functions.
+  @warning C++11 features, such as move-constructor and move-assignment, require the symbol
+   "CXX11" to be defined.
   */
 template <class T>
 class Stats
@@ -87,12 +89,48 @@ public:
 
 
     /**
+     * @brief Copy constructor.
+     * @param a Reference to existing Stats object to be copied.
+     */
+    Stats(Stats<T> &a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing Stats object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    Stats(Stats<T> &&a);
+#endif
+
+
+    /**
       @brief Destructor.
       @pre Stats object exists.
       @post Stats object destroyed.
       @return None.
       */
     virtual ~Stats();
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Stats object being assigned.
+     * @return Reference to instance of Stats.
+     */
+    Stats& operator=(Stats<T> a);
+
+
+#ifdef CXX11
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to Stats object being assigned.
+     * @return Reference to instance of Stats.
+     * @warning This function requires C++11 compiler support.
+     */
+    Stats& operator=(Stats<T> &&a);
+#endif
 
 
     /**
@@ -579,6 +617,17 @@ protected:
                  const T tol, const int maxiter, T &tolachieved, int &itersused,
                  int &fevals_cdf, int &fevals_pdf) const;
 
+
+private:
+    /**
+     * @brief StatsSwap swaps member information between two Stats objects.
+     * @param first First Stats object.
+     * @param second Second Stats object.
+     */
+    friend void StatsSwap(Stats<T> &first, Stats<T> &second)
+    {
+        std::swap(first.PI_Stats, second.PI_Stats);
+    }
 
 
 
