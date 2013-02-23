@@ -108,7 +108,22 @@ class PArray2D : public PArrayBase<T>{
 	 * @return None.
 	 * @post Array object created and initialized to default value.
 	 */
-	PArray2D(int dim1, int dim2);
+    PArray2D(size_t dim1, size_t dim2);
+
+
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing PArray2D object to be copied.
+     */
+    PArray2D(PArray2D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing PArray2D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray2D(PArray2D<T> &&a);
 	
 	
 	// DECONSTRUCTOR
@@ -130,7 +145,7 @@ class PArray2D : public PArrayBase<T>{
 	 * @return Array extent in the specified dimension.
 	 * @post Array extents remain unchanged.
 	 */
-    int GetDim(int dim) const;
+    size_t GetDim(int dim) const;
 
 	
 	/**
@@ -142,7 +157,7 @@ class PArray2D : public PArrayBase<T>{
 	 * @return None.
 	 * @post Array size changed to dim1xdim2 and new points initialized to NULL.
 	 */
-	void ResetSize(int dim1, int dim2);
+    void ResetSize(size_t dim1, size_t dim2);
 
 
 	/**
@@ -163,7 +178,7 @@ class PArray2D : public PArrayBase<T>{
 	 * @post No changes to object.
 	 * @return Value stored at supplied indices.
 	 */
-	T& operator()(int ind1,int ind2);
+    T& operator()(size_t ind1, size_t ind2);
 
 
 	/**
@@ -174,7 +189,24 @@ class PArray2D : public PArrayBase<T>{
 	 * @post No changes to object.
 	 * @return Value stored at supplied indices.
 	 */
-	const T& operator()(int ind1,int ind2) const;
+    const T& operator()(size_t ind1, size_t ind2) const;
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to PArray2D object being assigned.
+     * @return Reference to instance of PArray2D.
+     */
+    PArray2D& operator=(const PArray2D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to PArray2D object being assigned.
+     * @return Reference to instance of PArray2D.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray2D& operator=(const PArray2D<T> &&a);
 
 
 	/**
@@ -192,10 +224,28 @@ class PArray2D : public PArrayBase<T>{
 protected:
 	// VARIABLES
 	/** @brief Number of points along the first dimension */
-	int size1;
+    size_t size1;
 
 	/** @brief Number of points along the second dimension */
-	int size2;
+    size_t size2;
+
+
+
+private:
+
+    /**
+     * @brief PArray2DSwap swaps member information between two PArray2D objects.
+     * @param first First PArray2D object.
+     * @param second Second PArray2D object.
+     */
+    friend void PArray2DSwap(PArray2D<T> &first, PArray2D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+        std::swap(first.size1, second.size1);
+        std::swap(first.size2, second.size2);
+    }
+
 
 
   

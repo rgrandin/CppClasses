@@ -103,7 +103,22 @@ public:
 	 * @return None.
 	 * @post Array object created and initialized.
 	 */
-	PArrayBase(long long dim1);
+    PArrayBase(size_t dim1);
+
+
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing PArrayBase object to be copied.
+     */
+    PArrayBase(PArrayBase<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing PArrayBase object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArrayBase(PArrayBase<T> &&a);
 
 
 	/**
@@ -155,6 +170,39 @@ public:
     virtual double GetMemoryUsage() const;
 
 
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to PArrayBase object being assigned.
+     * @return Reference to instance of PArrayBase.
+     */
+    PArrayBase& operator=(const PArrayBase<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to PArrayBase object being assigned.
+     * @return Reference to instance of PArrayBase.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArrayBase& operator=(const PArrayBase<T> &&a);
+
+
+    /**
+     * @brief Array subscription operator.
+     * @param idx Index to be accessed.
+     * @return Value stored at array index.
+     */
+    T& operator [](const size_t idx);
+
+
+    /**
+     * @brief Array subscription operator.
+     * @param idx Index to be accessed.
+     * @return Value stored at array index.
+     */
+    const T& operator [](const size_t idx) const;
+
+
 
 
 protected:
@@ -176,6 +224,21 @@ protected:
 	 * @post Array created with specified size and initial value.
 	 */
 	void initialize(int dim1);
+
+
+
+private:
+
+    /**
+     * @brief PArrayBaseSwap swaps member information between two PArrayBase objects.
+     * @param first First PArrayBase object.
+     * @param second Second PArrayBase object.
+     */
+    friend void PArrayBaseSwap(PArrayBase<T> &first, PArrayBase<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+    }
 
 
 };

@@ -115,9 +115,24 @@ public:
     PArray1D(size_t dim1);
 
 
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing PArray1D object to be copied.
+     */
+    PArray1D(PArray1D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing PArray1D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray1D(PArray1D<T> &&a);
+
+
 	/**
 	 * @brief Destructor for 1D array.
-	 * @pre Array object exists.
+     * @pre PArray1D object exists.
 	 * @return None.
 	 * @post Array object destroyed.  All object data is deleted.
 	 * @warning This is a deep-delete.
@@ -195,6 +210,38 @@ public:
 	 * 		rendered.
 	 */
     double GetMemoryUsage() const;
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to PArray1D object being assigned.
+     * @return Reference to instance of PArray1D.
+     */
+    PArray1D& operator=(const PArray1D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to PArray1D object being assigned.
+     * @return Reference to instance of PArray1D.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray1D& operator=(const PArray1D<T> &&a);
+
+
+
+private:
+
+    /**
+     * @brief PArray1DSwap swaps member information between two PArray1D objects.
+     * @param first First PArray1D object.
+     * @param second Second PArray1D object.
+     */
+    friend void PArray1DSwap(PArray1D<T> &first, PArray1D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+    }
 
 
 };

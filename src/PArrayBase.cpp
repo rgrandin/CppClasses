@@ -45,9 +45,23 @@ PArrayBase<T>::PArrayBase()
 }
 
 template <class T>
-PArrayBase<T>::PArrayBase(long long dim1)
+PArrayBase<T>::PArrayBase(size_t dim1)
 {
 	initialize(dim1);
+}
+
+
+template <class T>
+PArrayBase<T>::PArrayBase(PArrayBase<T> &a) : PArrayBase()
+{
+    PArrayBaseSwap(*this, a);
+}
+
+
+template <class T>
+PArrayBase<T>::PArrayBase(PArrayBase<T> &&a) : PArrayBase()
+{
+    PArrayBaseSwap(*this, a);
 }
 
 
@@ -114,4 +128,34 @@ double PArrayBase<T>::GetMemoryUsage() const
 	retval += (double)sizeof(npoints);
 
 	return retval;
+}
+
+
+template <class T>
+PArrayBase<T>& PArrayBase<T>::operator=(const PArrayBase<T> &a)
+{
+    PArrayBaseSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+PArrayBase<T>& PArrayBase<T>::operator=(const PArrayBase<T> &&a)
+{
+    PArrayBaseSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+T& PArrayBase<T>::operator [](const size_t idx)
+{
+    return array[idx];
+}
+
+
+template <class T>
+const T& PArrayBase<T>::operator [](const size_t idx) const
+{
+    return array[idx];
 }

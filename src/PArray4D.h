@@ -76,6 +76,8 @@
 #include <memory>
 #include <cmath>
 
+#include <PArrayBase.h>
+
 /**
  * @brief Class definition for storing 4-dimensional data.
  */
@@ -103,7 +105,22 @@ class PArray4D : public PArrayBase<T>{
 	 * @return None.
 	 * @post Array object created and initialized to default value.
 	 */
-	PArray4D(int dim1, int dim2, int dim3, int dim4);
+    PArray4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4);
+
+
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing PArray4D object to be copied.
+     */
+    PArray4D(PArray4D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing PArray4D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray4D(PArray4D<T> &&a);
 
 
 	// DECONSTRUCTOR
@@ -125,7 +142,7 @@ class PArray4D : public PArrayBase<T>{
 	 * @return Array extent in the specified dimension.
 	 * @post Array extents remain unchanged.
 	 */
-    int GetDim(int dim) const;
+    size_t GetDim(int dim) const;
 
 	
 	/**
@@ -150,7 +167,7 @@ class PArray4D : public PArrayBase<T>{
 	 * @post Array size changed to dim1xdim2xdim3 and new points initialized to
 	 * 			'initvalue'.
 	 */
-	void ResetSize(int dim1, int dim2, int dim3, int dim4);
+    void ResetSize(size_t dim1, size_t dim2, size_t dim3, size_t dim4);
 
 
 	/**
@@ -163,7 +180,7 @@ class PArray4D : public PArrayBase<T>{
 	 * @post No changes to object.
 	 * @return Value stored at supplied indices.
 	 */
-	T& operator()(int dim1, int dim2, int dim3, int dim4);
+    T& operator()(size_t dim1, size_t dim2, size_t dim3, size_t dim4);
 
 
 	/**
@@ -176,7 +193,24 @@ class PArray4D : public PArrayBase<T>{
 	 * @post No changes to object.
 	 * @return Value stored at supplied indices.
 	 */
-	const T& operator()(int dim1, int dim2, int dim3, int dim4) const;
+    const T& operator()(size_t dim1, size_t dim2, size_t dim3, size_t dim4) const;
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to PArray4D object being assigned.
+     * @return Reference to instance of PArray4D.
+     */
+    PArray4D& operator=(const PArray4D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to PArray4D object being assigned.
+     * @return Reference to instance of PArray4D.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray4D& operator=(const PArray4D<T> &&a);
 
 	
 	/**
@@ -195,16 +229,36 @@ class PArray4D : public PArrayBase<T>{
 protected:
 	// VARIABLES
 	/** @brief Number of points along the first dimension. */
-	int size1;
+    size_t size1;
 
 	/** @brief Number of points along the second dimension. */
-	int size2;
+    size_t size2;
 
 	/** @brief Number of points along the third dimension. */
-	int size3;
+    size_t size3;
 
 	/** @brief Number of points along the fourth dimension. */
-	int size4;
+    size_t size4;
+
+
+
+private:
+
+    /**
+     * @brief PArray4DSwap swaps member information between two PArray4D objects.
+     * @param first First PArray4D object.
+     * @param second Second PArray4D object.
+     */
+    friend void PArray4DSwap(PArray4D<T> &first, PArray4D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+        std::swap(first.size1, second.size1);
+        std::swap(first.size2, second.size2);
+        std::swap(first.size3, second.size3);
+        std::swap(first.size4, second.size4);
+    }
+
 
   
 };

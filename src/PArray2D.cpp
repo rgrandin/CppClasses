@@ -5,6 +5,9 @@
  */
 
 
+#include <PArray2D.h>
+
+
 // ==================================================================
 // ================
 // ================    PRIVATE FUNCTIONS
@@ -30,12 +33,27 @@ PArray2D<T>::PArray2D()
 }
 
 template <class T>
-PArray2D<T>::PArray2D(int dim1, int dim2)
+PArray2D<T>::PArray2D(size_t dim1, size_t dim2)
 {
 	size1 = dim1;
 	size2 = dim2;
 	PArrayBase<T>::ResetSize(size1*size2);
 }
+
+
+template <class T>
+PArray2D<T>::PArray2D(PArray2D<T> &a) : PArray2D()
+{
+    PArray2DSwap(*this, a);
+}
+
+
+template <class T>
+PArray2D<T>::PArray2D(PArray2D<T> &&a) : PArray2D()
+{
+    PArray2DSwap(*this, a);
+}
+
 
 template <class T>
 PArray2D<T>::~PArray2D()
@@ -82,19 +100,35 @@ const T& PArray2D<T>::operator()(int ind1,int ind2) const
 }
 
 
+template <class T>
+PArray2D<T>& PArray2D<T>::operator=(const PArray2D<T> &a)
+{
+    PArray2DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+PArray2D<T>& PArray2D<T>::operator=(const PArray2D<T> &&a)
+{
+    PArray2DSwap(*this, a);
+    return *this;
+}
+
+
 
 // DATA ACCESS AND MODIFICATION FUNCTIONS
 template <class T>
-int PArray2D<T>::GetDim(int dim) const
+size_t PArray2D<T>::GetDim(int dim) const
 {
 	#ifndef RELEASE
 		assert(dim > 0 && dim < 3);
-		int retval = 0;
+        size_t retval = 0;
 		if(dim == 1){retval = size1;}
 		if(dim == 2){retval = size2;}
 		return retval;
 	#else
-		int retval = 0;
+        size_t retval = 0;
 		if(dim == 1){retval = size1;}
 		if(dim == 2){retval = size2;}
 		return retval;
@@ -112,7 +146,7 @@ void PArray2D<T>::ResetVal(const T initval)
 
 
 template <class T>
-void PArray2D<T>::ResetSize(int dim1, int dim2)
+void PArray2D<T>::ResetSize(size_t dim1, size_t dim2)
 {
 	// CHECK THAT INPUT BOUNDS ARE INDEED DIFFERENT THAN CURRENT BOUNDS BEFORE
 	// ATTEMPTING TO RESIZE THE ARRAY.

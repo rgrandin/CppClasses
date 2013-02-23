@@ -98,7 +98,22 @@ public:
 	 * @return None.
 	 * @post Array object created and initialized to default value.
 	 */
-	PArray3D(int dim1, int dim2, int dim3);
+    PArray3D(size_t dim1, size_t dim2, size_t dim3);
+
+
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing PArray3D object to be copied.
+     */
+    PArray3D(PArray3D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing PArray3D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray3D(PArray3D<T> &&a);
 
 
 	/**
@@ -117,7 +132,7 @@ public:
 	 * @return Array extent in the specified dimension.
 	 * @post Array extents remain unchanged.
 	 */
-    int GetDim(int dim) const;
+    size_t GetDim(int dim) const;
 
 	
 	/**
@@ -141,7 +156,7 @@ public:
 	 * @post Array size changed to dim1xdim2xdim3 and new points initialized to
 	 * 			NULL.
 	 */
-	void ResetSize(int dim1, int dim2, int dim3);
+    void ResetSize(size_t dim1, size_t dim2, size_t dim3);
 
 
 	/**
@@ -153,7 +168,7 @@ public:
 	 * @post No changes to object.
 	 * @return Value stored at supplied indices.
 	 */
-	T& operator()(int dim1, int dim2, int dim3);
+    T& operator()(size_t dim1, size_t dim2, size_t dim3);
 
 
 	/**
@@ -165,7 +180,24 @@ public:
 	 * @post No changes to object.
 	 * @return Value stored at supplied indices.
 	 */
-	const T& operator()(int dim1, int dim2, int dim3) const;
+    const T& operator()(size_t dim1, size_t dim2, size_t dim3) const;
+
+
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to PArray3D object being assigned.
+     * @return Reference to instance of PArray3D.
+     */
+    PArray3D& operator=(const PArray3D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to PArray3D object being assigned.
+     * @return Reference to instance of PArray3D.
+     * @warning This function requires C++11 compiler support.
+     */
+    PArray3D& operator=(const PArray3D<T> &&a);
 
 
 	/**
@@ -192,6 +224,25 @@ protected:
 
 	/** @brief Number of points along the third dimension. */
 	int size3;
+
+
+
+private:
+
+    /**
+     * @brief PArray3DSwap swaps member information between two PArray3D objects.
+     * @param first First PArray3D object.
+     * @param second Second PArray3D object.
+     */
+    friend void PArray3DSwap(PArray3D<T> &first, PArray3D<T> &second)
+    {
+        std::swap(first.npoints, second.npoints);
+        std::swap(first.array, second.array);
+        std::swap(first.size1, second.size1);
+        std::swap(first.size2, second.size2);
+        std::swap(first.size3, second.size3);
+    }
+
 
 
   

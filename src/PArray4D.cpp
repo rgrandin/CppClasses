@@ -4,7 +4,7 @@
  * @brief Implementation of PArray4D class.
  */
 
-
+#include <PArray4D.h>
 
 
 // ==================================================================
@@ -35,13 +35,27 @@ PArray4D<T>::PArray4D()
 
 
 template <class T>
-PArray4D<T>::PArray4D(int dim1, int dim2, int dim3, int dim4)
+PArray4D<T>::PArray4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 {
 	size1 = dim1;
 	size2 = dim2;
 	size3 = dim3;
 	size4 = dim4;
 	PArrayBase<T>::ResetSize(size1*size2*size3*size4);
+}
+
+
+template <class T>
+PArray4D<T>::PArray4D(PArray4D<T> &a) : PArray4D()
+{
+    PArray4DSwap(*this, a);
+}
+
+
+template <class T>
+PArray4D<T>::PArray4D(PArray4D<T> &&a) : PArray4D()
+{
+    PArray4DSwap(*this, a);
 }
 
 
@@ -54,7 +68,7 @@ PArray4D<T>::~PArray4D()
 
 // () OPERATOR
 template < class T > inline
-T& PArray4D<T>::operator()(int ind1, int ind2, int ind3, int ind4)
+T& PArray4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3, size_t ind4)
 {
 	#ifndef RELEASE
 		/*
@@ -74,8 +88,8 @@ T& PArray4D<T>::operator()(int ind1, int ind2, int ind3, int ind4)
 }
 
 template < class T > inline
-const T& PArray4D<T>::operator()(int ind1, int ind2, int ind3,
-		int ind4) const
+const T& PArray4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3,
+        size_t ind4) const
 {
 	#ifndef RELEASE
 		/*
@@ -98,19 +112,19 @@ const T& PArray4D<T>::operator()(int ind1, int ind2, int ind3,
 
 // DATA ACCESS AND MODIFICATION FUNCTIONS
 template <class T>
-int PArray4D<T>::GetDim(int dim) const
+size_t PArray4D<T>::GetDim(int dim) const
 
 {
 	#ifndef RELEASE
 		assert(dim > 0 && dim < 5);
-		int retval = 0;
+        size_t retval = 0;
 		if(dim == 1){retval = size1;}
 		if(dim == 2){retval = size2;}
 		if(dim == 3){retval = size3;}
 		if(dim == 4){retval = size4;}
 		return retval;
 	#else
-		int retval = 0;
+        size_t retval = 0;
 		if(dim == 1){retval = size1;}
 		if(dim == 2){retval = size2;}
 		if(dim == 3){retval = size3;}
@@ -121,16 +135,32 @@ int PArray4D<T>::GetDim(int dim) const
 
 
 template <class T>
+PArray4D<T>& PArray4D<T>::operator=(const PArray4D<T> &a)
+{
+    PArray4DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+PArray4D<T>& PArray4D<T>::operator=(const PArray4D<T> &&a)
+{
+    PArray4DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
 void PArray4D<T>::ResetVal(const T initval)
 {
-	for(int i=0; i<PArrayBase<T>::npoints; i++){
+    for(size_t i=0; i<PArrayBase<T>::npoints; i++){
 		PArrayBase<T>::array[i] = initval;
 	}
 }
 
 
 template <class T>
-void PArray4D<T>::ResetSize(int dim1, int dim2, int dim3, int dim4)
+void PArray4D<T>::ResetSize(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 {
 	// CHECK THAT INPUT BOUNDS ARE INDEED DIFFERENT THAN CURRENT BOUNDS BEFORE
 	// ATTEMPTING TO RESIZE THE ARRAY.
