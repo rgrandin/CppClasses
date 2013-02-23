@@ -1,8 +1,8 @@
 /**
- * @file UniformVolume3D.h
+ * @file UniformVolume.h
  * @author Robert Grandin
  * @date 15 Oct 2010
- * @brief Definition of UniformVolume3D class.
+ * @brief Definition of UniformVolume class.
  *
  * @section Class Description & Notes
  *
@@ -63,13 +63,16 @@
  *  - Code cleanup and switch to using Qt
  * @date October 2012
  *  - Added support for binary files in legacy VTK format.
+ * @date 19 February 2013
+ *  - Rename from "UniformVolume3D" to "UniformVolume".  Inclusion of "3D" seemed redundant
+ *    since "volume" implies 3 dimensions.
  *
  *
  *
  *
  * @section License
  *
- * Copyright (c) 2010-2012, Robert Grandin
+ * Copyright (c) 2010-2013, Robert Grandin
  * All rights reserved.
  *
  * Redistribution and use of this file is permitted provided that the following
@@ -97,8 +100,8 @@
  */
 
 
-#ifndef  UniformVolume3D_
-#define  UniformVolume3D_
+#ifndef  UniformVolume_
+#define  UniformVolume_
 
 
 /* Non-Qt includes, standard C++ */
@@ -122,44 +125,44 @@
 
 /** @brief Representation of 3-dimensional volumetric data */
 template <class T>
-class UniformVolume3D : public QtIntermediaryBase
+class UniformVolume : public QtIntermediaryBase
 {
 
 public:
     /**
       @brief Default constructor.
       @pre Sufficient memory exists for object.
-      @post UniformVolume3D object created.  Default values are
+      @post UniformVolume object created.  Default values are
             - Spatial extents: -1.0 to 1.0 in each direction
             - 1 scalar quantity, 0 vector quantities
       @return None.
      */
-    UniformVolume3D();
+    UniformVolume();
 
 
     /**
     @brief Copy constructor.
     @pre Sufficient memory exists for object.
-    @param uc3d Reference to UniformVolume3D object which is to be copied.
+    @param uc3d Reference to UniformVolume object which is to be copied.
     @post Current object updated to reflect all data and parameters of
         referenced object.
     @return None.
     */
-    UniformVolume3D(UniformVolume3D<T> &uc3d);
+    UniformVolume(UniformVolume<T> &uc3d);
 
 
     /**
       @brief Destructor.
-      @pre UniformVolume3D object exists.
+      @pre UniformVolume object exists.
       @post Object destroyed.  All object data deleted.
       @return None.
      */
-    virtual ~UniformVolume3D();
+    virtual ~UniformVolume();
 
 
     /**
     @brief Retrieve the number of scalar quantities present in the object.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return Number of scalar quantities in the object.
     */
@@ -168,7 +171,7 @@ public:
 
     /**
     @brief Retrieve the number of vector quantities present in the object.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return Number of vector quantities in the object.
     */
@@ -177,7 +180,7 @@ public:
 
     /**
     @brief Add an array to hold a scalar quantity at each grid point.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param name Name of scalar quantity added.
     @post New scalar quantity has been added.
     @return None.
@@ -187,7 +190,7 @@ public:
 
     /**
     @brief Add an array to hold a scalar quantity at each grid point.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param name Name of scalar quantity added.
     @param data Pointer to data.
     @post New scalar quantity has been added.
@@ -200,7 +203,7 @@ public:
     @brief Remove array containing scalar quantity at each grid point.
 
     This removes the reference to the data array identified by quantity index 'qty'.
-    @pre UniformVolume3D object exists and scalar quantity exists.
+    @pre UniformVolume object exists and scalar quantity exists.
     @param qty 0-based index of quantity to be removed.
     @post Scalar quantity removed.  Remaining quantities remain in their
           same relative order, but their index numbers are updated to
@@ -217,7 +220,7 @@ public:
 
     /**
     @brief Remove array containing scalar quantity at each grid point.
-    @pre UniformVolume3D object exists and scalar quantity exists.
+    @pre UniformVolume object exists and scalar quantity exists.
     @param qty 0-based index of quantity to be removed.
     @post Scalar quantity removed.  Remaining quantities remain in their
           same relative order, but their index numbers are updated to
@@ -238,7 +241,7 @@ public:
      * @warning The data in this object is not forgotten by this object when this function
      *  is called.  It is left to the programmer to ensure that the memory occupied by the
      *  Array3D object containing data is only freed once.
-     * @see RemoveScalarQuantityRef() for information about having this UniformVolume3D object
+     * @see RemoveScalarQuantityRef() for information about having this UniformVolume object
      *  "forget" about the data array.
      */
     Array3D<T>* PointerToScalarData(const size_t qty);
@@ -246,7 +249,7 @@ public:
 
     /**
     @brief Set the name of a scalar quantity.
-    @pre UniformVolume3D object exists and scalar quantity exists.
+    @pre UniformVolume object exists and scalar quantity exists.
     @param qty Index of scalar quantity to be named.
     @param name Name to use with scalar quantity.
     @post Scalar quantity name updated.
@@ -257,7 +260,7 @@ public:
 
     /**
     @brief Get the name of a scalar quantity.
-    @pre UniformVolume3D object exists and scalar quantity exists.
+    @pre UniformVolume object exists and scalar quantity exists.
     @param qty Index of scalar quantity.
     @post No changes to object.
     @return Name of scalar quantity.
@@ -267,7 +270,7 @@ public:
 
     /**
     @brief Add an array to hold a vector quantity at each grid point.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param name Name of vector quantity added.
     @param ncomp Number of components in the vector.
     @post New vector quantity has been added.
@@ -279,7 +282,7 @@ public:
 
     /**
     @brief Remove array containing vector quantity at each grid point.
-    @pre UniformVolume3D object exists and vector quantity exists.
+    @pre UniformVolume object exists and vector quantity exists.
     @param qty 0-based index of quantity to be removed.
     @post Vector quantity removed.  Remaining quantities remain in their
           same relative order, but their index numbers are updated to
@@ -294,7 +297,7 @@ public:
 
     /**
     @brief Set the name of a vector quantity.
-    @pre UniformVolume3D object exists and vector quantity exists.
+    @pre UniformVolume object exists and vector quantity exists.
     @param qty Index of vector quantity to be named.
     @param name Name to use with vector quantity.
     @post Vector quantity name updated.
@@ -305,7 +308,7 @@ public:
 
     /**
     @brief Get the name of a vector quantity.
-    @pre UniformVolume3D object exists and vector quantity exists.
+    @pre UniformVolume object exists and vector quantity exists.
     @param qty Index of vector quantity.
     @post No changes to object.
     @return Name of vector quantity.
@@ -321,7 +324,7 @@ public:
 
     /**
     * @brief Overload () operator to access scalar quantities.
-    * @pre UniformVolume3D object exists.
+    * @pre UniformVolume object exists.
     * @param ind1 Value of first index.
     * @param ind2 Value of second index.
     * @param ind3 Value of third index.
@@ -334,7 +337,7 @@ public:
 
     /**
     * @brief Overload () operator to access scalar quantities.
-    * @pre UniformVolume3D object exists.
+    * @pre UniformVolume object exists.
     * @param ind1 Value of first index.
     * @param ind2 Value of second index.
     * @param ind3 Value of third index.
@@ -347,7 +350,7 @@ public:
 
     /**
     * @brief Overload () operator to access vector quantities.
-    * @pre UniformVolume3D object exists.
+    * @pre UniformVolume object exists.
     * @param ind1 Value of first index.
     * @param ind2 Value of second index.
     * @param ind3 Value of third index.
@@ -362,7 +365,7 @@ public:
 
     /**
     * @brief Overload () operator to access vector quantities.
-    * @pre UniformVolume3D object exists.
+    * @pre UniformVolume object exists.
     * @param ind1 Value of first index.
     * @param ind2 Value of second index.
     * @param ind3 Value of third index.
@@ -381,7 +384,7 @@ public:
     This only
         accounts for the data arrays (scalar and vector quantities)
         and not individual member variables.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return Number of bytes used by this object.  Type 'double' is used
         to avoid possible overflow issues.
@@ -419,7 +422,7 @@ public:
 
     /**
     @brief Provide the number components in the specified vector quantity.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param qty Index of quantity to be queried.
     @post No changes to object.
     @return Number of components in vector.
@@ -429,7 +432,7 @@ public:
 
     /**
     @brief Set the specified spatial extent for the volume.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param dir Direction for which extent is being set.
         - 1: x-direction
         - 0: y-direction
@@ -446,7 +449,7 @@ public:
 
     /**
     @brief Retrieved the specified spatial extent for the volume.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param dir Direction for which extent is being retrieved.
         - 1: x-direction
         - 0: y-direction
@@ -462,7 +465,7 @@ public:
 
     /**
     @brief Get the spacing between points in the specified direction.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param dir Direction for which spacing is to be retrieved.
         - 0: x-direction
         - 1: y-direction
@@ -480,7 +483,7 @@ public:
     This has no effect on VOL-format output.  This does not
         write the data to the disk.  This has no effect on which quantities
         will be written to the disk.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param state Desired setting for Image Data output.  If set to true, all
         other VTK output formats are disabled.
     @post Setting updated.
@@ -496,7 +499,7 @@ public:
     This has no effect on VOL-format output.  This does not
         write the data to the disk.  This has no effect on which quantities
         will be written to the disk.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param state Desired setting for Rectilinear Grid output.  If set to true, all
         other VTK output formats are disabled.
     @post Setting updated.
@@ -507,7 +510,7 @@ public:
 
     /**
     @brief Return if VTK Image Data output is enabled/disabled.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return Boolean representing if VTK Image Data output is enabled (true)
         or disabled (false).
@@ -517,7 +520,7 @@ public:
 
     /**
     @brief Return if VTK Rectilinear Grid output is enabled/disabled.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return Boolean representing if VTK Rectilinear Grid output is enabled (true)
         or disabled (false).
@@ -531,7 +534,7 @@ public:
 
     This should not include any directory information.  The
         appropriate file extension will be added by the file-writint functions.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param stem String to be used for the filename stem.
     @post Stem value set.
     @return None.
@@ -541,7 +544,7 @@ public:
 
     /**
     @brief Retrieve the stem to be used for output filename.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return String to be used for filename stem.
     */
@@ -550,7 +553,7 @@ public:
 
     /**
     @brief Set the directory to which files are to be written.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param dir Directory to be used for file output.
     @post Directory value set.
     @return None.
@@ -560,7 +563,7 @@ public:
 
     /**
     @brief Retrieve the stem to be used for output files.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @post No changes to object.
     @return Directory to which output files will be written.
     */
@@ -573,7 +576,7 @@ public:
     This will reset the
         resolution for all data quantities.  Vector quantities will maintian
         their current number of components.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param nx Number of points in the x-direction.
     @param ny Number of points in the y-direction.
     @param nz Number of points in the z-direction.
@@ -587,7 +590,7 @@ public:
 
     /**
     @brief Get the volume resolution in the specified direction.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param dir Direction in which resolution is desired.
         - 1: x-direction
         - 0: y-direction
@@ -604,7 +607,7 @@ public:
     File type
         is set by VTKImageDataOutput() and VTKRectDataOutput() functions.
         All data quantities in this volume will be written to the disk.
-    @pre UniformVolume3D object exists and sufficient disk space exists
+    @pre UniformVolume object exists and sufficient disk space exists
         for the output file.
     @post No changes to object.  Data written to disk.
     @return None.
@@ -617,7 +620,7 @@ public:
 
     File type is set by VTKImageDataOutput() and VTKRectDataOutput() functions.
         All data quantities in this volume will be written to the disk.
-    @pre UniformVolume3D object exists and sufficient disk space exists
+    @pre UniformVolume object exists and sufficient disk space exists
         for the output file.
     @post No changes to object.  Data written to disk.
     @return None.
@@ -633,7 +636,7 @@ public:
 
     File type is set by VTKImageDataOutput() and VTKRectDataOutput() functions.
         All data quantities in this volume will be written to the disk.
-    @pre UniformVolume3D object exists and sufficient disk space exists
+    @pre UniformVolume object exists and sufficient disk space exists
         for the output file.
     @post No changes to object.  Data written to disk.
     @return None.
@@ -667,7 +670,7 @@ public:
         - Z becomes +x
      @image html UV3D_coordsys.png "Coordinate system used in QGenRecon"
      @image latex UV3D_coordsys.png "Coordinate system used in QGenRecon"
-    @pre UniformVolume3D object exists and sufficient disk space exists
+    @pre UniformVolume object exists and sufficient disk space exists
         for the output file.
     @param qty Identifier for scalar quantity to be output.
     @param allowScaling Specify if data may be scaled to span a minimum range of values
@@ -688,8 +691,8 @@ public:
 
 
     /**
-    @brief Read data from disk into UniformVolume3D object.
-    @pre UniformVolume3D object exists and sufficient memory exists to hold
+    @brief Read data from disk into UniformVolume object.
+    @pre UniformVolume object exists and sufficient memory exists to hold
         the read-in data.
     @param filename Name of file to be read in.  If file is located in a different
         directory than the working directory of the application, a path must
@@ -707,8 +710,24 @@ public:
 
 
     /**
+     * @brief Specify an existing array into which the next scalar quantity is to be
+     *  read.
+     * @param array Array into which data is to be read.
+     * @param array_size Number of points in array.
+     */
+    void setScalarDestinationArray(T* array, const size_t array_size);
+
+
+    /**
+     * @brief Get the number of points read during the last scalar quantity.
+     * @return points_read Number of points read.
+     */
+    size_t NumberScalarPointsRead();
+
+
+    /**
     @brief Calculate the arithmetic mean of the specified data quantity.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param scalarqty Identifier for scalar quantity to be processed.  Ignored
         if a negative number.
     @param vectorqty Identifier for vector quantity to be processed.  Ignored
@@ -723,7 +742,7 @@ public:
 
     /**
     @brief Calculate the median of the specified data quantity.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param scalarqty Identifier for scalar quantity to be processed.  Ignored
         if a negative number.
     @param vectorqty Identifier for vector quantity to be processed.  Ignored
@@ -738,7 +757,7 @@ public:
 
     /**
     @brief Calculate the variance of the specified data quantity.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param scalarqty Identifier for scalar quantity to be processed.  Ignored
         if a negative number.
     @param vectorqty Identifier for vector quantity to be processed.  Ignored
@@ -753,7 +772,7 @@ public:
 
     /**
     @brief Locate the minimum of the specified data quantity.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param scalarqty Identifier for scalar quantity to be processed.  Ignored
         if a negative number.
     @param vectorqty Identifier for vector quantity to be processed.  Ignored
@@ -772,7 +791,7 @@ public:
 
     /**
     @brief Locate the maximum of the specified data quantity.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param scalarqty Identifier for scalar quantity to be processed.  Ignored
         if a negative number.
     @param vectorqty Identifier for vector quantity to be processed.  Ignored
@@ -826,7 +845,7 @@ public:
         T output_CNDEVOL_scalingRange;
     };
 
-    /** @brief Instance of UniformVolume3D::conv_opts. */
+    /** @brief Instance of UniformVolume::conv_opts. */
     conv_opts conversion_options;
 
     /**
@@ -847,7 +866,7 @@ public slots:
     /**
      * @brief PerformCalculations is a overload of QtIntermediary::PerformCalculations.
      *
-     * In UniformVolume3D
+     * In UniformVolume
      *      this function handles the reading-in of a volume file and the writing of that data in a
      *      user-specified format.  This is done to allow volume-conversion operations to happen in its
      *      own thread.
@@ -965,12 +984,21 @@ protected:
     /** @brief Identifies if the current binary file-writing is Big-Endian. */
     bool writebigendian;
 
+    /** @brief Array to be used for reading-in scalar data. */
+    T* scalar_data;
+
+    /** @brief Number of points allowed for reading scalar data into pre-existing array. */
+    size_t scalar_data_size;
+
+    /** @brief Number of points actually read on most-recent scalar data read. */
+    size_t scalar_data_points_read;
+
 
 
 private:
     /**
     @brief Initialization of object.
-    @pre UniformVolume3D object exists.
+    @pre UniformVolume object exists.
     @param nx Number of points in x-direction.
     @param ny Number of points in y-direction.
     @param nz Number of points in z-direction.
@@ -996,7 +1024,7 @@ private:
 
     /**
     * @brief Read VOL file.
-    * @pre UniformVolume3D object exists.
+    * @pre UniformVolume object exists.
     * @param filename Name of file to be read.
     * @post VOL file contents read into object.
     * @return None.
@@ -1006,7 +1034,7 @@ private:
 
     /**
     * @brief Read VTK file.
-    * @pre UniformVolume3D object exists.
+    * @pre UniformVolume object exists.
     * @param filename Name of file to be read.
     * @param isBigEndian Identifies byte-ordering of binary file.  Ignored if
     *       datafile is ASCII.
@@ -1024,7 +1052,7 @@ private:
     * @brief Function that writes the actual VOL file.
     *
     * This is not called directly by the user, but rather by VOLWrite().
-    * @pre UniformVolume3DCore object exists.
+    * @pre UniformVolumeCore object exists.
     * @param fileName Name of the output file, including extension.
     * @param xx Number of elements in the 2nd dimension.  Set by this function.
     * @param yy Number of elements in the 1st dimension.  Set by this function.
@@ -1111,5 +1139,5 @@ private:
 
 };
 
-#include "UniformVolume3D.cpp"
-#endif /* UniformVolume3D_ */
+#include "UniformVolume.cpp"
+#endif /* UniformVolume_ */

@@ -78,7 +78,7 @@
 #include <complex>
 #include <Array1D.h>
 #include <Array2D.h>
-#include <UniformVolume3D.h>
+#include <UniformVolume.h>
 
 
 // ==================================================================

@@ -1,11 +1,11 @@
 /**
- * @file UniformVolume3D.cpp
+ * @file UniformVolume.cpp
  * @author Robert Grandin
- * @brief Implementation of UniformVolume3D class.
+ * @brief Implementation of UniformVolume class.
  */
 
 
-#include "UniformVolume3D.h"    /* Included for syntax-hilighting */
+#include "UniformVolume.h"    /* Included for syntax-hilighting */
 
 
 
@@ -18,7 +18,7 @@
  *
  */
 template <class T>
-void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
+void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
                                     const T minx, const T maxx, const T miny, const T maxy,
                                     const T minz, const T maxz, const T initval, const int n_scalars,
                                     const int n_vectors, const int qty_label_size)
@@ -62,7 +62,7 @@ void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
     for(int i=0; i<n_scalars; i++){
         ssnum.str(""); ssnum << i;
         std::string tmpstr(scalarlabel + ssnum.str());
-        UniformVolume3D<T>::AddScalarQuantity(tmpstr);
+        UniformVolume<T>::AddScalarQuantity(tmpstr);
         pscalars(i)->ResetVal(initval);
     }
 
@@ -70,7 +70,7 @@ void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
     for(int i=0; i<n_vectors; i++){
         ssnum.str(""); ssnum << i;
         std::string tmpstr(vectorlabel + ssnum.str());
-        UniformVolume3D<T>::AddVectorQuantity(tmpstr,3);
+        UniformVolume<T>::AddVectorQuantity(tmpstr,3);
         pvectors(i)->ResetVal(initval);
     }
 
@@ -102,7 +102,7 @@ void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
         dtypename = "long double";
     }
 
-    qtsignals = new QtIntermediary;
+    qtsignals = new QtIntermediaryBase;
 
     writebigendian = false;
 
@@ -113,6 +113,10 @@ void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
     conversion_options.output_VTKRectGrid = false;
     conversion_options.output_CNDEVOL_allowScaling = false;
     conversion_options.output_CNDEVOL_scalingRange = (T)1024.0e0;
+
+    scalar_data = NULL;
+    scalar_data_size = 0;
+    scalar_data_points_read = 0;
 }
 
 
@@ -123,7 +127,7 @@ void UniformVolume3D<T>::Initialize(const int nx, const int ny, const int nz,
         use with this class.
  */
 template <class T>
-int UniformVolume3D<T>::WriteVOLFile(
+int UniformVolume<T>::WriteVOLFile(
     std::string	fileName,
     size_t			xx,
     size_t			yy,
@@ -218,7 +222,7 @@ int UniformVolume3D<T>::WriteVOLFile(
 
     /* Typecast values individually into a 'float' variable.  Then, write to place in the
      * data file.  This is to avoid problems writing a 'float' VOL file
-     * from a 'double' UniformVolume3D object. */
+     * from a 'double' UniformVolume object. */
     std::string desc;
     desc = "Writing CNDE VOL File";
     qtsignals->EmitFunctionDesc(desc);
@@ -258,7 +262,7 @@ int UniformVolume3D<T>::WriteVOLFile(
 
 
 template <class T>
-void UniformVolume3D<T>::ReadVOLFile(std::string filename)
+void UniformVolume<T>::ReadVOLFile(std::string filename)
 {
     /*
      * Conversion between (X,Y,Z) axes used in my code and their corresponding axes in HRCT, PSCT, and
@@ -270,17 +274,15 @@ void UniformVolume3D<T>::ReadVOLFile(std::string filename)
      */
 
 
-    /*
-      Remove all but the first scalar quantity and all vector quantities
-     */
-    if(nscalars > 1){
-        for(size_t i=1; i<nscalars; i++){
-            UniformVolume3D<T>::RemoveScalarQuantity(i);
-        }
-    }
-
-    for(size_t i=0; i<nvectors; i++){
-        UniformVolume3D<T>::RemoveVectorQuantity(i);
+    /* Delete all data and create a single scalar quantity. */
+    UniformVolume<T>::RemoveAllData();
+    if(scalar_data == NULL){
+        UniformVolume<T>::AddScalarQuantity("cnde_vol_data");
+    } else {
+        scalar_names(0) = new std::string;
+        scalar_names(0)->reserve(qtysize);
+        scalar_names(0)->assign("cnde_vol_data");
+        nscalars = 1;
     }
 
     /*
@@ -348,7 +350,7 @@ void UniformVolume3D<T>::ReadVOLFile(std::string filename)
     pixelsPerVolume = (unsigned long)(XX*YY*ZZ);
 
     /* Set volume resolution */
-    UniformVolume3D<T>::ResetResolution(YY,XX,ZZ,(T)0.0e0);
+    UniformVolume<T>::ResetResolution(YY,XX,ZZ,(T)0.0e0);
 
     fp.read((char *)&xRotateAngle,sizeof(float));
     fp.read((char *)&yRotateAngle,sizeof(float));
@@ -383,21 +385,45 @@ void UniformVolume3D<T>::ReadVOLFile(std::string filename)
 
     /* Read values individually into a 'float' variable.  Then, typecast to place in the
      * data array for this object.  This is to avoid problems reading a 'float' VOL file
-     * into a 'double' UniformVolume3D object. */
+     * into a 'double' UniformVolume object. */
     std::string desc;
     desc = "Reading CNDE VOL File";
     qtsignals->EmitFunctionDesc(desc);
     qtsignals->EmitFunctionProgress(0.0e0);
 
-    float ftmp = (float)0.0e0;
-    for(size_t i=0; i<YY; i++){
-        for(size_t j=0; j<XX; j++){
-            for(size_t k=0; k<ZZ; k++){
-                fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
-                pscalars(0)->operator ()(i,j,k) = (T)ftmp;
+    if(scalar_data == NULL){
+        float ftmp = (float)0.0e0;
+        for(size_t i=0; i<YY; i++){
+            for(size_t j=0; j<XX; j++){
+                for(size_t k=0; k<ZZ; k++){
+                    fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                    pscalars(0)->operator ()(i,j,k) = (T)ftmp;
+                }
             }
+            qtsignals->EmitFunctionProgress((float)i/(float)YY);
         }
-        qtsignals->EmitFunctionProgress((float)i/(float)YY);
+    } else {
+
+        scalar_data_points_read = 0;
+
+        float ftmp = (float)0.0e0;
+        for(size_t i=0; i<YY; i++){
+            for(size_t j=0; j<XX; j++){
+                for(size_t k=0; k<ZZ; k++){
+                    fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                    scalar_data[scalar_data_points_read] = (T)ftmp;
+
+                    /* Update number of points read.  If this value is greater than the size of the
+                     * array, inform the user of the error and return. */
+                    scalar_data_points_read++;
+                    if(scalar_data_points_read > scalar_data_size){
+                        std::cerr << "UniformVolume::ReadVOLFile() ERROR: Insufficient array size provided." << std::endl;
+                        return;
+                    }
+                }
+            }
+            qtsignals->EmitFunctionProgress((float)i/(float)YY);
+        }
     }
 
     desc = "";
@@ -413,27 +439,22 @@ void UniformVolume3D<T>::ReadVOLFile(std::string filename)
 
 
     /* Set other volume parameters */
-    UniformVolume3D<T>::setSpatialExtent(1,-1,0.0e0);
-    UniformVolume3D<T>::setSpatialExtent(1,1,(T)XX);
-    UniformVolume3D<T>::setSpatialExtent(0,-1,0.0e0);
-    UniformVolume3D<T>::setSpatialExtent(0,1,(T)YY);
-    UniformVolume3D<T>::setSpatialExtent(2,-1,0.0e0);
-    UniformVolume3D<T>::setSpatialExtent(2,1,(T)ZZ);
+    UniformVolume<T>::setSpatialExtent(1,-1,0.0e0);
+    UniformVolume<T>::setSpatialExtent(1,1,(T)XX);
+    UniformVolume<T>::setSpatialExtent(0,-1,0.0e0);
+    UniformVolume<T>::setSpatialExtent(0,1,(T)YY);
+    UniformVolume<T>::setSpatialExtent(2,-1,0.0e0);
+    UniformVolume<T>::setSpatialExtent(2,1,(T)ZZ);
 }
 
 
 template <class T>
-void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
+void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 {
     /*
       Delete all scalar and vector quantities
      */
-    for(size_t i=0; i<nscalars; i++){
-        UniformVolume3D<T>::RemoveScalarQuantity(i);
-    }
-    for(size_t i=0; i<nvectors; i++){
-        UniformVolume3D<T>::RemoveVectorQuantity(i);
-    }
+    UniformVolume<T>::RemoveAllData();
 
     /* Define temporary variables */
     std::fstream vtkfile;
@@ -471,7 +492,7 @@ void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndia
             if(ascii_vs_binary == "ASCII"){
 
                 /* Call ASCII reader. */
-                UniformVolume3D<T>::VTKReadLegacyASCII(vtkfile);
+                UniformVolume<T>::VTKReadLegacyASCII(vtkfile);
                 vtkfile.close();
 
             }
@@ -492,7 +513,7 @@ void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndia
 
 
                     /* Call binary reader for legacy VTK format. */
-                    UniformVolume3D<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
+                    UniformVolume<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
                     vtkfile.close();
 
                 } /* End of conditional on successful file open. */
@@ -500,7 +521,7 @@ void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndia
         } /* End of check for legacy format. */
 
         if(format == "XML"){
-            std::cerr << "UniformVolume3D::ReadVTKFile() - XML format not supported" << std::endl;
+            std::cerr << "UniformVolume::ReadVTKFile() - XML format not supported" << std::endl;
 
             vtkfile.close();
         }
@@ -514,7 +535,7 @@ void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndia
 
 
     } else {
-        std::cout << "UniformVolume3D::ReadVTKFile() - Could not open file " << filename << " for reading" << std::endl;
+        std::cout << "UniformVolume::ReadVTKFile() - Could not open file " << filename << " for reading" << std::endl;
     }
 }
 
@@ -544,14 +565,14 @@ void UniformVolume3D<T>::ReadVTKFile(std::string filename, const bool isBigEndia
  *
  */
 template <class T>
-UniformVolume3D<T>::UniformVolume3D()
+UniformVolume<T>::UniformVolume()
 {
-    UniformVolume3D<T>::Initialize(1,1,1,-1.0e0,1.0e0,-1.0e0,1.0e0,-1.0e0,1.0e0,0.0e0,1,0,256);
+    UniformVolume<T>::Initialize(1,1,1,-1.0e0,1.0e0,-1.0e0,1.0e0,-1.0e0,1.0e0,0.0e0,1,0,256);
 }
 
 
 template <class T>
-UniformVolume3D<T>::UniformVolume3D(UniformVolume3D<T> &uc3d) : QtIntermediary()
+UniformVolume<T>::UniformVolume(UniformVolume<T> &uc3d) : QtIntermediaryBase()
 {
     /* Set resolution and copy all data */
     nscalars = 0;
@@ -562,7 +583,7 @@ UniformVolume3D<T>::UniformVolume3D(UniformVolume3D<T> &uc3d) : QtIntermediary()
     nx = uc3d.GetResolution(1);
     ny = uc3d.GetResolution(0);
     nz = uc3d.GetResolution(2);
-    UniformVolume3D<T>::ResetResolution(ny,nx,nz,0.0e0);
+    UniformVolume<T>::ResetResolution(ny,nx,nz,0.0e0);
 
     int n_scalars = uc3d.NumScalarQuantities();
     int n_vectors = uc3d.NumVectorQuantities();
@@ -570,7 +591,7 @@ UniformVolume3D<T>::UniformVolume3D(UniformVolume3D<T> &uc3d) : QtIntermediary()
 
     for(int q=0; q<n_scalars; q++){
         qtyname = uc3d.ScalarQuantityName(q);
-        UniformVolume3D<T>::AddScalarQuantity(qtyname);
+        UniformVolume<T>::AddScalarQuantity(qtyname);
         for(int k=0; k<vslices; k++){
             for(int i=0; i<vrows; i++){
                 for(int j=0; j<vcols; j++){
@@ -584,7 +605,7 @@ UniformVolume3D<T>::UniformVolume3D(UniformVolume3D<T> &uc3d) : QtIntermediary()
     for(int q=0; q<n_vectors; q++){
         qtyname = uc3d.VectorQuantityName(q);
         ncomp = uc3d.VectorQuantityComponents(q);
-        UniformVolume3D<T>::AddVectorQuantity(qtyname,ncomp);
+        UniformVolume<T>::AddVectorQuantity(qtyname,ncomp);
         for(int k=0; k<vslices; k++){
             for(int i=0; i<vrows; i++){
                 for(int j=0; j<vcols; j++){
@@ -659,28 +680,28 @@ UniformVolume3D<T>::UniformVolume3D(UniformVolume3D<T> &uc3d) : QtIntermediary()
 
 
 template <class T>
-UniformVolume3D<T>::~UniformVolume3D()
+UniformVolume<T>::~UniformVolume()
 {
     delete qtsignals;
 }
 
 
 template <class T>
-size_t UniformVolume3D<T>::NumScalarQuantities() const
+size_t UniformVolume<T>::NumScalarQuantities() const
 {
     return nscalars;
 }
 
 
 template <class T>
-size_t UniformVolume3D<T>::NumVectorQuantities() const
+size_t UniformVolume<T>::NumVectorQuantities() const
 {
     return nvectors;
 }
 
 
 template <class T>
-void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
+void UniformVolume<T>::AddScalarQuantity(const std::string name)
 {
     // Increase count of number of scalar quantities
     nscalars++;
@@ -753,7 +774,7 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name)
 
 
 template <class T>
-void UniformVolume3D<T>::AddScalarQuantity(const std::string name, Array3D<T> *data)
+void UniformVolume<T>::AddScalarQuantity(const std::string name, Array3D<T> *data)
 {
     // Increase count of number of scalar quantities
     nscalars++;
@@ -817,18 +838,18 @@ void UniformVolume3D<T>::AddScalarQuantity(const std::string name, Array3D<T> *d
 
 
 template <class T>
-void UniformVolume3D<T>::RemoveScalarQuantityRef(const size_t qty)
+void UniformVolume<T>::RemoveScalarQuantityRef(const size_t qty)
 {
     /* Set pointer to NULL to prevent deletion of data. */
     pscalars(qty) = NULL;
 
     /* Remove quantity from array of pointers. */
-    UniformVolume3D<T>::RemoveScalarQuantity(qty);
+    UniformVolume<T>::RemoveScalarQuantity(qty);
 }
 
 
 template <class T>
-void UniformVolume3D<T>::RemoveAllData()
+void UniformVolume<T>::RemoveAllData()
 {
     /* Set member variables tracking data quantities to 0.  Reset arrays of pointers to data and data-names
      * to contain a single NULL element (cannot create 0-length array, so create array with no real data). */
@@ -850,14 +871,14 @@ void UniformVolume3D<T>::RemoveAllData()
 
 
 template <class T>
-Array3D<T>* UniformVolume3D<T>::PointerToScalarData(const size_t qty)
+Array3D<T>* UniformVolume<T>::PointerToScalarData(const size_t qty)
 {
     return pscalars(qty);
 }
 
 
 template <class T>
-void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
+void UniformVolume<T>::RemoveScalarQuantity(const size_t qty)
 {
     // Decrease count of number of scalar quantities
     nscalars--;
@@ -938,7 +959,7 @@ void UniformVolume3D<T>::RemoveScalarQuantity(const size_t qty)
 
 
 template <class T>
-void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t ncomp)
+void UniformVolume<T>::AddVectorQuantity(const std::string name, const size_t ncomp)
 {
     // Increase count of number of scalar quantities
     nvectors++;
@@ -1011,7 +1032,7 @@ void UniformVolume3D<T>::AddVectorQuantity(const std::string name, const size_t 
 
 
 template <class T>
-void UniformVolume3D<T>::RemoveVectorQuantity(const size_t qty)
+void UniformVolume<T>::RemoveVectorQuantity(const size_t qty)
 {
     // Decrease count of number of vector quantities
     nvectors--;
@@ -1092,7 +1113,7 @@ void UniformVolume3D<T>::RemoveVectorQuantity(const size_t qty)
 
 
 template <class T>
-int UniformVolume3D<T>::VectorQuantityComponents(const int qty) const
+int UniformVolume<T>::VectorQuantityComponents(const int qty) const
 {
     return pvectors(qty)->GetDim(4);
 }
@@ -1100,28 +1121,28 @@ int UniformVolume3D<T>::VectorQuantityComponents(const int qty) const
 
 
 template <class T>
-void UniformVolume3D<T>::setScalarQuantityName(const size_t qty, const std::string name)
+void UniformVolume<T>::setScalarQuantityName(const size_t qty, const std::string name)
 {
     scalar_names(qty)->assign(name);
 }
 
 
 template <class T>
-std::string UniformVolume3D<T>::ScalarQuantityName(const size_t qty)
+std::string UniformVolume<T>::ScalarQuantityName(const size_t qty)
 {
     return scalar_names(qty)->substr();
 }
 
 
 template <class T>
-void UniformVolume3D<T>::setVectorQuantityName(const size_t qty, const std::string name)
+void UniformVolume<T>::setVectorQuantityName(const size_t qty, const std::string name)
 {
     vector_names(qty)->assign(name);
 }
 
 
 template <class T>
-std::string UniformVolume3D<T>::VectorQuantityName(const size_t qty)
+std::string UniformVolume<T>::VectorQuantityName(const size_t qty)
 {
     return vector_names(qty)->substr();
 }
@@ -1129,7 +1150,7 @@ std::string UniformVolume3D<T>::VectorQuantityName(const size_t qty)
 
 
 template < class T > inline
-T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+T& UniformVolume<T>::operator()(const size_t ind1, const size_t ind2,
                                   const size_t ind3, const size_t qty)
 {
     #ifndef RELEASE
@@ -1150,7 +1171,7 @@ T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
 
 
 template < class T > inline
-const T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+const T& UniformVolume<T>::operator()(const size_t ind1, const size_t ind2,
                                         const size_t ind3, const size_t qty) const
 {
     #ifndef RELEASE
@@ -1171,7 +1192,7 @@ const T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
 
 
 template < class T > inline
-T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+T& UniformVolume<T>::operator()(const size_t ind1, const size_t ind2,
                                   const size_t ind3, const size_t comp, const size_t qty)
 {
     #ifndef RELEASE
@@ -1193,7 +1214,7 @@ T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
 
 
 template < class T > inline
-const T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
+const T& UniformVolume<T>::operator()(const size_t ind1, const size_t ind2,
                                         const size_t ind3, const size_t comp, const size_t qty) const
 {
     #ifndef RELEASE
@@ -1215,7 +1236,7 @@ const T& UniformVolume3D<T>::operator()(const size_t ind1, const size_t ind2,
 
 
 template <class T>
-double UniformVolume3D<T>::EstimateMemoryUsage() const
+double UniformVolume<T>::EstimateMemoryUsage() const
 {
     double retval = 0.0e0;
     for(int i=0; i<nscalars; i++){
@@ -1229,21 +1250,21 @@ double UniformVolume3D<T>::EstimateMemoryUsage() const
 
 
 template <class T>
-void UniformVolume3D<T>::ResetScalarVals(const int qty, const T initvalue)
+void UniformVolume<T>::ResetScalarVals(const int qty, const T initvalue)
 {
     pscalars(qty)->ResetVal(initvalue);
 }
 
 
 template <class T>
-void UniformVolume3D<T>::ResetVectorVals(const int qty, const T initvalue)
+void UniformVolume<T>::ResetVectorVals(const int qty, const T initvalue)
 {
     pvectors(qty)->ResetVal(initvalue);
 }
 
 
 template <class T>
-void UniformVolume3D<T>::setSpatialExtent(const int dir, const int maxmin, const T val)
+void UniformVolume<T>::setSpatialExtent(const int dir, const int maxmin, const T val)
 {
     if(dir == 1){
         if(maxmin < 0){
@@ -1300,7 +1321,7 @@ void UniformVolume3D<T>::setSpatialExtent(const int dir, const int maxmin, const
 
 
 template <class T>
-T UniformVolume3D<T>::SpatialExtent(const int dir, const int maxmin) const
+T UniformVolume<T>::SpatialExtent(const int dir, const int maxmin) const
 {
     T retval = 0.0e0;
 
@@ -1334,7 +1355,7 @@ T UniformVolume3D<T>::SpatialExtent(const int dir, const int maxmin) const
 
 
 template <class T>
-T UniformVolume3D<T>::PointSpacing(const int dir) const
+T UniformVolume<T>::PointSpacing(const int dir) const
 {
     T retval = 0.0e0;
     if(dir == 0){
@@ -1351,7 +1372,7 @@ T UniformVolume3D<T>::PointSpacing(const int dir) const
 
 
 template <class T>
-void UniformVolume3D<T>::setVTKImageDataOutput(const bool state)
+void UniformVolume<T>::setVTKImageDataOutput(const bool state)
 {
     imageoutput = state;
     if(imageoutput == true){
@@ -1361,7 +1382,7 @@ void UniformVolume3D<T>::setVTKImageDataOutput(const bool state)
 
 
 template <class T>
-void UniformVolume3D<T>::setVTKRectDataOutput(const bool state)
+void UniformVolume<T>::setVTKRectDataOutput(const bool state)
 {
     rectoutput = state;
     if(rectoutput == true){
@@ -1371,49 +1392,49 @@ void UniformVolume3D<T>::setVTKRectDataOutput(const bool state)
 
 
 template <class T>
-bool UniformVolume3D<T>::VTKImageDataOutput() const
+bool UniformVolume<T>::VTKImageDataOutput() const
 {
     return imageoutput;
 }
 
 
 template <class T>
-bool UniformVolume3D<T>::VTKRectDataOutput() const
+bool UniformVolume<T>::VTKRectDataOutput() const
 {
     return rectoutput;
 }
 
 
 template <class T>
-void UniformVolume3D<T>::setFilenameStem(const std::string stem)
+void UniformVolume<T>::setFilenameStem(const std::string stem)
 {
     filenamestem = stem;
 }
 
 
 template <class T>
-std::string UniformVolume3D<T>::FilenameStem() const
+std::string UniformVolume<T>::FilenameStem() const
 {
     return filenamestem;
 }
 
 
 template <class T>
-void UniformVolume3D<T>::setOutputDirectory(const std::string dir)
+void UniformVolume<T>::setOutputDirectory(const std::string dir)
 {
     outputdir = dir;
 }
 
 
 template <class T>
-std::string UniformVolume3D<T>::OutputDirectory() const
+std::string UniformVolume<T>::OutputDirectory() const
 {
     return outputdir;
 }
 
 
 template <class T>
-void UniformVolume3D<T>::ResetResolution(const size_t ny, const size_t nx, const size_t nz, const T initval)
+void UniformVolume<T>::ResetResolution(const size_t ny, const size_t nx, const size_t nz, const T initval)
 {
     for(size_t i=0; i<nscalars; i++){
         if(pscalars(i) != NULL){
@@ -1451,7 +1472,7 @@ void UniformVolume3D<T>::ResetResolution(const size_t ny, const size_t nx, const
 
 
 template <class T>
-size_t UniformVolume3D<T>::GetResolution(const int dir)
+size_t UniformVolume<T>::GetResolution(const int dir)
 {
     size_t retval = 0;
     if(dir == 1){
@@ -1468,7 +1489,7 @@ size_t UniformVolume3D<T>::GetResolution(const int dir)
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWrite()
+void UniformVolume<T>::VTKWrite()
 {
     std::string filename;
     std::fstream ssfile;
@@ -1597,7 +1618,7 @@ void UniformVolume3D<T>::VTKWrite()
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWriteBinary()
+void UniformVolume<T>::VTKWriteBinary()
 {
     /* Calculate the number of points in the data volume, and compare to the maximum value expressible
      * using type 'int'.  If too many data points are in the volume, automatically write the data as
@@ -1666,7 +1687,7 @@ void UniformVolume3D<T>::VTKWriteBinary()
         tmpss << "Writing volume file " << i+1 << " of " << ntasks;
         qtsignals->EmitFunctionDesc2(tmpss.str());
 
-        UniformVolume3D<T>::VTKWriteBinaryPartial(first_slice, num_slices, slice_min);
+        UniformVolume<T>::VTKWriteBinaryPartial(first_slice, num_slices, slice_min);
     }
 
     /* Reset filename stem to original value. */
@@ -1675,7 +1696,7 @@ void UniformVolume3D<T>::VTKWriteBinary()
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
+void UniformVolume<T>::VTKWriteBinaryBitFlip()
 {
     /* Calculate the number of points in the data volume, and compare to the maximum value expressible
      * using type 'int'.  If too many data points are in the volume, automatically write the data as
@@ -1744,7 +1765,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
         tmpss << "Writing volume file " << i+1 << " of " << ntasks;
         qtsignals->EmitFunctionDesc2(tmpss.str());
 
-        UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(first_slice, num_slices, slice_min);
+        UniformVolume<T>::VTKWriteBinaryBitFlipPartial(first_slice, num_slices, slice_min);
     }
 
     /* Reset filename stem to original value. */
@@ -1753,11 +1774,11 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlip()
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWriteBinaryPartial(const size_t first_slice, const size_t num_slices, const float slice_min)
+void UniformVolume<T>::VTKWriteBinaryPartial(const size_t first_slice, const size_t num_slices, const float slice_min)
 {
     std::string filename;
     std::fstream ssfile;
-    if(!UniformVolume3D<T>::IsBigEndian()){
+    if(!UniformVolume<T>::IsBigEndian()){
         filename = outputdir + "/" + filenamestem + ".vtk";
     } else {
         filename = outputdir + "/" + filenamestem + "_BigEndian.vtk";
@@ -1923,11 +1944,11 @@ void UniformVolume3D<T>::VTKWriteBinaryPartial(const size_t first_slice, const s
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, const size_t num_slices, const float slice_min)
+void UniformVolume<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, const size_t num_slices, const float slice_min)
 {
     std::string filename;
     std::fstream ssfile;
-    if(UniformVolume3D<T>::IsBigEndian()){
+    if(UniformVolume<T>::IsBigEndian()){
         filename = outputdir + "/" + filenamestem + ".vtk";     /* Flipping bits will make output Little Endian. */
     } else {
         filename = outputdir + "/" + filenamestem + "_BigEndian.vtk";
@@ -1996,7 +2017,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, 
             ssfile.write(buffer,size);
             for(size_t i=0; i<vcols; i++){
                 flippedfloat = (float)i*(float)xspacing;
-                UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
+                UniformVolume<T>::ByteSwap(&flippedfloat, sizeof(float));
                 ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
             }
 
@@ -2006,7 +2027,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, 
             ssfile.write(buffer,size);
             for(size_t i=0; i<vrows; i++){
                 flippedfloat = (float)i*(float)yspacing;
-                UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
+                UniformVolume<T>::ByteSwap(&flippedfloat, sizeof(float));
                 ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
             }
 
@@ -2016,7 +2037,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, 
             ssfile.write(buffer,size);
             for(size_t i=0; i<num_slices; i++){
                 flippedfloat = (float)i*(float)zspacing + slice_min;
-                UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(float));
+                UniformVolume<T>::ByteSwap(&flippedfloat, sizeof(float));
                 ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(float));
             }
         }
@@ -2042,7 +2063,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, 
                 for(size_t i=0; i<vrows; i++){
                     for(size_t j=0; j<vcols; j++){
                         flippedfloat = pscalars(s)->operator ()(i,j,kk);
-                        UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
+                        UniformVolume<T>::ByteSwap(&flippedfloat, sizeof(T));
                         ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
                     }
                 }
@@ -2072,12 +2093,12 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, 
                     for(size_t j=0; j<vcols; j++){
                         for(size_t l=0; l<n; l++){ /* Write components of vectors. */
                             flippedfloat = pvectors(v)->operator ()(i,j,kk,l);
-                            UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
+                            UniformVolume<T>::ByteSwap(&flippedfloat, sizeof(T));
                             ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
                         }
                         for(size_t l=n; l<3; l++){ /* Add 0 for extra dimension(s) if necessary. */
                             flippedfloat = (T)0.0e0;
-                            UniformVolume3D<T>::ByteSwap(&flippedfloat, sizeof(T));
+                            UniformVolume<T>::ByteSwap(&flippedfloat, sizeof(T));
                             ssfile.write(reinterpret_cast<char*>(&flippedfloat),sizeof(T));
                         }
                     }
@@ -2098,14 +2119,14 @@ void UniformVolume3D<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, 
 
 
 template <class T>
-void UniformVolume3D<T>::VTKWriteBinaryBigEndian()
+void UniformVolume<T>::VTKWriteBinaryBigEndian()
 {
     writebigendian = true;
 
-    if(UniformVolume3D<T>::IsBigEndian()){
-        UniformVolume3D<T>::VTKWriteBinary();
+    if(UniformVolume<T>::IsBigEndian()){
+        UniformVolume<T>::VTKWriteBinary();
     } else {
-        UniformVolume3D<T>::VTKWriteBinaryBitFlip();
+        UniformVolume<T>::VTKWriteBinaryBitFlip();
     }
 
     writebigendian = false;
@@ -2113,7 +2134,7 @@ void UniformVolume3D<T>::VTKWriteBinaryBigEndian()
 
 
 template <class T>
-void UniformVolume3D<T>::ByteSwap(void *value, size_t numbytes)
+void UniformVolume<T>::ByteSwap(void *value, size_t numbytes)
 {
     unsigned char *memp = reinterpret_cast<unsigned char*>(value);
     std::reverse(memp, memp + numbytes);
@@ -2121,7 +2142,7 @@ void UniformVolume3D<T>::ByteSwap(void *value, size_t numbytes)
 
 
 template <class T>
-bool UniformVolume3D<T>::IsBigEndian()
+bool UniformVolume<T>::IsBigEndian()
 {
     /* From http://http://www.codeproject.com/Articles/4804/Basic-concepts-on-Endianness */
     short word = 0x4321;
@@ -2134,7 +2155,7 @@ bool UniformVolume3D<T>::IsBigEndian()
 
 
 template <class T>
-void UniformVolume3D<T>::VOLWrite(const int qty, const bool allowScaling, const T minRange)
+void UniformVolume<T>::VOLWrite(const int qty, const bool allowScaling, const T minRange)
 {
     int retval = -1;
 
@@ -2185,7 +2206,7 @@ void UniformVolume3D<T>::VOLWrite(const int qty, const bool allowScaling, const 
 
 
 
-    retval = UniformVolume3D<T>::WriteVOLFile(filename,vcols,vrows,vslices,
+    retval = UniformVolume<T>::WriteVOLFile(filename,vcols,vrows,vslices,
                                            &pscalars(qty)->operator ()((size_t)0,(size_t)0,(size_t)0));
 
     if(scalingPerformed){
@@ -2228,22 +2249,22 @@ void UniformVolume3D<T>::VOLWrite(const int qty, const bool allowScaling, const 
 
 
 template <class T>
-void UniformVolume3D<T>::ReadFile(const std::string filename, const bool isBigEndian)
+void UniformVolume<T>::ReadFile(const std::string filename, const bool isBigEndian)
 {
     std::string fileext;
     fileext = StringManip::DetermFileExt(filename);
     if(fileext == "vol" || fileext == "VOL"){
-        UniformVolume3D<T>::ReadVOLFile(filename);
+        UniformVolume<T>::ReadVOLFile(filename);
     }
     if(fileext == "vtk" || fileext == "VTK"){
-        UniformVolume3D<T>::ReadVTKFile(filename,isBigEndian);
+        UniformVolume<T>::ReadVTKFile(filename,isBigEndian);
     }
 
 }
 
 
 template <class T>
-T UniformVolume3D<T>::Mean(const int scalarqty, const int vectorqty, const int vectorcomp) const
+T UniformVolume<T>::Mean(const int scalarqty, const int vectorqty, const int vectorcomp) const
 {
     T retval = (T)0.0e0;
     if(scalarqty >= 0){
@@ -2282,7 +2303,7 @@ T UniformVolume3D<T>::Mean(const int scalarqty, const int vectorqty, const int v
 
 
 template <class T>
-T UniformVolume3D<T>::Median(const int scalarqty, const int vectorqty, const int vectorcomp) const
+T UniformVolume<T>::Median(const int scalarqty, const int vectorqty, const int vectorcomp) const
 {
     T retval = (T)0.0e0;
     if(scalarqty >= 0){
@@ -2321,7 +2342,7 @@ T UniformVolume3D<T>::Median(const int scalarqty, const int vectorqty, const int
 
 
 template <class T>
-T UniformVolume3D<T>::Variance(const int scalarqty, const int vectorqty, const int vectorcomp) const
+T UniformVolume<T>::Variance(const int scalarqty, const int vectorqty, const int vectorcomp) const
 {
     T retval = (T)0.0e0;
     if(scalarqty >= 0){
@@ -2360,7 +2381,7 @@ T UniformVolume3D<T>::Variance(const int scalarqty, const int vectorqty, const i
 
 
 template <class T>
-T UniformVolume3D<T>::MinVal(const int scalarqty, const int vectorqty, const int vectorcomp,
+T UniformVolume<T>::MinVal(const int scalarqty, const int vectorqty, const int vectorcomp,
          int &loc_x, int &loc_y, int &loc_z) const
 {
     T retval = (T)0.0e0;
@@ -2400,7 +2421,7 @@ T UniformVolume3D<T>::MinVal(const int scalarqty, const int vectorqty, const int
 
 
 template <class T>
-T UniformVolume3D<T>::MaxVal(const int scalarqty, const int vectorqty, const int vectorcomp,
+T UniformVolume<T>::MaxVal(const int scalarqty, const int vectorqty, const int vectorcomp,
          int &loc_x, int &loc_y, int &loc_z) const
 {
     T retval = (T)0.0e0;
@@ -2440,7 +2461,7 @@ T UniformVolume3D<T>::MaxVal(const int scalarqty, const int vectorqty, const int
 
 
 template <class T>
-size_t UniformVolume3D<T>::MemoryRequired() const
+size_t UniformVolume<T>::MemoryRequired() const
 {
     size_t retval = 0;
 
@@ -2451,33 +2472,33 @@ size_t UniformVolume3D<T>::MemoryRequired() const
 
 
 template <class T>
-void UniformVolume3D<T>::PerformCalculations()
+void UniformVolume<T>::PerformCalculations()
 {
-    UniformVolume3D<T>::ReadFile(conversion_options.input_file,conversion_options.isBigEndian);
+    UniformVolume<T>::ReadFile(conversion_options.input_file,conversion_options.isBigEndian);
 
     if(conversion_options.output_VTKImageData){
-        UniformVolume3D<T>::setVTKImageDataOutput(true);
-        UniformVolume3D<T>::setVTKRectDataOutput(false);
-        UniformVolume3D<T>::VTKWriteBinaryBigEndian();
+        UniformVolume<T>::setVTKImageDataOutput(true);
+        UniformVolume<T>::setVTKRectDataOutput(false);
+        UniformVolume<T>::VTKWriteBinaryBigEndian();
     }
 
     if(conversion_options.output_VTKRectGrid){
-        UniformVolume3D<T>::setVTKImageDataOutput(false);
-        UniformVolume3D<T>::setVTKRectDataOutput(true);
-        UniformVolume3D<T>::VTKWriteBinaryBigEndian();
+        UniformVolume<T>::setVTKImageDataOutput(false);
+        UniformVolume<T>::setVTKRectDataOutput(true);
+        UniformVolume<T>::VTKWriteBinaryBigEndian();
     }
 
     if(conversion_options.output_CNDEVOL){
-        UniformVolume3D<T>::VOLWrite(0,conversion_options.output_CNDEVOL_allowScaling,conversion_options.output_CNDEVOL_scalingRange);
+        UniformVolume<T>::VOLWrite(0,conversion_options.output_CNDEVOL_allowScaling,conversion_options.output_CNDEVOL_scalingRange);
     }
 
     qtsignals->EmitDone();
-    UniformVolume3D<T>::EmitDone();
+    UniformVolume<T>::EmitDone();
 }
 
 
 template <class T>
-void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigEndian)
+void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigEndian)
 {
     char linedata[256];
     std::string sval1("");
@@ -2491,7 +2512,7 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
     T fval3 = (T)0.0e0;
     bool isImageData = false;
     bool isRectGrid = false;
-    bool thisBigEndian = UniformVolume3D<T>::IsBigEndian();
+    bool thisBigEndian = UniformVolume<T>::IsBigEndian();
     std::string desc("");
     std::stringstream sstmp;
 
@@ -2500,7 +2521,7 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
     sstmp.str(linedata);
     sstmp >> sval1 >> sval2;
     if(sval1 != "DATASET"){
-        std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Dataset keyword not recognized" << std::endl;
+        std::cerr << "UniformVolume::VTKReadLegacyBinary() - Dataset keyword not recognized" << std::endl;
         std::cerr << "                                         Keyword read: " << sval1 << std::endl;
         return;
     }
@@ -2525,16 +2546,14 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
     sstmp.clear(); sstmp.str(linedata);
     sstmp >> sval1 >> ival1 >> ival2 >> ival3;
     if(sval1 != "DIMENSIONS"){
-        std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Dimensions keyword not recognized" << std::endl;
+        std::cerr << "UniformVolume::VTKReadLegacyBinary() - Dimensions keyword not recognized" << std::endl;
         std::cerr << "                                         Keyword read: " << sval1 << std::endl;
         return;
     }
     if(ival1 > 0 && ival2 > 0 && ival3 > 0){
-        vcols = (size_t)ival1;
-        vrows = (size_t)ival2;
-        vslices = (size_t)ival3;
+        UniformVolume<T>::ResetResolution(ival2, ival1, ival3, (T)0);
     } else {
-        std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Dimensions not read properly" << std::endl;
+        std::cerr << "UniformVolume::VTKReadLegacyBinary() - Dimensions not read properly" << std::endl;
         std::cerr << "                                         Dimensions read: " << ival1 << " x " << ival2
                                                                           << " x " << ival3 << std::endl;
         return;
@@ -2578,12 +2597,12 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
 
             /* Only set spatial bounds after both origin and spacing have been read-in. */
             if(linecount == 2){
-                UniformVolume3D<T>::setSpatialExtent(1,-1,o1);
-                UniformVolume3D<T>::setSpatialExtent(0,-1,o2);
-                UniformVolume3D<T>::setSpatialExtent(2,-1,o3);
-                UniformVolume3D<T>::setSpatialExtent(1,1,xmin+s1*vcols);
-                UniformVolume3D<T>::setSpatialExtent(0,1,ymin+s2*vrows);
-                UniformVolume3D<T>::setSpatialExtent(2,1,zmin+s3*vslices);
+                UniformVolume<T>::setSpatialExtent(1,-1,o1);
+                UniformVolume<T>::setSpatialExtent(0,-1,o2);
+                UniformVolume<T>::setSpatialExtent(2,-1,o3);
+                UniformVolume<T>::setSpatialExtent(1,1,xmin+s1*vcols);
+                UniformVolume<T>::setSpatialExtent(0,1,ymin+s2*vrows);
+                UniformVolume<T>::setSpatialExtent(2,1,zmin+s3*vslices);
             }
         }
     }
@@ -2622,87 +2641,87 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
             if(sval1 == "X_COORDINATES"){
                 if(isfloat){
                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(0,-1,(T)ffloat);
+                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(0,-1,(T)ffloat);
 
                     for(size_t i=0; i<vcols-2; i++){
                         file.read(reinterpret_cast<char*>(&ffloat),datasize);
                     }
 
                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(0,1,(T)ffloat);
+                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(0,1,(T)ffloat);
                 }
                 if(isdouble){
                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(0,-1,(T)dfloat);
+                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(0,-1,(T)dfloat);
 
                     for(size_t i=0; i<vcols-2; i++){
                         file.read(reinterpret_cast<char*>(&dfloat),datasize);
                     }
 
                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(0,1,(T)dfloat);
+                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(0,1,(T)dfloat);
                 }
             }
 
             if(sval1 == "Y_COORDINATES"){
                 if(isfloat){
                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(1,-1,(T)ffloat);
+                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(1,-1,(T)ffloat);
 
                     for(size_t i=0; i<vrows-2; i++){
                         file.read(reinterpret_cast<char*>(&ffloat),datasize);
                     }
 
                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(1,1,(T)ffloat);
+                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(1,1,(T)ffloat);
                 }
                 if(isdouble){
                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(1,-1,(T)dfloat);
+                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(1,-1,(T)dfloat);
 
                     for(size_t i=0; i<vrows-2; i++){
                         file.read(reinterpret_cast<char*>(&dfloat),datasize);
                     }
 
                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(1,1,(T)dfloat);
+                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(1,1,(T)dfloat);
                 }
             }
 
             if(sval1 == "Z_COORDINATES"){
                 if(isfloat){
                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(2,-1,(T)ffloat);
+                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(2,-1,(T)ffloat);
 
                     for(size_t i=0; i<vslices-2; i++){
                         file.read(reinterpret_cast<char*>(&ffloat),datasize);
                     }
 
                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(2,1,(T)ffloat);
+                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(2,1,(T)ffloat);
                 }
                 if(isdouble){
                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(2,-1,(T)dfloat);
+                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(2,-1,(T)dfloat);
 
                     for(size_t i=0; i<vslices-2; i++){
                         file.read(reinterpret_cast<char*>(&dfloat),datasize);
                     }
 
                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                    UniformVolume3D<T>::setSpatialExtent(2,1,(T)dfloat);
+                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                    UniformVolume<T>::setSpatialExtent(2,1,(T)dfloat);
                 }
             }
 
@@ -2727,9 +2746,9 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
         sstmp.clear(); sstmp.str(linedata);
         sstmp >> sval1 >> ival1;
         if(sval1 != "POINT_DATA" && sval1 != ""){
-            std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Point data keyword not recognized" << std::endl;
+            std::cerr << "UniformVolume::VTKReadLegacyBinary() - Point data keyword not recognized" << std::endl;
             std::cerr << "                                         Keyword read: " << sval1 << std::endl;
-            std::cerr << "UniformVolume3D::VTKReadLegacyBinary() - Only POINT_DATA supported...exiting" << std::endl;
+            std::cerr << "UniformVolume::VTKReadLegacyBinary() - Only POINT_DATA supported...exiting" << std::endl;
             return;
         }
         sval1 = "";
@@ -2743,8 +2762,16 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
         if(sval1 == "SCALARS"){
             sval1 = "";
             sstmp >> sval2 >> sval3 >> ival1;
-            /* Add scalar quantity to this object. */
-            UniformVolume3D<T>::AddScalarQuantity(sval2);
+
+            if(scalar_data == NULL){
+                /* Add scalar quantity to this object. */
+                UniformVolume<T>::AddScalarQuantity(sval2);
+            } else {
+                scalar_names(0) = new std::string;
+                scalar_names(0)->reserve(qtysize);
+                scalar_names(0)->assign(sval2);
+                nscalars = 1;
+            }
 
             /* Read lookup table line. */
             file.getline(linedata,256);
@@ -2771,58 +2798,125 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
                 /* Read point-by-point and bit-flip each point value. */
 
                 if(false){
-                    std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume3D<T>::IsBigEndian()) << std::endl;
+                    std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume<T>::IsBigEndian()) << std::endl;
                     std::cout << "datasize: " << datasize << "     Big Endian Conversion" << std::endl;
                 }
 
-                desc = "Reading binary scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                desc = "Reading binary scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                 qtsignals->EmitFunctionDesc(desc);
 
-                float ffloat = (float)0.0e0;
-                double dfloat = (double)0.0e0;
-                for(size_t k=0; k<vslices; k++){
-                    for(size_t i=0; i<vrows; i++){
-                        for(size_t j=0; j<vcols; j++){
-                            if(isfloat){
-                                file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                            }
-                            if(isdouble){
-                                file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                if(scalar_data == NULL){
+                    /* Read data into Array3D object which is a member of this object.  */
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                }
                             }
                         }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                     }
-                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                } else {
+                    /* Read data into existing array. */
+                    scalar_data_points_read = 0;
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                    scalar_data[scalar_data_points_read] = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                    scalar_data[scalar_data_points_read] = (T)dfloat;
+                                }
+
+                                /* Update number of points read.  If this value is greater than the size of the
+                                 * array, inform the user of the error and return. */
+                                scalar_data_points_read++;
+                                if(scalar_data_points_read > scalar_data_size){
+                                    std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                    return;
+                                }
+                            }
+                        }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    }
                 }
 
 
             } else {
-                desc = "Reading binary scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                desc = "Reading binary scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                 qtsignals->EmitFunctionDesc(desc);
 
                 /* No byte-swapping necessary.  Type-checking still performed, however, in case
                  * datatype in file does not match datatype of this object. */
-                float ffloat = (float)0.0e0;
-                double dfloat = (double)0.0e0;
-                for(size_t k=0; k<vslices; k++){
-                    for(size_t i=0; i<vrows; i++){
-                        for(size_t j=0; j<vcols; j++){
-                            if(isfloat){
-                                file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                            }
-                            if(isdouble){
-                                file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                if(scalar_data == NULL){
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                }
                             }
                         }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                     }
-                    qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                } else {
+                    /* Read data into existing array. */
+                    scalar_data_points_read = 0;
+                    float ffloat = (float)0.0e0;
+                    double dfloat = (double)0.0e0;
+                    for(size_t k=0; k<vslices; k++){
+                        for(size_t i=0; i<vrows; i++){
+                            for(size_t j=0; j<vcols; j++){
+                                if(isfloat){
+                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                    scalar_data[scalar_data_points_read] = (T)ffloat;
+                                }
+                                if(isdouble){
+                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                    scalar_data[scalar_data_points_read] = (T)dfloat;
+                                }
+
+                                /* Update number of points read.  If this value is greater than the size of the
+                                 * array, inform the user of the error and return. */
+                                scalar_data_points_read++;
+                                if(scalar_data_points_read > scalar_data_size){
+                                    std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                    return;
+                                }
+                            }
+                        }
+                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    }
                 }
             }
+
+            /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+            scalar_data = NULL;
+            UniformVolume<T>::RemoveAllData();
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -2836,7 +2930,7 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
             sstmp >> sval2 >> sval3 >> ival1;
 
             /* Add vector quantity to this object, assuming 3 components. */
-            UniformVolume3D<T>::AddVectorQuantity(sval2,3);
+            UniformVolume<T>::AddVectorQuantity(sval2,3);
 
             /* Read data values. */
             size_t datasize = 0;
@@ -2857,11 +2951,11 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
                 /* Read point-by-point and bit-flip each point value. */
 
                 if(false){
-                    std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume3D<T>::IsBigEndian()) << std::endl;
+                    std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume<T>::IsBigEndian()) << std::endl;
                     std::cout << "datasize: " << datasize << "     Big Endian Conversion" << std::endl;
                 }
 
-                desc = "Reading binary vectors '" + UniformVolume3D<T>::VectorQuantityName(nvectors-1) + "'";
+                desc = "Reading binary vectors '" + UniformVolume<T>::VectorQuantityName(nvectors-1) + "'";
                 qtsignals->EmitFunctionDesc(desc);
 
                 float ffloat = (float)0.0e0;
@@ -2872,12 +2966,12 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
                             for(size_t l=0; l<3; l++){
                                 if(isfloat){
                                     file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
+                                    UniformVolume<T>::ByteSwap(&ffloat,datasize);
                                     pvectors(nvectors-1)->operator ()(i,j,k,l) = (T)ffloat;
                                 }
                                 if(isdouble){
                                     file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
+                                    UniformVolume<T>::ByteSwap(&dfloat,datasize);
                                     pvectors(nvectors-1)->operator ()(i,j,k,l) = (T)dfloat;
                             }
                             }
@@ -2888,7 +2982,7 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
 
 
             } else {
-                desc = "Reading binary vectors '" + UniformVolume3D<T>::VectorQuantityName(nvectors-1) + "'";
+                desc = "Reading binary vectors '" + UniformVolume<T>::VectorQuantityName(nvectors-1) + "'";
                 qtsignals->EmitFunctionDesc(desc);
 
                 /* No byte-swapping necessary.  Type-checking still performed, however, in case
@@ -2936,8 +3030,15 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
                 sstmp >> sval2 >> ival1 >> ival2 >> sval3;
 
 
-                /* Add scalar quantity to this object. */
-                UniformVolume3D<T>::AddScalarQuantity(sval2);
+                if(scalar_data == NULL){
+                    /* Add scalar quantity to this object. */
+                    UniformVolume<T>::AddScalarQuantity(sval2);
+                } else {
+                    scalar_names(0) = new std::string;
+                    scalar_names(0)->reserve(qtysize);
+                    scalar_names(0)->assign(sval2);
+                    nscalars = 1;
+                }
 
                 /* Read data values. */
                 size_t datasize = 0;
@@ -2958,59 +3059,125 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
                     /* Read point-by-point and bit-flip each point value. */
 
                     if(false){
-                        std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume3D<T>::IsBigEndian()) << std::endl;
+                        std::cout << "Big Endian System: " << StringManip::BoolToString(UniformVolume<T>::IsBigEndian()) << std::endl;
                         std::cout << "datasize: " << datasize << "     Big Endian Conversion" << std::endl;
                     }
 
-                    desc = "Reading binary field scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                    desc = "Reading binary field scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                     qtsignals->EmitFunctionDesc(desc);
 
-                    float ffloat = (float)0.0e0;
-                    double dfloat = (double)0.0e0;
-                    for(size_t k=0; k<vslices; k++){
-                        for(size_t i=0; i<vrows; i++){
-                            for(size_t j=0; j<vcols; j++){
-                                if(isfloat){
-                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                    UniformVolume3D<T>::ByteSwap(&ffloat,datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                                }
-                                if(isdouble){
-                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                    UniformVolume3D<T>::ByteSwap(&dfloat,datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                    if(scalar_data == NULL){
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                    }
                                 }
                             }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                         }
-                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    } else {
+                        /* Read data into existing array. */
+                        scalar_data_points_read = 0;
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&ffloat,datasize);
+                                        scalar_data[scalar_data_points_read] = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        UniformVolume<T>::ByteSwap(&dfloat,datasize);
+                                        scalar_data[scalar_data_points_read] = (T)dfloat;
+                                    }
+
+                                    /* Update number of points read.  If this value is greater than the size of the
+                                     * array, inform the user of the error and return. */
+                                    scalar_data_points_read++;
+                                    if(scalar_data_points_read > scalar_data_size){
+                                        std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                        return;
+                                    }
+                                }
+                            }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                        }
                     }
 
 
                 } else {
-                    desc = "Reading binary scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                    desc = "Reading binary scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                     qtsignals->EmitFunctionDesc(desc);
 
                     /* No byte-swapping necessary.  Type-checking still performed, however, in case
                      * datatype in file does not match datatype of this object. */
-                    float ffloat = (float)0.0e0;
-                    double dfloat = (double)0.0e0;
-                    for(size_t k=0; k<vslices; k++){
-                        for(size_t i=0; i<vrows; i++){
-                            for(size_t j=0; j<vcols; j++){
-                                if(isfloat){
-                                    file.read(reinterpret_cast<char*>(&ffloat),datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
-                                }
-                                if(isdouble){
-                                    file.read(reinterpret_cast<char*>(&dfloat),datasize);
-                                    pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                    if(scalar_data == NULL){
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        pscalars(nscalars-1)->operator ()(i,j,k) = (T)dfloat;
+                                    }
                                 }
                             }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
                         }
-                        qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                    } else {
+                        /* Read data into existing array. */
+                        scalar_data_points_read = 0;
+                        float ffloat = (float)0.0e0;
+                        double dfloat = (double)0.0e0;
+                        for(size_t k=0; k<vslices; k++){
+                            for(size_t i=0; i<vrows; i++){
+                                for(size_t j=0; j<vcols; j++){
+                                    if(isfloat){
+                                        file.read(reinterpret_cast<char*>(&ffloat),datasize);
+                                        scalar_data[scalar_data_points_read] = (T)ffloat;
+                                    }
+                                    if(isdouble){
+                                        file.read(reinterpret_cast<char*>(&dfloat),datasize);
+                                        scalar_data[scalar_data_points_read] = (T)dfloat;
+                                    }
+
+                                    /* Update number of points read.  If this value is greater than the size of the
+                                     * array, inform the user of the error and return. */
+                                    scalar_data_points_read++;
+                                    if(scalar_data_points_read > scalar_data_size){
+                                        std::cerr << "UniformVolume::VTKReadLegacyBinary() ERROR: Insufficient array size provided." << std::endl;
+                                        return;
+                                    }
+                                }
+                            }
+                            qtsignals->EmitFunctionProgress((float)k/(float)vslices);
+                        }
                     }
                 }
             }
+
+            /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+            scalar_data = NULL;
+            UniformVolume<T>::RemoveAllData();
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -3024,11 +3191,11 @@ void UniformVolume3D<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBi
     qtsignals->EmitFunctionDesc(desc);
     qtsignals->EmitFunctionProgress(0.0e0);
 
-} /* UniformVolume3D::VTKReadLegacyBinary() */
+} /* UniformVolume::VTKReadLegacyBinary() */
 
 
 template <class T>
-void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
+void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
 {
     std::string discard;
     std::string discard1;
@@ -3051,7 +3218,7 @@ void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
         file >> discard1 >> itmp1 >> itmp2 >> itmp3;
 
         /* Reset resolution of this object */
-        UniformVolume3D<T>::ResetResolution(itmp2,itmp1,itmp3,(T)0.0e0);
+        UniformVolume<T>::ResetResolution(itmp2,itmp1,itmp3,(T)0.0e0);
 
         file >> discard1 >> o1 >> o2 >> o3;	/* Volume origin */
         file >> discard1 >> d1 >> d2 >> d3;	/* Voxel spacing */
@@ -3071,37 +3238,37 @@ void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
         file >> discard1 >> itmp1 >> itmp2 >> itmp3;
 
         /* Reset resolution of this object */
-        UniformVolume3D<T>::ResetResolution(itmp2,itmp1,itmp3,(T)0.0e0);
+        UniformVolume<T>::ResetResolution(itmp2,itmp1,itmp3,(T)0.0e0);
 
         /* Read X Coordinates */
         file >> discard1 >> discard1 >> discard1; /* Label line */
         file >> o1;
-        UniformVolume3D<T>::setSpatialExtent(1,-1,o1);
+        UniformVolume<T>::setSpatialExtent(1,-1,o1);
         for(size_t i=0; i<vcols-2; i++){
             file >> discard;     /* Ignore all points except first and last */
         }
         file >> o1;
-        UniformVolume3D<T>::setSpatialExtent(1,1,o1);
+        UniformVolume<T>::setSpatialExtent(1,1,o1);
 
         /* Read Y Coordinates */
         file >> discard1 >> discard1 >> discard1; /* Label line */
         file >> o1;
-        UniformVolume3D<T>::setSpatialExtent(0,-1,o1);
+        UniformVolume<T>::setSpatialExtent(0,-1,o1);
         for(size_t i=0; i<vrows-2; i++){
             file >> discard;     /* Ignore all points except first and last */
         }
         file >> o1;
-        UniformVolume3D<T>::setSpatialExtent(0,1,o1);
+        UniformVolume<T>::setSpatialExtent(0,1,o1);
 
         /* Read Z Coordinates */
         file >> discard1 >> discard1 >> discard1; /* Label line */
         file >> o1;
-        UniformVolume3D<T>::setSpatialExtent(2,-1,o1);
+        UniformVolume<T>::setSpatialExtent(2,-1,o1);
         for(size_t i=0; i<vslices-2; i++){
             file >> discard;     /* Ignore all points except first and last */
         }
         file >> o1;
-        UniformVolume3D<T>::setSpatialExtent(2,1,o1);
+        UniformVolume<T>::setSpatialExtent(2,1,o1);
     } /* Rectilinear Grid header */
 
     /* Read POINT_DATA line */
@@ -3122,23 +3289,59 @@ void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
             /* Add quantity and read-in values */
             T frac = 0.0e0;
             std::string progressstr;
-            UniformVolume3D<T>::AddScalarQuantity(discard2);
 
-            progressstr = "Reading ASCII scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+            if(scalar_data == NULL){
+                UniformVolume<T>::AddScalarQuantity(discard2);
+            } else {
+                scalar_names(0) = new std::string;
+                scalar_names(0)->reserve(qtysize);
+                scalar_names(0)->assign(discard2);
+                nscalars = 1;
+            }
+
+            progressstr = "Reading ASCII scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
             qtsignals->EmitFunctionProgress(frac);
             qtsignals->EmitFunctionProgress(frac,progressstr);
 
-            for(size_t s=0; s<vslices; s++){
-                for(size_t r=0; r<vrows; r++){
-                    for(size_t c=0; c<vcols; c++){
-                        file >> Tval;
-                        pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+            if(scalar_data == NULL){
+                for(size_t s=0; s<vslices; s++){
+                    for(size_t r=0; r<vrows; r++){
+                        for(size_t c=0; c<vcols; c++){
+                            file >> Tval;
+                            pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                        }
                     }
+                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    qtsignals->EmitFunctionProgress(frac);
+                    qtsignals->EmitFunctionProgress(frac,progressstr);
                 }
-                frac = ((T)s + 1.0e0)/(T)vslices;
-                qtsignals->EmitFunctionProgress(frac);
-                qtsignals->EmitFunctionProgress(frac,progressstr);
+            } else {
+                scalar_data_points_read = 0;
+                for(size_t s=0; s<vslices; s++){
+                    for(size_t r=0; r<vrows; r++){
+                        for(size_t c=0; c<vcols; c++){
+                            file >> Tval;
+                            scalar_data[scalar_data_points_read] = Tval;
+
+                            /* Update number of points read.  If this value is greater than the size of the
+                             * array, inform the user of the error and return. */
+                            scalar_data_points_read++;
+                            if(scalar_data_points_read > scalar_data_size){
+                                std::cerr << "UniformVolume::VTKReadLegacyASCII() ERROR: Insufficient array size provided." << std::endl;
+                                return;
+                            }
+                        }
+                    }
+
+                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    qtsignals->EmitFunctionProgress(frac);
+                    qtsignals->EmitFunctionProgress(frac,progressstr);
+                }
             }
+
+            /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+            scalar_data = NULL;
+            UniformVolume<T>::RemoveAllData();
 
             progressstr = "";
             qtsignals->EmitFunctionDesc(progressstr);
@@ -3169,9 +3372,9 @@ void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
             /* Add quantity and read-in values */
             T frac = 0.0e0;
             std::string progressstr;
-            UniformVolume3D<T>::AddVectorQuantity(discard2,n);
+            UniformVolume<T>::AddVectorQuantity(discard2,n);
 
-            progressstr = "Reading ASCII vectors '" + UniformVolume3D<T>::VectorQuantityName(nvectors-1) + "'";
+            progressstr = "Reading ASCII vectors '" + UniformVolume<T>::VectorQuantityName(nvectors-1) + "'";
             qtsignals->EmitFunctionProgress(frac);
             qtsignals->EmitFunctionProgress(frac,progressstr);
 
@@ -3221,23 +3424,60 @@ void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
                 /* Add quantity and read-in values */
                 T frac = 0.0e0;
                 std::string progressstr;
-                UniformVolume3D<T>::AddScalarQuantity(discard2);
 
-                progressstr = "Reading ASCII field scalars '" + UniformVolume3D<T>::ScalarQuantityName(nscalars-1) + "'";
+                if(scalar_data == NULL){
+                    UniformVolume<T>::AddScalarQuantity(discard2);
+                } else {
+                    scalar_names(0) = new std::string;
+                    scalar_names(0)->reserve(qtysize);
+                    scalar_names(0)->assign(discard2);
+                    nscalars = 1;
+                }
+
+                progressstr = "Reading ASCII field scalars '" + UniformVolume<T>::ScalarQuantityName(nscalars-1) + "'";
                 qtsignals->EmitFunctionProgress(frac);
                 qtsignals->EmitFunctionProgress(frac,progressstr);
 
-                for(size_t s=0; s<vslices; s++){
-                    for(size_t r=0; r<vrows; r++){
-                        for(size_t c=0; c<vcols; c++){
-                            file >> Tval;
-                            pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                if(scalar_data == NULL){
+                    for(size_t s=0; s<vslices; s++){
+                        for(size_t r=0; r<vrows; r++){
+                            for(size_t c=0; c<vcols; c++){
+                                file >> Tval;
+                                pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
+                            }
                         }
+                        frac = ((T)s + 1.0e0)/(T)vslices;
+                        qtsignals->EmitFunctionProgress(frac);
+                        qtsignals->EmitFunctionProgress(frac,progressstr);
                     }
-                    frac = ((T)s + 1.0e0)/(T)vslices;
-                    qtsignals->EmitFunctionProgress(frac);
-                    qtsignals->EmitFunctionProgress(frac,progressstr);
+                } else {
+                    scalar_data_points_read = 0;
+                    for(size_t s=0; s<vslices; s++){
+                        for(size_t r=0; r<vrows; r++){
+                            for(size_t c=0; c<vcols; c++){
+                                file >> Tval;
+                                scalar_data[scalar_data_points_read] = Tval;
+
+                                /* Update number of points read.  If this value is greater than the size of the
+                                 * array, inform the user of the error and return. */
+                                scalar_data_points_read++;
+                                if(scalar_data_points_read > scalar_data_size){
+                                    std::cerr << "UniformVolume::VTKReadLegacyASCII() ERROR: Insufficient array size provided." << std::endl;
+                                    return;
+                                }
+                            }
+                        }
+
+                        frac = ((T)s + 1.0e0)/(T)vslices;
+                        qtsignals->EmitFunctionProgress(frac);
+                        qtsignals->EmitFunctionProgress(frac,progressstr);
+                    }
                 }
+
+
+                /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
+                scalar_data = NULL;
+                UniformVolume<T>::RemoveAllData();
 
                 progressstr = "";
                 qtsignals->EmitFunctionDesc(progressstr);
@@ -3245,13 +3485,28 @@ void UniformVolume3D<T>::VTKReadLegacyASCII(std::fstream &file)
             }
         }
     }
-} /* UniformVolume3D::VTKReadLegacyASCII() */
+} /* UniformVolume::VTKReadLegacyASCII() */
 
 
 template <class T>
-void UniformVolume3D<T>::PointCoordinates(const size_t row, const size_t col, const size_t slice, T &y, T &x, T &z) const
+void UniformVolume<T>::PointCoordinates(const size_t row, const size_t col, const size_t slice, T &y, T &x, T &z) const
 {
     x = xmin + xspacing*(T)col;
     y = ymin + yspacing*(T)row;
     z = zmin + zspacing*(T)slice;
-} /* UniformVolume3D::PointCoordinates() */
+} /* UniformVolume::PointCoordinates() */
+
+
+template <class T>
+void UniformVolume<T>::setScalarDestinationArray(T* array, const size_t array_size)
+{
+    scalar_data = array;
+    scalar_data_size = array_size;
+}
+
+
+template <class T>
+size_t UniformVolume<T>::NumberScalarPointsRead()
+{
+    return scalar_data_points_read;
+}
