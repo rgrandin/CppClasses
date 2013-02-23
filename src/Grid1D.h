@@ -91,6 +91,21 @@ public:
     Grid1D();
 
 
+    /**
+     * @brief Copy constructor.
+     * @param a Reference to existing Grid1D object to be copied.
+     */
+    Grid1D(Grid1D<T> &a);
+
+
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing Grid1D object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    Grid1D(Grid1D<T> &&a);
+
+
 	/**
 	 * @brief Destructor.
      * @pre Grid1D object exists.
@@ -311,6 +326,23 @@ public:
     const T& operator()(int ind1, int ind2, int qty) const;
 
 
+    /**
+     * @brief Copy-assignment operator.
+     * @param a Reference to Grid1D object being assigned.
+     * @return Pointer to instance of Grid1D.
+     */
+    Grid1D& operator=(const Grid1D<T> &a);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to Grid1D object being assigned.
+     * @return Pointer to instance of Grid1D.
+     * @warning This function requires C++11 compiler support.
+     */
+    Grid1D& operator=(const Grid1D<T> &&a);
+
+
     /** @brief 2D array containing the x-coordinates of the nodes of the
      * 			computational grid */
     Array2D<T> xcoords;
@@ -376,6 +408,34 @@ private:
 
     /** @brief Name to be used for solution "snapshots" */
     std::string name_snapshots;
+
+
+    /**
+     * @brief Grid1DSwap swaps member information between two Grid1D objects.
+     * @param first First Grid1D object.
+     * @param second Second Grid1D object.
+     */
+    friend void Grid1DSwap(Grid1D<T> &first, Grid1D<T> &second)
+    {
+        std::swap(first.xcoords, second.xcoords);
+        std::swap(first.iblank, second.iblank);
+        std::swap(first.converge, second.converge);
+        std::swap(first.nx, second.nx);
+        std::swap(first.itersused, second.itersused);
+        std::swap(first.xmin, second.xmin);
+        std::swap(first.xmax, second.xmax);
+        std::swap(first.pi, second.pi);
+        std::swap(first.nscalars, second.nscalars);
+        std::swap(first.nvectors, second.nvectors);
+        std::swap(first.pscalars, second.pvectors);
+        std::swap(first.scalar_names, second.scalar_names);
+        std::swap(first.vector_names, second.vector_names);
+        std::swap(first.gridname, second.gridname);
+        std::swap(first.qtysize, second.qtysize);
+        std::swap(first.inc_snapshots, second.inc_snapshots);
+        std::swap(first.count_snapshots, second.count_snapshots);
+        std::swap(first.name_snapshots, second.name_snapshots);
+    }
 
 };
 

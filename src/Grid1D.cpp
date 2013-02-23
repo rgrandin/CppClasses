@@ -40,6 +40,22 @@ Grid1D<T>::Grid1D()
     name_snapshots = "snapshot";
 }
 
+
+template <class T>
+Grid1D<T>::Grid1D(Grid1D<T> &a) : Grid1D()
+{
+    Grid1DSwap(*this, a);
+}
+
+
+template <class T>
+Grid1D<T>::Grid1D(Grid1D<T> &&a) : Grid1D()
+{
+    Grid1DSwap(*this, a);
+}
+
+
+
 template <class T>
 Grid1D<T>::~Grid1D()
 {
@@ -550,6 +566,22 @@ const T& Grid1D<T>::operator()(int ind1, int ind2, int qty) const
          */
         return pvectors(qty)->operator ()(ind1,ind2,);
     #endif
+}
+
+
+template <class T>
+Grid1D<T>& Grid1D<T>::operator=(const Grid1D<T> &a)
+{
+    Grid1DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+Grid1D<T>& Grid1D<T>::operator=(const Grid1D<T> &&a)
+{
+    Grid1DSwap(*this, a);
+    return *this;
 }
 
 

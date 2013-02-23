@@ -28,11 +28,6 @@ DLList<T,I>::DLList()
 	pCurrent->pNext = NULL;
         pCurrent->pPrev = NULL;
 
-	// INITIALIZE DATA TO 0
-        //for(int i=0; i<I; i++){
-        //	pCurrent->value[i] = (T)0.0e0;
-        //}
-
 	nodecount = 1;
 }
 
@@ -40,20 +35,18 @@ DLList<T,I>::DLList()
 template <class T, int I>
 DLList<T,I>::DLList(DLList<T,I> &list)
 {
-	// IDENTIFY THIS INSTANCE AS A COPY
+    DLListSwap(*this, list);
+
+    /* Identify this instance as a copy. */
 	iscopy = true;
-
-	// APPLY POINTER VALUES TO LOCAL MEMBER VARIABLES
-	pHead = list.GetPointerToHead();
-	pCurrent = pHead;
-
-	// NOTE: NO NODE-INITIALIZATION SINCE THAT WOULD OVERWRITE THE DATA STORED
-	//		 IN list.
-
-	// SET THE NODECOUNT
-	nodecount = list.GetNumNodes();
 }
 
+
+template <class T, int I>
+DLList<T,I>::DLList(DLList<T,I> &&a) : DLList()
+{
+    DLListSwap(*this, a);
+}
 
 
 
@@ -89,20 +82,25 @@ DLList<T,I>::~DLList()
 template <class T, int I>
 DLList<T,I>& DLList<T,I>::operator=(const DLList<T,I>& sourcelist)
 {
-	// IDENTIFY THIS INSTANCE AS A COPY
+    DLListSwap(*this, sourcelist);
+
+    /* Identify this instance as a copy. */
 	iscopy = true;
 
-	// APPLY POINTER VALUES TO LOCAL MEMBER VARIABLES
-	pHead = sourcelist.GetPointerToHead();
-	pCurrent = pHead;
-
-	// NOTE: NO NODE-INITIALIZATION SINCE THAT WOULD OVERWRITE THE DATA STORED
-	//		 IN list.
-
-	// SET THE NODECOUNT
-	nodecount = sourcelist.GetNumNodes();
-
 	return *this;
+}
+
+
+
+template <class T, int I>
+DLList<T,I>& DLList<T,I>::operator=(const DLList<T,I>&& sourcelist)
+{
+    DLListSwap(*this, sourcelist);
+
+    /* Identify this instance as a copy. */
+    iscopy = true;
+
+    return *this;
 }
 
 

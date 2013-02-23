@@ -89,74 +89,82 @@ template <class T, int I>
 class DLList {
 
 public:
-	/** @brief Node definition */
-	struct node
-	{
-		/** @brief Array of values stored at node */
-		T value[I];
+    /** @brief Node definition */
+    struct node
+    {
+        /** @brief Array of values stored at node */
+        T value[I];
 
-		/** @brief Pointer to node following this node */
-		node *pNext;
+        /** @brief Pointer to node following this node */
+        node *pNext;
 
         /** @brief Pointer to node preceeding this node */
         node *pPrev;
-	};
+    };
 
 
-	/**
+    /**
      * @brief Default constructor.
      *
      * The resulting list contains a single node with
-	 * 		data initialized to 0.
-	 * @pre Memory exists to create this list.
+     * 		data initialized to 0.
+     * @pre Memory exists to create this list.
          * @post DLList object created.
-	 * @return None.
-	 */
+     * @return None.
+     */
     DLList();
 
 
-	/**
+    /**
      * @brief Copy constructor.
      *
      * The newly-created list contains the same nodes
-	 * 		as the previously-existing list.  The current position in the newly-
-	 * 		created list is the head node.
-	 * @pre Memory exists to create this list and the input list exists.
-	 * @param list List copied to  make a new list.
+     * 		as the previously-existing list.  The current position in the newly-
+     * 		created list is the head node.
+     * @pre Memory exists to create this list and the input list exists.
+     * @param list List copied to  make a new list.
      * @post DLList object created.
-	 * @return None.
+     * @return None.
      * @warning Copying a DLList object only copies the pointers to the head and
-	 * 		current nodes.  The node data itself is not copied.  Use this copy
-	 * 		functionality carefully as the addition or deletion of nodes will be
+     * 		current nodes.  The node data itself is not copied.  Use this copy
+     * 		functionality carefully as the addition or deletion of nodes will be
      * 		seen by all DLList objects that share the same head node.
-	 */
-    DLList(DLList<T,I> &list);
+     */
+    DLList(DLList<T, I> &list);
 
 
-	/**
-	 * @brief Destructor.  All nodes and member data deleted.
+    /**
+     * @brief Move constructor (C++11).
+     * @param a Reference to existing DLList object to be copied.
+     * @warning This function requires C++11 compiler support.
+     */
+    DLList(DLList<T,I> &&a);
+
+
+    /**
+     * @brief Destructor.  All nodes and member data deleted.
      * @pre DLList object exists.
      * @post DLList object destroyed, along with all nodes.
-	 * @return None.
-	 * @warning This destructor only deletes pointers/data if the list being
-	 * 		destroyed is not a copy of another list (i.e., created with the copy
-	 * 		constructor).  Since copied lists share the same nodes, only the
-	 * 		original list for a set of nodes will perform the necessary delete
-	 * 		operations.
-	 */
-     virtual ~DLList();
+     * @return None.
+     * @warning This destructor only deletes pointers/data if the list being
+     * 		destroyed is not a copy of another list (i.e., created with the copy
+     * 		constructor).  Since copied lists share the same nodes, only the
+     * 		original list for a set of nodes will perform the necessary delete
+     * 		operations.
+     */
+    virtual ~DLList();
 
 
-	/**
-	 * @brief Add a single node to the end of the list.
+    /**
+     * @brief Add a single node to the end of the list.
      * @pre DLList object exists.
-	 * @post Node appended to end of list.
-	 * @return None.
+     * @post Node appended to end of list.
+     * @return None.
      * @warning Only the original instance of an DLList object can add a node.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void AddNode();
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void AddNode();
 
 
     /**
@@ -182,128 +190,128 @@ public:
     void AddNodeBefore();
 
 
-	/**
+    /**
      * @brief Advance forward in the list one node.
      *
      * If current node is the end
-	 * 		of the list, the pointer will remain on the last node.
+     * 		of the list, the pointer will remain on the last node.
      * @pre DLList object exists.
-	 * @post Current node advanced to next node.
-	 * @return None.
-	 */
-	void Advance();
+     * @post Current node advanced to next node.
+     * @return None.
+     */
+    void Advance();
 
 
-	/**
+    /**
      * @brief Move backward in the list one node.
      *
      * If the current node is the head
-	 * 		of the list, the pointer will remain on the first node.
+     * 		of the list, the pointer will remain on the first node.
      * @pre DLList object exists.
-	 * @post Current node moved to previous node.
-	 * @return None.
-	 */
-	void Rewind();
+     * @post Current node moved to previous node.
+     * @return None.
+     */
+    void Rewind();
 
 
-	/**
+    /**
      * @brief Delete current node from the list.
      *
      * After deletion, the current position
-	 * 		within the list is set to the first node.
+     * 		within the list is set to the first node.
      * @pre DLList object exists.
-	 * @post Current node removed from list
-	 * @return None.
-	 * @warning Data stored in the current node will be lost.
+     * @post Current node removed from list
+     * @return None.
+     * @warning Data stored in the current node will be lost.
      * @warning Only the original instance of an DLList object can delete a node.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void DeleteNode();
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void DeleteNode();
 
 
-	/**
+    /**
      * @brief Delete all nodes from the list.
      *
      * After deletion a single node will
-	 * 		be created with its data initialized to 0.
+     * 		be created with its data initialized to 0.
      * @pre DLList object exists.
-	 * @post All nodes deleted.
-	 * @return None.
-	 * @warning All data stored in the nodes will be lost.
+     * @post All nodes deleted.
+     * @return None.
+     * @warning All data stored in the nodes will be lost.
      * @warning Only the original instance of an DLList object can delete all nodes.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void DeleteAllNodes();
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void DeleteAllNodes();
 
 
-	/**
-	 * @brief Get data from current node.
+    /**
+     * @brief Get data from current node.
      * @pre DLList object exists.
-	 * @param idx 0-based index of the data to be retrieved.
-	 * @post No changes to object.
-	 * @return Value stored in current node at index 'idx'.
-	 */
-        T GetDataValue(int idx) const;
+     * @param idx 0-based index of the data to be retrieved.
+     * @post No changes to object.
+     * @return Value stored in current node at index 'idx'.
+     */
+    T GetDataValue(int idx) const;
 
 
-	/**
-	 * @brief Set data in current node.
+    /**
+     * @brief Set data in current node.
      * @pre DLList object exists.
-	 * @param val Value to be placed in node.
-	 * @param idx 0-based index of the data to be set.
-	 * @post Data value set.
-	 * @return None.
+     * @param val Value to be placed in node.
+     * @param idx 0-based index of the data to be set.
+     * @post Data value set.
+     * @return None.
      * @warning Only the original instance of an DLList object can modify a node.  Any
-	 * 		instances created with the copy constructor will have no effect when this
-	 * 		function is called.
-	 */
-	void SetDataValue(const T val, int idx);
+     * 		instances created with the copy constructor will have no effect when this
+     * 		function is called.
+     */
+    void SetDataValue(const T val, int idx);
 
 
-	/**
-	 * @brief Get the number of nodes in the list.
+    /**
+     * @brief Get the number of nodes in the list.
      * @pre DLList object exists.
-	 * @post No changes to object.
-	 * @return Number of nodes in the list.
-	 */
-        int GetNumNodes() const;
+     * @post No changes to object.
+     * @return Number of nodes in the list.
+     */
+    int GetNumNodes() const;
 
 
-	/**
-	 * @brief Print the node values to the screen.
+    /**
+     * @brief Print the node values to the screen.
      * @pre DLList object exists.
-	 * @param wraplim Number of nodes to print on a single line before wrapping
-	 * 		output to another line.  Default value is 10.
-	 * @param blankline Specify if a blank line should be printed between each
-	 * 		node's output.  Default is false.
-	 * @post Current position within the list set to first node.
-	 * @return None.
-	 */
-	void PrintNodes(int wraplim, bool blankline);
+     * @param wraplim Number of nodes to print on a single line before wrapping
+     * 		output to another line.  Default value is 10.
+     * @param blankline Specify if a blank line should be printed between each
+     * 		node's output.  Default is false.
+     * @post Current position within the list set to first node.
+     * @return None.
+     */
+    void PrintNodes(int wraplim, bool blankline);
 
 
-	/**
-	 * @brief Set position in list to specified node.
+    /**
+     * @brief Set position in list to specified node.
      * @pre DLList object exists.
-	 * @param nodenum 1-based index node number corresponding to the position desired.
-	 * @post Current position at specified node.
-	 * @return None.
-	 * @warning If the node number specified is greater than the number of nodes
-	 * 		in the list, the position when this function exits will be the final
-	 * 		node in the list.
-	 */
-	void GoToNode(const int nodenum);
+     * @param nodenum 1-based index node number corresponding to the position desired.
+     * @post Current position at specified node.
+     * @return None.
+     * @warning If the node number specified is greater than the number of nodes
+     * 		in the list, the position when this function exits will be the final
+     * 		node in the list.
+     */
+    void GoToNode(const int nodenum);
 
 
-	/**
-	 * @brief Set position in list to final node.
+    /**
+     * @brief Set position in list to final node.
      * @pre DLList object exists.
-	 * @post Current position at final node.
-	 * @return None.
-	 */
-	void GoToFinalNode();
+     * @post Current position at final node.
+     * @return None.
+     */
+    void GoToFinalNode();
 
 
     /**
@@ -315,13 +323,13 @@ public:
     bool IsHeadNode();
 
 
-	/**
-	 * @brief Get pointer to the first data node in the list.
+    /**
+     * @brief Get pointer to the first data node in the list.
      * @pre DLList object exists.
-	 * @post No changes to object.
-	 * @return Pointer to first data node.
-	 */
-	node* GetPointerToHead();
+     * @post No changes to object.
+     * @return Pointer to first data node.
+     */
+    node* GetPointerToHead();
 
 
     /**
@@ -333,33 +341,60 @@ public:
     node* GetPointerToCurrent();
 
 
-	/**
+    /**
      * @brief Copy values from one DLList object to another.
      *
      * This is a true copy and not a reference.
      * @pre DLList object exists.
-	 * @param sourcelist List from which values are to be copied.
+     * @param sourcelist List from which values are to be copied.
      * @post DLList pointer addresses to head and current nodes copied.
-	 * @return None.
-	 */
-        DLList<T,I>& operator=(const DLList<T,I>& sourcelist);
+     * @return None.
+     */
+    DLList<T,I>& operator=(const DLList<T,I>& sourcelist);
+
+
+    /**
+     * @brief Move-assignment operator (C++11).
+     * @param a Reference to DLList object being assigned.
+     * @return Pointer to instance of DLList.
+     * @warning This function requires C++11 compiler support.
+     */
+    DLList& operator=(const DLList<T,I> &&a);
+
 
 
 
 protected:
-	/** @brief Pointer to head element in list */
-	node* pHead;
+    /** @brief Pointer to head element in list */
+    node* pHead;
 
-	/** @brief Pointer to current element in list */
-	node* pCurrent;
+    /** @brief Pointer to current element in list */
+    node* pCurrent;
 
-	/** @brief Number of nodes in the list */
-	int nodecount;
+    /** @brief Number of nodes in the list */
+    int nodecount;
 
-	/** @brief Track if instance of list was created as a copy of another list.
-	 * 		If so, the destructor doesn't perform any action and the original
-	 * 		list's destructor will handle the pointer-deletion.	 */
-	bool iscopy;
+    /** @brief Track if instance of list was created as a copy of another list.
+     * 		If so, the destructor doesn't perform any action and the original
+     * 		list's destructor will handle the pointer-deletion.	 */
+    bool iscopy;
+
+
+
+private:
+
+    /**
+     * @brief DLListSwap swaps member information between two DLList objects.
+     * @param first First DLList object.
+     * @param second Second DLList object.
+     */
+    friend void DLListSwap(DLList<T,I> &first, DLList<T,I> &second)
+    {
+        std::swap(first.pHead, second.pHead);
+        std::swap(first.pCurrent, second.pCurrent);
+        std::swap(first.nodecount, second.nodecount);
+        std::swap(first.iscopy, second.iscopy);
+    }
 };
 
 #include "DLList.cpp"

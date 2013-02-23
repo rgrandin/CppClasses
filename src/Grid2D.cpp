@@ -42,6 +42,22 @@ Grid2D<T>::Grid2D()
     name_snapshots = "snapshot";
 }
 
+
+template <class T>
+Grid2D<T>::Grid2D(Grid2D<T> &a) : Grid2D()
+{
+    Grid2DSwap(*this, a);
+}
+
+
+template <class T>
+Grid2D<T>::Grid2D(Grid2D<T> &&a) : Grid2D()
+{
+    Grid2DSwap(*this, a);
+}
+
+
+
 template <class T>
 Grid2D<T>::~Grid2D()
 {
@@ -1042,6 +1058,22 @@ const T& Grid2D<T>::operator()(int ind1, int ind2, int ind3, int qty) const
          */
         return pvectors(qty)->operator ()(ind1,ind2,ind3);
     #endif
+}
+
+
+template <class T>
+Grid2D<T>& Grid2D<T>::operator=(const Grid2D<T> &a)
+{
+    Grid2DSwap(*this, a);
+    return *this;
+}
+
+
+template <class T>
+Grid2D<T>& Grid2D<T>::operator=(const Grid2D<T> &&a)
+{
+    Grid2DSwap(*this, a);
+    return *this;
 }
 
 
