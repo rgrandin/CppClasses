@@ -398,7 +398,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing UnitConvert object to be copied.
+     * @param a Rvalue to existing UnitConvert object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     UnitConvert(UnitConvert<T> &&a);
@@ -425,7 +425,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to UnitConvert object being assigned.
+     * @param a Rvalue to UnitConvert object being assigned.
      * @return Reference to instance of UnitConvert.
      * @warning This function requires C++11 compiler support.
      */

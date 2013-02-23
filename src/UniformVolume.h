@@ -158,7 +158,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing UniformVolume object to be copied.
+     * @param a Rvalue to existing UniformVolume object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     UniformVolume(UniformVolume<T> &&a);
@@ -185,7 +185,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to UniformVolume object being assigned.
+     * @param a Rvalue to UniformVolume object being assigned.
      * @return Reference to instance of UniformVolume.
      * @warning This function requires C++11 compiler support.
      */

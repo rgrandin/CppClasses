@@ -150,7 +150,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing Tree2 object to be copied.
+     * @param a Rvalue to existing Tree2 object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Tree2(Tree2<T> &&a);
@@ -182,7 +182,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to Tree2 object being assigned.
+     * @param a Rvalue to Tree2 object being assigned.
      * @return Reference to instance of Tree2.
      * @warning This function requires C++11 compiler support.
      */

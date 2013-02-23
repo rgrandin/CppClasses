@@ -129,7 +129,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing Array4D object to be copied.
+     * @param a Rvalue to existing Array4D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array4D(Array4D<T> &&a);
@@ -275,7 +275,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to Array4D object being assigned.
+     * @param a Rvalue to Array4D object being assigned.
      * @return Reference to instance of Array4D.
      * @warning This function requires C++11 compiler support.
      */

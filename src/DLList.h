@@ -139,7 +139,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing DLList object to be copied.
+     * @param a Rvalue to existing DLList object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     DLList(DLList<T,I> &&a);
@@ -361,7 +361,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to DLList object being assigned.
+     * @param a Rvalue to DLList object being assigned.
      * @return Reference to instance of DLList.
      * @warning This function requires C++11 compiler support.
      */

@@ -93,7 +93,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing ODE object to be copied.
+     * @param a Rvalue to existing ODE object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     ODE(ODE<T> &&a);
@@ -119,7 +119,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to ODE object being assigned.
+     * @param a Rvalue to ODE object being assigned.
      * @return Reference to instance of ODE.
      * @warning This function requires C++11 compiler support.
      */

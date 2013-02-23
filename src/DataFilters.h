@@ -120,7 +120,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing DataFilters object to be copied.
+     * @param a Rvalue to existing DataFilters object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     DataFilters(DataFilters<T> &&a);
@@ -147,7 +147,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to DataFilters object being assigned.
+     * @param a Rvalue to DataFilters object being assigned.
      * @return Reference to instance of DataFilters.
      * @warning This function requires C++11 compiler support.
      */

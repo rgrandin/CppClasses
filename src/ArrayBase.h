@@ -129,7 +129,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param ab Reference to existing ArrayBase object to be copied.
+     * @param ab Rvalue to existing ArrayBase object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     ArrayBase(ArrayBase<T> &&ab);
@@ -157,7 +157,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param ab Reference to ArrayBase object being assigned.
+     * @param ab Rvalue to ArrayBase object being assigned.
      * @return Reference to instance of ArrayBase.
      * @warning This function requires C++11 compiler support.
      */

@@ -120,7 +120,7 @@ class PArray4D : public PArrayBase<T>{
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing PArray4D object to be copied.
+     * @param a Rvalue to existing PArray4D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     PArray4D(PArray4D<T> &&a);
@@ -211,7 +211,7 @@ class PArray4D : public PArrayBase<T>{
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to PArray4D object being assigned.
+     * @param a Rvalue to PArray4D object being assigned.
      * @return Reference to instance of PArray4D.
      * @warning This function requires C++11 compiler support.
      */

@@ -103,7 +103,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing Grid1D object to be copied.
+     * @param a Rvalue to existing Grid1D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Grid1D(Grid1D<T> &&a);
@@ -341,7 +341,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to Grid1D object being assigned.
+     * @param a Rvalue to Grid1D object being assigned.
      * @return Reference to instance of Grid1D.
      * @warning This function requires C++11 compiler support.
      */

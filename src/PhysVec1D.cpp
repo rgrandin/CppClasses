@@ -23,11 +23,13 @@ PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &a) : PhysVec1D()
 }
 
 
+#ifdef CXX11
 template <class T>
 PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &&a) : PhysVec1D()
 {
     PhysVec1DSwap(*this, a);
 }
+#endif
 
 
 template <class T>
@@ -52,12 +54,14 @@ PhysVec1D<T>& PhysVec1D<T>::operator=(PhysVec1D<T> a)
 }
 
 
+#ifdef CXX11
 template <class T>
 PhysVec1D<T>& PhysVec1D<T>::operator=(PhysVec1D<T> &&a)
 {
     PhysVec1DSwap(*this, a);
     return *this;
 }
+#endif
 
 
 template <class T>

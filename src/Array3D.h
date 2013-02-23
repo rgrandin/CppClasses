@@ -121,7 +121,7 @@ class Array3D : public ArrayBase<T>{
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing Array3D object to be copied.
+     * @param a Rvalue to existing Array3D object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     Array3D(Array3D<T> &&a);
@@ -258,7 +258,7 @@ class Array3D : public ArrayBase<T>{
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to Array3D object being assigned.
+     * @param a Rvalue to Array3D object being assigned.
      * @return Reference to instance of Array3D.
      * @warning This function requires C++11 compiler support.
      */

@@ -95,7 +95,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move constructor (C++11).
-     * @param a Reference to existing RootFinding object to be copied.
+     * @param a Rvalue to existing RootFinding object to be copied.
      * @warning This function requires C++11 compiler support.
      */
     RootFinding(RootFinding<T> &&a);
@@ -122,7 +122,7 @@ public:
 #ifdef CXX11
     /**
      * @brief Move-assignment operator (C++11).
-     * @param a Reference to RootFinding object being assigned.
+     * @param a Rvalue to RootFinding object being assigned.
      * @return Reference to instance of RootFinding.
      * @warning This function requires C++11 compiler support.
      */
