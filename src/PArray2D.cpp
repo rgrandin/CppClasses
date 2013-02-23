@@ -66,7 +66,7 @@ PArray2D<T>::~PArray2D()
 
 // () OPERATOR
 template < class T > inline
-T& PArray2D<T>::operator()(int ind1,int ind2)
+T& PArray2D<T>::operator()(size_t ind1, size_t ind2)
 {
 	#ifndef RELEASE
 		/*
@@ -84,7 +84,7 @@ T& PArray2D<T>::operator()(int ind1,int ind2)
 }
 
 template < class T > inline
-const T& PArray2D<T>::operator()(int ind1,int ind2) const
+const T& PArray2D<T>::operator()(size_t ind1, size_t ind2) const
 {
 	#ifndef RELEASE
 		/*

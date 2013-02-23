@@ -33,7 +33,7 @@ RootFinding<T>::RootFinding()
 
 
 template <class T>
-RootFinding<T>::RootFinding(ArrayBaRootFindingse<T> &a) : RootFinding()
+RootFinding<T>::RootFinding(RootFinding<T> &a) : RootFinding()
 {
     RootFindingSwap(*this, a);
 }
