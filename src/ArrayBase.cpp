@@ -66,7 +66,8 @@ ArrayBase<T>::ArrayBase(size_t dim1, const T initvalue)
 
 
 template <class T>
-ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints), array(npoints ? new T[npoints] : 0)
+ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints),
+    array(npoints ? new T[npoints] : 0)
 {
     std::copy(ab.array, ab.array + npoints, array);
 }

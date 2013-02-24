@@ -283,15 +283,28 @@ DataFilters<T>::DataFilters()
 
 
 template <class T>
-DataFilters<T>::DataFilters(DataFilters<T> &a) : DataFilters()
+DataFilters<T>::DataFilters(const DataFilters<T> &a) :
+    n_sinc_fft(a.n_sinc_fft), n_sinc_fft1(a.n_sinc_fft1), n_sinc_fft2(a.n_sinc_fft2),
+    sinc2d_backward_plan(a.sinc2d_backward_plan), sinc2d_backward_plan_set(a.sinc2d_backward_plan_set),
+    sinc2d_forward_plan(a.sinc2d_forward_plan), sinc2d_forward_plan_set(a.sinc2d_forward_plan_set),
+    custom2d_backward_plan(a.custom2d_backward_plan),
+    custom2d_backward_plan_set(a.custom2d_backward_plan_set),
+    custom2d_fileread(a.custom2d_fileread),
+    custom2d_forward_plan(a.custom2d_forward_plan),
+    custom2d_forward_plan_set(a.custom2d_forward_plan_set),
+    custom2d_nfft1(a.custom2d_nfft1), custom2d_nfft2(a.custom2d_nfft2),
+    custom2d_points(a.custom2d_points),
+    sinc_fft(n_sinc_fft ? new fftw_complex[n_sinc_fft] : 0),
+    custom2d_fft(custom2d_nfft1*custom2d_nfft2 ? new fftw_complex[custom2d_nfft1*custom2d_nfft2] : 0)
 {
-    DataFiltersSwap(*this, a);
+    std::copy(a.custom2d_fft, a.custom2d_fft + custom2d_nfft1*custom2d_nfft2, custom2d_fft);
+    std::copy(a.sinc_fft, a.sinc_fft + n_sinc_fft, sinc_fft);
 }
 
 
 #ifdef CXX11
 template <class T>
-DataFilters<T>::DataFilters(DataFilters<T> &&a) : DataFilters()
+DataFilters<T>::DataFilters(DataFilters<T> &&a) : DataFilters<T>()
 {
     DataFiltersSwap(*this, a);
 }
@@ -302,12 +315,24 @@ template <class T>
 DataFilters<T>::~DataFilters()
 {
 	// FREE MEMORY
-	delete [] sinc_fft;
-	delete [] custom2d_fft;
-	fftw_destroy_plan(sinc2d_forward_plan);
-	fftw_destroy_plan(sinc2d_backward_plan);
-	fftw_destroy_plan(custom2d_forward_plan);
-	fftw_destroy_plan(custom2d_backward_plan);
+    if(sinc_fft){
+        delete [] sinc_fft;
+    }
+    if(custom2d_fft){
+        delete [] custom2d_fft;
+    }
+    if(sinc2d_forward_plan_set){
+        fftw_destroy_plan(sinc2d_forward_plan);
+    }
+    if(sinc2d_backward_plan_set){
+        fftw_destroy_plan(sinc2d_backward_plan);
+    }
+    if(custom2d_forward_plan_set){
+        fftw_destroy_plan(custom2d_forward_plan);
+    }
+    if(custom2d_backward_plan_set){
+        fftw_destroy_plan(custom2d_backward_plan);
+    }
 }
 
 
@@ -1003,4 +1028,36 @@ void DataFilters<T>::CustomFilter2D_Real(Array2D<T> &data)
 	delete [] data_filtered_sp;
 
 	return;
+}
+
+
+template <class T>
+void DataFilters<T>::Test(std::string &result)
+{
+    result = "SUCCESS";
+    bool errorfound = false;
+
+    /* Create test object. */
+    DataFilters<T> df1;
+    size_t nfft1 = 8;
+    size_t nfft2 = 16;
+    T exp1 = (T)1.0e0;
+    T exp2 = (T)2.0e0;
+    df1.Sinc2D_GetFFT(nfft1, nfft2, exp1, exp2);
+
+
+
+    /* Test copy constructor. */
+    DataFilters<T> df2(df1);
+
+
+    /* Test copy assignment. */
+    DataFilters<T> df3;
+    df3 = df1;
+
+
+    if(!errorfound){
+        errorfound = true;
+    }
+
 }

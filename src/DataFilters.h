@@ -69,7 +69,7 @@
 #define DataFilters_
 
 
-
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <stdio.h>
@@ -114,7 +114,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing DataFilters object to be copied.
      */
-    DataFilters(DataFilters<T> &a);
+    DataFilters(const DataFilters<T> &a);
 
 
 #ifdef CXX11
@@ -277,6 +277,15 @@ public:
 	void CustomFilter2D_Real(Array2D<T> &data);
 
 
+    /**
+     * @brief Test performs functionality tests of this class.
+     * @param result String which will contain the result of the tests.  If no errors are found,
+     *  a value of "SUCCESS" will be set.
+     */
+    virtual void Test(std::string &result);
+
+
+
 
 protected:
 
@@ -425,47 +434,47 @@ private:
 	 * second dimension */
     size_t n_sinc_fft2;
 
-	/** @brief Sinc filter in frequency domain */
-	fftw_complex *sinc_fft;
-
-	/** @brief Sinc 2D filter FFTW forward-plan */
-	fftw_plan sinc2d_forward_plan;
-
 	/** @brief Sinc 2D filter FFTW backward-plan */
 	fftw_plan sinc2d_backward_plan;
+
+    /** @brief Track if sinc 2D filter FFTW backward-plan has been set */
+    bool sinc2d_backward_plan_set;
+
+    /** @brief Sinc 2D filter FFTW forward-plan */
+    fftw_plan sinc2d_forward_plan;
 
 	/** @brief Track if sinc 2D filter FFTW forward-plan has been set */
 	bool sinc2d_forward_plan_set;
 
-	/** @brief Track if sinc 2D filter FFTW backward-plan has been set */
-	bool sinc2d_backward_plan_set;
-
-	/** @brief Track if custom 2D filter FFTW forward-plan has been set */
-	bool custom2d_forward_plan_set;
-
-	/** @brief Track if custom 2D filter FFTW backward-plan has been set */
-	bool custom2d_backward_plan_set;
-
-	/** @brief Number of FFT frequencies in first dimension for custom 2D filter */
-    size_t custom2d_nfft1;
-
-	/** @brief Number of FFT frequencies in second dimension for custom 2D filter */
-    size_t custom2d_nfft2;
-
-	/** @brief 2D array storing (frequency,amplitude) pairs for 2D filter */
-	Array2D<T> custom2d_points;
-
-	/** @brief Frequency-domain definition of the custom 2D filter */
-	fftw_complex *custom2d_fft;
-
-	/** @brief FFTW forward plan for custom 2D filter */
-	fftw_plan custom2d_forward_plan;
-
 	/** @brief FFTW backward plan for custom 2D filter */
 	fftw_plan custom2d_backward_plan;
 
+    /** @brief Track if custom 2D filter FFTW backward-plan has been set */
+    bool custom2d_backward_plan_set;
+
 	/** @brief Track if custom filter definition file has been read */
 	bool custom2d_fileread;
+
+    /** @brief FFTW forward plan for custom 2D filter */
+    fftw_plan custom2d_forward_plan;
+
+    /** @brief Track if custom 2D filter FFTW forward-plan has been set */
+    bool custom2d_forward_plan_set;
+
+    /** @brief Number of FFT frequencies in first dimension for custom 2D filter */
+    size_t custom2d_nfft1;
+
+    /** @brief Number of FFT frequencies in second dimension for custom 2D filter */
+    size_t custom2d_nfft2;
+
+    /** @brief 2D array storing (frequency,amplitude) pairs for 2D filter */
+    Array2D<T> custom2d_points;
+
+    /** @brief Sinc filter in frequency domain */
+    fftw_complex *sinc_fft;
+
+    /** @brief Frequency-domain definition of the custom 2D filter */
+    fftw_complex *custom2d_fft;
 
 
 };

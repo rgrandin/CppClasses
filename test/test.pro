@@ -22,6 +22,7 @@ CONFIG(debug, debug|release) {
 INCLUDEPATH += ../src
 
 
+
 unix:{
     DEFINES += COMPILELINUX
 
@@ -32,6 +33,9 @@ unix:{
     # Enable C++11 support
     QMAKE_CXXFLAGS += -std=c++11
     DEFINES += CXX11
+
+    LIBS += -lfftw3
+
 }
 win32:{
     DEFINES += _CRT_SECURE_NO_WARNINGS
