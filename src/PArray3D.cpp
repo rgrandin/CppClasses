@@ -43,9 +43,9 @@ PArray3D<T>::PArray3D(size_t dim1, size_t dim2, size_t dim3)
 
 
 template <class T>
-PArray3D<T>::PArray3D(const PArray3D<T> &a) : PArray3D()
+PArray3D<T>::PArray3D(const PArray3D<T> &a) : PArrayBase<T>(a),
+    size1(a.size1), size2(a.size2), size3(a.size3), npoints(a.npoints)
 {
-    PArray3DSwap(*this, a);
 }
 
 
@@ -108,6 +108,7 @@ const T& PArray3D<T>::operator()(size_t ind1, size_t ind2, size_t ind3) const
 template <class T>
 PArray3D<T>& PArray3D<T>::operator=(PArray3D<T> a)
 {
+    PArrayBase<T>::operator=(static_cast<PArrayBase<T>>(a));
     PArray3DSwap(*this, a);
     return *this;
 }

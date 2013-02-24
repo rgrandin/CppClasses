@@ -26,9 +26,11 @@ Tree2<T>::Tree2()
 
 
 template <class T>
-Tree2<T>::Tree2(const Tree2<T> &a) : Tree2()
+Tree2<T>::Tree2(const Tree2<T> &a) :
+    pHead(a.pHead), pCurrent(a.pCurrent), nodecount(a.nodecount),
+    usedids(a.usedids), nanval(a.nanval)
 {
-    Tree2Swap(*this, a);
+    iscopy = true;
 }
 
 
@@ -37,6 +39,7 @@ template <class T>
 Tree2<T>::Tree2(Tree2<T> &&a) : Tree2<T>()
 {
     Tree2Swap(*this, a);
+    iscopy = false;
 }
 #endif
 

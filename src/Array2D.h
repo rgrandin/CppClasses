@@ -368,8 +368,6 @@ protected:
     /** @brief Number of points along the second dimension */
     size_t size2;
 
-    /** @brief Number of points in the array */
-    size_t npoints;
 
 
 
@@ -380,10 +378,8 @@ protected:
      */
     friend void Array2DSwap(Array2D<T> &first, Array2D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
         std::swap(first.size1, second.size1);
         std::swap(first.size2, second.size2);
-        std::swap(first.array, second.array);
     }
 
 

@@ -218,8 +218,7 @@ private:
      */
     friend void PhysVec1DSwap(PhysVec1D<T> &first, PhysVec1D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
-        std::swap(first.array, second.array);
+        /* No member variables specific to this derived class. */
     }
 
 };

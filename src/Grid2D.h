@@ -691,7 +691,8 @@ private:
         std::swap(first.pi, second.pi);
         std::swap(first.nscalars, second.nscalars);
         std::swap(first.nvectors, second.nvectors);
-        std::swap(first.pscalars, second.pvectors);
+        std::swap(first.pscalars, second.pscalars);
+        std::swap(first.pvectors, second.pvectors);
         std::swap(first.scalar_names, second.scalar_names);
         std::swap(first.vector_names, second.vector_names);
         std::swap(first.gridname, second.gridname);

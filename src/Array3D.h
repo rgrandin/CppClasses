@@ -316,9 +316,6 @@ class Array3D : public ArrayBase<T>{
 	/** @brief Number of points along the third dimension. */
     size_t size3;
 
-	/** @brief Total number of points in the array. */
-    size_t npoints;
-
 
 
     /**
@@ -328,11 +325,9 @@ class Array3D : public ArrayBase<T>{
      */
     friend void Array3DSwap(Array3D<T> &first, Array3D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
         std::swap(first.size1, second.size1);
         std::swap(first.size2, second.size2);
         std::swap(first.size3, second.size3);
-        std::swap(first.array, second.array);
     }
 
 

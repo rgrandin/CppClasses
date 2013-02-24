@@ -231,8 +231,6 @@ private:
      */
     friend void PArray3DSwap(PArray3D<T> &first, PArray3D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
-        std::swap(first.array, second.array);
         std::swap(first.size1, second.size1);
         std::swap(first.size2, second.size2);
         std::swap(first.size3, second.size3);

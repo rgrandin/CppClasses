@@ -52,9 +52,10 @@ PArrayBase<T>::PArrayBase(size_t dim1)
 
 
 template <class T>
-PArrayBase<T>::PArrayBase(const PArrayBase<T> &a) : PArrayBase()
+PArrayBase<T>::PArrayBase(const PArrayBase<T> &a) : npoints(a.npoints),
+    array(npoints ? new T[npoints] : 0)
 {
-    PArrayBaseSwap(*this, a);
+    std::copy(a.array, a.array + npoints, array);
 }
 
 

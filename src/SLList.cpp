@@ -38,9 +38,9 @@ SLList<T,I>::SLList()
 
 
 template <class T, int I>
-SLList<T>::SLList(const SLList<T,I> &list) : SLList()
+SLList<T>::SLList(const SLList<T,I> &list) :
+    pHead(list.pHead), pCurrent(list.pCurrent), nodecount(list.nodecount)
 {
-    SLListSwap(*this, list);
     iscopy = true;
 }
 
@@ -50,7 +50,6 @@ template <class T, int I>
 SLList<T>::SLList(SLList<T,I> &&a) : SLList<T,I>()
 {
     SLListSwap(*this, a);
-    iscopy = true;
 }
 #endif
 

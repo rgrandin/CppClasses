@@ -33,7 +33,7 @@ Array4D<T>::Array4D()
 	size2 = 1;
 	size3 = 1;
 	size4 = 1;
-	npoints = size1*size2*size3*size4;
+    ArrayBase<T>::npoints = size1*size2*size3*size4;
 }
 
 
@@ -44,8 +44,8 @@ Array4D<T>::Array4D(int dim1, int dim2, int dim3, int dim4)
 	size2 = dim2;
 	size3 = dim3;
 	size4 = dim4;
-	npoints = size1*size2*size3*size4;
-	ArrayBase<T>::ResetSize(npoints,(T)0.0e0);
+    ArrayBase<T>::npoints = size1*size2*size3*size4;
+    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,(T)0.0e0);
 }
 
 
@@ -57,8 +57,8 @@ Array4D<T>::Array4D(int dim1, int dim2, int dim3, int dim4,
 	size2 = dim2;
 	size3 = dim3;
 	size4 = dim4;
-	npoints = size1*size2*size3*size4;
-	ArrayBase<T>::ResetSize(npoints,initvalue);
+    ArrayBase<T>::npoints = size1*size2*size3*size4;
+    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
 }
 
 
@@ -67,8 +67,7 @@ Array4D<T>::Array4D(const Array4D<T> &a) : ArrayBase<T>(a),
     size1(a.size1),
     size2(a.size2),
     size3(a.size3),
-    size4(a.size4),
-    npoints(a.npoints)
+    size4(a.size4)
 {
 }
 
@@ -135,6 +134,7 @@ const T& Array4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3,
 template <class T>
 Array4D<T>& Array4D<T>::operator=(Array4D<T> a)
 {
+    ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array4DSwap(*this, a);
     return *this;
 }
@@ -189,7 +189,7 @@ T Array4D<T>::GetVal(int ind1, int ind2, int ind3, int ind4) const
 template <class T>
 void Array4D<T>::ResetVal(const T initval)
 {
-    for(size_t i=0; i<npoints; i++){
+    for(size_t i=0; i<ArrayBase<T>::npoints; i++){
 		ArrayBase<T>::array[i] = initval;
 	}
 }
@@ -236,13 +236,13 @@ void Array4D<T>::ResetSize(size_t dim1, size_t dim2, size_t dim3, size_t dim4,
 		size2 = dim2;
 		size3 = dim3;
 		size4 = dim4;
-		npoints = (long long)size1*(long long)size2*(long long)size3*(long long)size4;
+        ArrayBase<T>::npoints = size1*size2*size3*size4;
 
-		ArrayBase<T>::ResetSize(npoints,initvalue);
+        ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
 	} else {
 		// IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
 		// 'initvalue'
-        for(size_t i=0; i<npoints; i++){
+        for(size_t i=0; i<ArrayBase<T>::npoints; i++){
 			ArrayBase<T>::array[i] = initvalue;
 		}
 	}

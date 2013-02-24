@@ -29,7 +29,7 @@ Array3D<T>::Array3D()
     size1 = 1;
     size2 = 1;
     size3 = 1;
-    npoints = size1*size2*size3;
+    ArrayBase<T>::npoints = size1*size2*size3;
 }
 
 
@@ -39,8 +39,8 @@ Array3D<T>::Array3D(int dim1, int dim2, int dim3)
     size1 = dim1;
     size2 = dim2;
     size3 = dim3;
-    npoints = size1*size2*size3;
-    ArrayBase<T>::ResetSize(npoints,(T)0.0e0);
+    ArrayBase<T>::npoints = size1*size2*size3;
+    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,(T)0.0e0);
 }
 
 
@@ -50,8 +50,8 @@ Array3D<T>::Array3D(int dim1, int dim2, int dim3, const T initvalue)
     size1 = dim1;
     size2 = dim2;
     size3 = dim3;
-    npoints = size1*size2*size3;
-    ArrayBase<T>::ResetSize(npoints,initvalue);
+    ArrayBase<T>::npoints = size1*size2*size3;
+    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
 }
 
 
@@ -59,8 +59,7 @@ template <class T>
 Array3D<T>::Array3D(const Array3D<T> &a) : ArrayBase<T>(a),
     size1(a.size1),
     size2(a.size2),
-    size3(a.size3),
-    npoints(a.npoints)
+    size3(a.size3)
 {
 }
 
@@ -123,6 +122,7 @@ const T& Array3D<T>::operator()(size_t ind1, size_t ind2, size_t ind3) const
 template <class T>
 Array3D<T>& Array3D<T>::operator=(Array3D<T> a)
 {
+    ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array3DSwap(*this, a);
     return *this;
 }
@@ -170,7 +170,7 @@ T Array3D<T>::GetVal(int ind1, int ind2, int ind3) const
 template <class T>
 void Array3D<T>::ResetVal(const T initval)
 {
-    for(size_t i=0; i<npoints; i++){
+    for(size_t i=0; i<ArrayBase<T>::npoints; i++){
         ArrayBase<T>::array[i] = initval;
     }
 }
@@ -212,13 +212,13 @@ void Array3D<T>::ResetSize(size_t dim1, size_t dim2, size_t dim3,
         size1 = dim1;
         size2 = dim2;
         size3 = dim3;
-        npoints = size1*size2*size3;
+        ArrayBase<T>::npoints = size1*size2*size3;
 
-        ArrayBase<T>::ResetSize(npoints,initvalue);
+        ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
     } else {
         // IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
         // 'initvalue'
-        for(size_t i=0; i<npoints; i++){
+        for(size_t i=0; i<ArrayBase<T>::npoints; i++){
             ArrayBase<T>::array[i] = initvalue;
         }
     }

@@ -117,9 +117,12 @@ ODE<T>::ODE()
 
 
 template <class T>
-ODE<T>::ODE(const ODE<T> &a) : ODE()
+ODE<T>::ODE(const ODE<T> &a) :
+    rk4butcherset(a.rk4butcherset), rkf45butcherset(a.rkf45butcherset),
+    alpha_rk4(a.alpha_rk4), beta_rk4(a.beta_rk4), gamma_rk4(a.gamma_rk4),
+    alpha_rkf45(a.alpha_rkf45), beta_rkf45(a.beta_rkf45),
+    gamma4_rkf45(a.gamma4_rkf45), gamma5_rkf45(a.gamma5_rkf45)
 {
-    ODESwap(*this, a);
 }
 
 

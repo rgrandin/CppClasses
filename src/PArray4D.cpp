@@ -46,9 +46,9 @@ PArray4D<T>::PArray4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 
 
 template <class T>
-PArray4D<T>::PArray4D(const PArray4D<T> &a) : PArray4D()
+PArray4D<T>::PArray4D(const PArray4D<T> &a) : PArrayBase<T>(a),
+    size1(a.size1), size2(a.size2), size3(a.size3), size4(a.size4), npoints(a.npoints)
 {
-    PArray4DSwap(*this, a);
 }
 
 
@@ -140,6 +140,7 @@ size_t PArray4D<T>::GetDim(int dim) const
 template <class T>
 PArray4D<T>& PArray4D<T>::operator=(PArray4D<T> a)
 {
+    PArrayBase<T>::operator=(static_cast<PArrayBase<T>>(a));
     PArray4DSwap(*this, a);
     return *this;
 }

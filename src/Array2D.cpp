@@ -29,7 +29,7 @@ Array2D<T>::Array2D()
 {
 	size1 = 1;
 	size2 = 1;
-	npoints = size1*size2;
+    ArrayBase<T>::npoints = size1*size2;
 }
 
 
@@ -38,16 +38,15 @@ Array2D<T>::Array2D(size_t dim1, size_t dim2, const T initvalue)
 {
 	size1 = dim1;
 	size2 = dim2;
-	npoints = size1*size2;
-	ArrayBase<T>::ResetSize(npoints,initvalue);
+    ArrayBase<T>::npoints = size1*size2;
+    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
 }
 
 
 template <class T>
 Array2D<T>::Array2D(const Array2D<T> &a) : ArrayBase<T>(a),
     size1(a.size1),
-    size2(a.size2),
-    npoints(a.npoints)
+    size2(a.size2)
 {
 }
 
@@ -153,6 +152,7 @@ const T& Array2D<T>::operator()(int ind1i, int ind2i) const
 template <class T>
 Array2D<T>& Array2D<T>::operator=(Array2D<T> a)
 {
+    ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array2DSwap(*this, a);
     return *this;
 }
@@ -216,7 +216,7 @@ void Array2D<T>::SetValue(size_t ind1, size_t ind2, T value)
 template <class T>
 void Array2D<T>::ResetVal(const T initval)
 {
-	for(int i=0; i<npoints; i++){
+    for(int i=0; i<ArrayBase<T>::npoints; i++){
 		ArrayBase<T>::array[i] = initval;
 	}
 }
@@ -238,13 +238,13 @@ void Array2D<T>::ResetSize(size_t dim1, size_t dim2, const T initvalue)
 	if(dim1 != size1 || dim2 != size2){
 		size1 = dim1;
 		size2 = dim2;
-        npoints = size1*size2;
+        ArrayBase<T>::npoints = size1*size2;
 
-		ArrayBase<T>::ResetSize(npoints,initvalue);
+        ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
 	} else {
 		// IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
 		// 'initvalue'
-        for(size_t i=0; i<npoints; i++){
+        for(size_t i=0; i<ArrayBase<T>::npoints; i++){
 			ArrayBase<T>::array[i] = initvalue;
 		}
 	}

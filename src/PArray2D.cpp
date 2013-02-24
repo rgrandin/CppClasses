@@ -42,9 +42,9 @@ PArray2D<T>::PArray2D(size_t dim1, size_t dim2)
 
 
 template <class T>
-PArray2D<T>::PArray2D(const PArray2D<T> &a) : PArray2D()
+PArray2D<T>::PArray2D(const PArray2D<T> &a) : PArrayBase<T>(a),
+    size1(a.size1), size2(a.size2), npoints(a.npoints)
 {
-    PArray2DSwap(*this, a);
 }
 
 
@@ -105,6 +105,7 @@ const T& PArray2D<T>::operator()(size_t ind1, size_t ind2) const
 template <class T>
 PArray2D<T>& PArray2D<T>::operator=(PArray2D<T> a)
 {
+    PArrayBase<T>::operator=(static_cast<PArrayBase<T>>(a));
     PArray2DSwap(*this, a);
     return *this;
 }

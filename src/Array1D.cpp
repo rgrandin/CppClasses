@@ -106,6 +106,7 @@ const T& Array1D<T>::operator()(size_t ind1) const
 template <class T>
 Array1D<T>& Array1D<T>::operator=(Array1D<T> a)
 {
+    ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array1DSwap(*this, a);
     return *this;
 }

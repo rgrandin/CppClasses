@@ -33,7 +33,7 @@ DLList<T,I>::DLList()
 
 
 template <class T, int I>
-DLList<T,I>::DLList(const DLList<T,I> &list) : DLList<T,I>(list),
+DLList<T,I>::DLList(const DLList<T,I> &list) :
     pHead(list.pHead), pCurrent(list.pCurrent), nodecount(list.nodecount)
 {
     /* Identify this instance as a copy. */

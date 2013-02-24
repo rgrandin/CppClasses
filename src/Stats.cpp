@@ -24,9 +24,9 @@ Stats<T>::Stats()
 
 
 template <class T>
-Stats<T>::Stats(const Stats<T> &a) : Stats()
+Stats<T>::Stats(const Stats<T> &a) :
+    PI_Stats(a.PI_Stats)
 {
-    StatsSwap(*this, a);
 }
 
 

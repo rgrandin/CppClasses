@@ -1,7 +1,11 @@
 doc/html/
 doc/html/*
+test/doc/html/
+test/doc/html/*
 CppClasses.config
 CppClasses.creator
 CppClasses.files
 CppClasses.includes
 CppClasses.creator.user*
+*.pro.user*
+*~

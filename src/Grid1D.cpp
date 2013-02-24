@@ -42,9 +42,15 @@ Grid1D<T>::Grid1D()
 
 
 template <class T>
-Grid1D<T>::Grid1D(const Grid1D<T> &a) : Grid1D()
+Grid1D<T>::Grid1D(const Grid1D<T> &a) :
+    xcoords(a.xcoords), iblank(a.iblank), converge(a.converge),
+    nx(a.nx), xmin(a.xmin), xmax(a.xmax), pi(a.pi),
+    nscalars(a.nscalars), nvectors(a.nvectors),
+    pscalars(a.pscalars), pvectors(a.pvectors),
+    scalar_names(a.scalar_names), vector_names(a.vector_names),
+    gridname(a.gridname), qtysize(a.qtysize), inc_snapshots(a.inc_snapshots),
+    count_snapshots(a.count_snapshots), name_snapshots(a.name_snapshots)
 {
-    Grid1DSwap(*this, a);
 }
 
 
@@ -65,7 +71,6 @@ Grid1D<T>::~Grid1D()
       Delete arrays of 2D and 3D quantities not required here due to
       the destructor of PArray1D doing this.
      */
-
 }
 
 

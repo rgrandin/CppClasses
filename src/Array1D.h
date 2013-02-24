@@ -283,8 +283,7 @@ protected:
      */
     friend void Array1DSwap(Array1D<T> &first, Array1D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
-        std::swap(first.array, second.array);
+        /* No member variables specific to this derived class. */
     }
 
 

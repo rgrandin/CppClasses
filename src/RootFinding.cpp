@@ -33,9 +33,9 @@ RootFinding<T>::RootFinding()
 
 
 template <class T>
-RootFinding<T>::RootFinding(const RootFinding<T> &a) : RootFinding()
+RootFinding<T>::RootFinding(const RootFinding<T> &a) :
+    warnenabled(a.warnenabled)
 {
-    RootFindingSwap(*this, a);
 }
 
 

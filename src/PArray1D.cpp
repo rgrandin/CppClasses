@@ -37,9 +37,8 @@ PArray1D<T>::PArray1D(size_t dim1)
 
 
 template <class T>
-PArray1D<T>::PArray1D(const PArray1D<T> &a) : PArray1D()
+PArray1D<T>::PArray1D(const PArray1D<T> &a) : PArrayBase<T>(a)
 {
-    PArray1DSwap(*this, a);
 }
 
 
@@ -99,6 +98,7 @@ const T& PArray1D<T>::operator()(size_t ind1) const
 template <class T>
 PArray1D<T>& PArray1D<T>::operator=(PArray1D<T> a)
 {
+    PArrayBase<T>::operator=(static_cast<PArrayBase<T>>(a));
     PArray1DSwap(*this, a);
     return *this;
 }

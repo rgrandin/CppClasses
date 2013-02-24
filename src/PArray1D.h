@@ -233,8 +233,7 @@ private:
      */
     friend void PArray1DSwap(PArray1D<T> &first, PArray1D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
-        std::swap(first.array, second.array);
+        /* No member functions for this derived class. */
     }
 
 

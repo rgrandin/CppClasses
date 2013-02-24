@@ -338,9 +338,6 @@ protected:
     /** @brief Number of points along the fourth dimension. */
     size_t size4;
 
-    /** @brief Total number of points in the array. */
-    size_t npoints;
-
 
 
     /**
@@ -350,12 +347,10 @@ protected:
      */
     friend void Array4DSwap(Array4D<T> &first, Array4D<T> &second)
     {
-        std::swap(first.npoints, second.npoints);
         std::swap(first.size1, second.size1);
         std::swap(first.size2, second.size2);
         std::swap(first.size3, second.size3);
         std::swap(first.size4, second.size4);
-        std::swap(first.array, second.array);
     }
 
 

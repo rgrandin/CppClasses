@@ -19,9 +19,11 @@ ProgressInfo::ProgressInfo()
 }
 
 
-ProgressInfo::ProgressInfo(const ProgressInfo &a) : ProgressInfo()
+ProgressInfo::ProgressInfo(const ProgressInfo &a) :
+    completion_progress(a.completion_progress),
+    function_description(a.function_description),
+    function_description2(a.function_description2)
 {
-    ProgressInfoSwap(*this, a);
 }
 
 

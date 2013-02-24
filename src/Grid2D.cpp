@@ -44,9 +44,17 @@ Grid2D<T>::Grid2D()
 
 
 template <class T>
-Grid2D<T>::Grid2D(const Grid2D<T> &a) : Grid2D()
+Grid2D<T>::Grid2D(const Grid2D<T> &a) :
+    dzidx(a.dzidx), detadx(a.detadx), dzidy(a.dzidy), detady(a.detady),
+    xcoords(a.xcoords), ycoords(a.ycoords), iblank(a.iblank), converge(a.converge),
+    nx(a.nx), ny(a.ny), isogrid(a.isogrid), ishgrid(a.ishgrid),
+    itersused(a.itersused), xmin(a.xmin), xmax(a.xmax), ymin(a.ymin), ymax(a.ymax),
+    pi(a.pi), nscalars(a.nscalars), nvectors(a.nvectors),
+    pscalars(a.pscalars), pvectors(a.pvectors),
+    scalar_names(a.scalar_names), vector_names(a.vector_names),
+    gridname(a.gridname), qtysize(a.qtysize), inc_snapshots(a.inc_snapshots),
+    count_snapshots(a.count_snapshots), name_snapshots(a.name_snapshots)
 {
-    Grid2DSwap(*this, a);
 }
 
 

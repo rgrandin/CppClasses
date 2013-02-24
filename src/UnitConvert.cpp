@@ -853,9 +853,9 @@ UnitConvert<T>::UnitConvert()
 
 
 template <class T>
-UnitConvert<T>::UnitConvert(const UnitConvert<T> &a)
+UnitConvert<T>::UnitConvert(const UnitConvert<T> &a) :
+    unitsin(a.unitsin), unitsout(a.unitsout), internalvalue(a.internalvalue)
 {
-    UnitConvertSwap(*this, a);
 }
 
 
