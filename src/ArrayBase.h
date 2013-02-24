@@ -123,7 +123,7 @@ public:
      * @brief Copy constructor.
      * @param ab Reference to existing ArrayBase object to be copied.
      */
-    ArrayBase(ArrayBase<T> &ab);
+    ArrayBase(const ArrayBase<T> &ab);
 
 
 #ifdef CXX11
@@ -379,18 +379,26 @@ public:
     size_t NPts();
 
 
+    /**
+     * @brief Test performs functionality tests of this class.
+     * @param result String which will contain the result of the tests.  If no errors are found,
+     *  a value of "SUCCESS" will be set.
+     */
+    virtual void Test(std::string &result);
+
+
 
 
 
 protected:
 
+    /** @brief Number of points in the array */
+    size_t npoints;
+
+
 	/** @brief Pointer to actual array.  'Protected' status to allow access by
 	 * derived classes. */
-	T *array;
-
-
-	/** @brief Number of points in the array */
-    size_t npoints;
+    T *array;
 
 
 	/**

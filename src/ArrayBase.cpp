@@ -18,9 +18,9 @@ void ArrayBase<T>::initialize(size_t dim1, T initvalue)
 {
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
-		array = (T*)NULL;					// SET POINTER TO NULL
+        array = (T*)NULL;					// SET POINTER TO NULL
 	} else {								// ALLOCATE MEMORY FOR array
-		array = new T[npoints];
+        array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
             array[i] = initvalue;           // INITIALIZE TO SPECIFIED VALUE
@@ -66,9 +66,9 @@ ArrayBase<T>::ArrayBase(size_t dim1, const T initvalue)
 
 
 template <class T>
-ArrayBase<T>::ArrayBase(ArrayBase<T> &ab) : ArrayBase()
+ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints), array(npoints ? new T[npoints] : 0)
 {
-    ArrayBaseSwap(*this, ab);
+    std::copy(ab.array, ab.array + npoints, array);
 }
 
 
@@ -87,7 +87,7 @@ ArrayBase<T>::~ArrayBase()
     if(array != NULL){
         delete [] array;
     }
-	array = NULL;
+    array = NULL;
 }
 
 
@@ -131,8 +131,8 @@ void ArrayBase<T>::ResetSize(size_t dim1)
 		// CHECK FOR NEW DIMENSIONS MATCHING EXISTING DIMENSIONS.  IF NOT, RESET
 		// THE ARRAY SIZE AS REQUIRED.
 		if(dim1 != npoints){
-			delete [] array;
-			array = new T[dim1];
+            delete [] array;
+            array = new T[dim1];
 			npoints = dim1;
 		}
 	} else {
@@ -154,17 +154,17 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
 	// THE ARRAY SIZE AS REQUIRED.
 	if(dim1 != npoints){
 		npoints = dim1;
-		delete [] array;
-		array = new T[npoints];
+        delete [] array;
+        array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
-			array[i] = initvalue;
+            array[i] = initvalue;
 		}
 	} else {
 		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
 		// initvalue.
         for(size_t i=0; i<npoints; i++){
-			array[i] = initvalue;
+            array[i] = initvalue;
 		}
 	}
 }
@@ -173,9 +173,9 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
 template <class T>
 void ArrayBase<T>::ResetVal(const T initval)
 {
-	assert(array);
+    assert(array);
     for(size_t i=0; i<npoints; i++){
-		ArrayBase<T>::array[i] = initval;
+        ArrayBase<T>::array[i] = initval;
 	}
 }
 
@@ -202,7 +202,7 @@ float ArrayBase<T>::MeanFloat() const
 	float sum = 0.0e0;
 
 	for(int i=0; i<npoints; i++){
-		sum += (float)array[i];
+        sum += (float)array[i];
 	}
 
 	retval = sum/(float)npoints;
@@ -234,7 +234,7 @@ float ArrayBase<T>::VarianceFloat() const
 	float mean = ArrayBase<T>::Mean();
 	float diffsq = 0.0e0;
 	for(int i=0; i<npoints; i++){
-		diffsq += ((float)array[i] - mean)*((float)array[i] - mean);
+        diffsq += ((float)array[i] - mean)*((float)array[i] - mean);
 	}
 	retval = diffsq/(float)npoints;
 
@@ -273,8 +273,8 @@ T ArrayBase<T>::MinVal(size_t &loc) const
 
 	// LOOP THROUGH ARRAY AND CHECK IF ARRAY VALUE IS LESS THAN CURRENT MINIMUM
     for(size_t i=0; i<npoints; i++){
-		if(array[i] < min){
-			min = array[i];
+        if(array[i] < min){
+            min = array[i];
 			loc = i;
 		}
 	}
@@ -299,8 +299,8 @@ T ArrayBase<T>::MaxVal(size_t &loc) const
 
 	// LOOP THROUGH ARRAY AND CHECK IF ARRAY VALUE IS LESS THAN CURRENT MINIMUM
     for(size_t i=0; i<npoints; i++){
-		if(array[i] > max){
-			max = array[i];
+        if(array[i] > max){
+            max = array[i];
 			loc = i;
 		}
 	}
@@ -357,4 +357,58 @@ T ArrayBase<T>::RMS() const
     }
 
     return (T)sqrt((double)xrms/(double)npoints);
+}
+
+
+template <class T>
+void ArrayBase<T>::Test(std::string &result)
+{
+    result = "SUCCESS";
+    bool errorfound = false;
+
+    /* Create initial array. */
+    size_t npts = 15;
+    ArrayBase<T> array1(npts);
+    for(size_t i=0; i<npts; i++){
+        array1[i] = (T)i;
+    }
+
+
+    /* Test copy constructor. */
+    ArrayBase<T> array2(array1);
+    bool compare = true;
+    T eps = 1.0e-10;
+    for(size_t i=0; i<npts; i++){
+        if(fabs(array1[i] - array2[i]) > eps){
+            compare = false;
+        }
+    }
+    if(!compare){
+        if(!errorfound){
+            errorfound = true;
+            result = "";
+        }
+        result += "  - Copy constructor failed \n";
+    }
+
+
+    /* Test copy assignment. */
+    ArrayBase<T> array3;
+    array3 = array1;
+    compare = true;
+    for(size_t i=0; i<npts; i++){
+        if(fabs(array1[i] - array3[i]) > eps){
+            compare = false;
+        }
+    }
+    if(!compare){
+        if(!errorfound){
+            errorfound = true;
+            result = "";
+        }
+        result += "  - Copy assignment failed \n";
+    }
+
+
+
 }
