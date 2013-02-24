@@ -112,7 +112,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing PArrayBase object to be copied.
      */
-    PArrayBase(PArrayBase<T> &a);
+    PArrayBase(const PArrayBase<T> &a);
 
 
 #ifdef CXX11
@@ -180,17 +180,6 @@ public:
      * @return Reference to instance of PArrayBase.
      */
     PArrayBase& operator=(PArrayBase<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to PArrayBase object being assigned.
-     * @return Reference to instance of PArrayBase.
-     * @warning This function requires C++11 compiler support.
-     */
-    PArrayBase& operator=(PArrayBase<T> &&a);
-#endif
 
 
     /**

@@ -135,7 +135,7 @@ public:
      * 		functionality carefully as the addition or deletion of nodes will be
      * 		seen by all SLList objects that share the same head node.
      */
-    SLList(SLList<T,I> &list);
+    SLList(const SLList<T,I> &list);
 
 
 #ifdef CXX11
@@ -167,17 +167,6 @@ public:
      * @return Reference to instance of SLList.
      */
     SLList& operator=(SLList<T,I> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to SLList object being assigned.
-     * @return Reference to instance of SLList.
-     * @warning This function requires C++11 compiler support.
-     */
-    SLList& operator=(SLList<T,I> &&a);
-#endif
 
 
     /**

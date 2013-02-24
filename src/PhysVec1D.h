@@ -110,7 +110,8 @@ public:
 	 * @warning This is a true copy.  After this object is created, changes to the
 	 * 		input vector will not be reflected in this vector.
 	 */
-    PhysVec1D(PhysVec1D<T> &vec);
+    PhysVec1D(const PhysVec1D<T> &vec);
+
 
 #ifdef CXX11
     /**
@@ -120,6 +121,7 @@ public:
      */
     PhysVec1D(PhysVec1D<T> &&a);
 #endif
+
 
 	/**
 	 * @brief Generalized constructor.
@@ -151,17 +153,6 @@ public:
 	 * @return Reference to self, which has been updated to match vectors.
 	 */
     PhysVec1D<T>& operator=(PhysVec1D<T> vec);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to PhysVec1D object being assigned.
-     * @return Reference to instance of PhysVec1D.
-     * @warning This function requires C++11 compiler support.
-     */
-    PhysVec1D& operator=(PhysVec1D<T> &&a);
-#endif
 
 
 	/**

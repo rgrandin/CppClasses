@@ -75,7 +75,7 @@ ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints),
 
 #ifdef CXX11
 template <class T>
-ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab) : ArrayBase()
+ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab) : ArrayBase<T>()
 {
     ArrayBaseSwap(*this, ab);
 }
@@ -98,16 +98,6 @@ ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> ab)
     ArrayBaseSwap(*this, ab);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> &&ab)
-{
-    ArrayBaseSwap(*this, ab);
-    return *this;
-}
-#endif
 
 
 template <class T>
@@ -394,7 +384,7 @@ void ArrayBase<T>::Test(std::string &result)
     if(!compare){
         if(!errorfound){
             errorfound = true;
-            result = "";
+            result = "FAILED \n";
         }
         result += "  - Copy constructor failed \n";
     }
@@ -412,7 +402,7 @@ void ArrayBase<T>::Test(std::string &result)
     if(!compare){
         if(!errorfound){
             errorfound = true;
-            result = "";
+            result = "FAILED \n";
         }
         result += "  - Copy assignment failed \n";
     }
@@ -425,7 +415,7 @@ void ArrayBase<T>::Test(std::string &result)
     if(fabs(truemean - testmean) > eps){
         if(!errorfound){
             errorfound = true;
-            result = "";
+            result = "FAILED \n";
         }
         result += "  - Mean calculation failed \n";
     }
@@ -440,7 +430,7 @@ void ArrayBase<T>::Test(std::string &result)
     if(fabs(truemedian - testmedian) > eps){
         if(!errorfound){
             errorfound = true;
-            result = "";
+            result = "FAILED \n";
         }
         result += "  - Median calculation failed \n";
     }
@@ -452,14 +442,14 @@ void ArrayBase<T>::Test(std::string &result)
     if(fabs(truemin - testmin) > eps){
         if(!errorfound){
             errorfound = true;
-            result = "";
+            result = "FAILED \n";
         }
         result += "  - Min-value calculation failed \n";
     }
     if(fabs(truemax - testmax) > eps){
         if(!errorfound){
             errorfound = true;
-            result = "";
+            result = "FAILED \n";
         }
         result += "  - Max-value calculation failed \n";
     }

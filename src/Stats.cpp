@@ -24,7 +24,7 @@ Stats<T>::Stats()
 
 
 template <class T>
-Stats<T>::Stats(Stats<T> &a) : Stats()
+Stats<T>::Stats(const Stats<T> &a) : Stats()
 {
     StatsSwap(*this, a);
 }
@@ -51,16 +51,6 @@ Stats<T>& Stats<T>::operator=(Stats<T> a)
     StatsSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-Stats<T>& Stats<T>::operator=(Stats<T> &&a)
-{
-    StatsSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

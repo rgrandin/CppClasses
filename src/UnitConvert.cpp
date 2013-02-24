@@ -853,7 +853,7 @@ UnitConvert<T>::UnitConvert()
 
 
 template <class T>
-UnitConvert<T>::UnitConvert(UnitConvert<T> &a) : UnitConvert()
+UnitConvert<T>::UnitConvert(const UnitConvert<T> &a)
 {
     UnitConvertSwap(*this, a);
 }
@@ -861,7 +861,7 @@ UnitConvert<T>::UnitConvert(UnitConvert<T> &a) : UnitConvert()
 
 #ifdef CXX11
 template <class T>
-UnitConvert<T>::UnitConvert(UnitConvert<T> &&a) : UnitConvert()
+UnitConvert<T>::UnitConvert(UnitConvert<T> &&a) : UnitConvert<T>()
 {
     UnitConvertSwap(*this, a);
 }
@@ -881,16 +881,6 @@ UnitConvert<T>& UnitConvert<T>::operator=(UnitConvert<T> a)
     UnitConvertSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-UnitConvert<T>& UnitConvert<T>::operator=(UnitConvert<T> &&a)
-{
-    UnitConvertSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

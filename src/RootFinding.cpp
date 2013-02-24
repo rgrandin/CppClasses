@@ -33,7 +33,7 @@ RootFinding<T>::RootFinding()
 
 
 template <class T>
-RootFinding<T>::RootFinding(RootFinding<T> &a) : RootFinding()
+RootFinding<T>::RootFinding(const RootFinding<T> &a) : RootFinding()
 {
     RootFindingSwap(*this, a);
 }
@@ -41,7 +41,7 @@ RootFinding<T>::RootFinding(RootFinding<T> &a) : RootFinding()
 
 #ifdef CXX11
 template <class T>
-RootFinding<T>::RootFinding(RootFinding<T> &&a) : RootFinding()
+RootFinding<T>::RootFinding(RootFinding<T> &&a) : RootFinding<T>()
 {
     RootFindingSwap(*this, a);
 }
@@ -61,16 +61,6 @@ RootFinding<T>& RootFinding<T>::operator=(RootFinding<T> a)
     RootFindingSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-RootFinding<T>& RootFinding<T>::operator=(RootFinding<T> &&a)
-{
-    RootFindingSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

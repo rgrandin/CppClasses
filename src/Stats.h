@@ -92,7 +92,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing Stats object to be copied.
      */
-    Stats(Stats<T> &a);
+    Stats(const Stats<T> &a);
 
 
 #ifdef CXX11
@@ -120,17 +120,6 @@ public:
      * @return Reference to instance of Stats.
      */
     Stats& operator=(Stats<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to Stats object being assigned.
-     * @return Reference to instance of Stats.
-     * @warning This function requires C++11 compiler support.
-     */
-    Stats& operator=(Stats<T> &&a);
-#endif
 
 
     /**

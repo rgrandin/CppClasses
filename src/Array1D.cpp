@@ -53,7 +53,7 @@ Array1D<T>::Array1D(const Array1D<T> &a) : ArrayBase<T>(a)
 
 #ifdef CXX11
 template <class T>
-Array1D<T>::Array1D(Array1D<T> &&a) : Array1D()
+Array1D<T>::Array1D(Array1D<T> &&a) : ArrayBase<T>(std::move(a))
 {
     Array1DSwap(*this, a);
 }
@@ -109,16 +109,6 @@ Array1D<T>& Array1D<T>::operator=(Array1D<T> a)
     Array1DSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-Array1D<T>& Array1D<T>::operator=(Array1D<T> &&a)
-{
-    Array1DSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T> inline

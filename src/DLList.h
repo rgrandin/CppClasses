@@ -133,7 +133,7 @@ public:
      * 		functionality carefully as the addition or deletion of nodes will be
      * 		seen by all DLList objects that share the same head node.
      */
-    DLList(DLList<T, I> &list);
+    DLList(const DLList<T, I> &list);
 
 
 #ifdef CXX11
@@ -356,17 +356,6 @@ public:
      * @return Reference to instance of DLList.
      */
     DLList<T,I>& operator=(DLList<T,I> sourcelist);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to DLList object being assigned.
-     * @return Reference to instance of DLList.
-     * @warning This function requires C++11 compiler support.
-     */
-    DLList& operator=(DLList<T,I> &&a);
-#endif
 
 
 

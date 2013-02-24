@@ -43,7 +43,7 @@ PArray3D<T>::PArray3D(size_t dim1, size_t dim2, size_t dim3)
 
 
 template <class T>
-PArray3D<T>::PArray3D(PArray3D<T> &a) : PArray3D()
+PArray3D<T>::PArray3D(const PArray3D<T> &a) : PArray3D()
 {
     PArray3DSwap(*this, a);
 }
@@ -51,7 +51,7 @@ PArray3D<T>::PArray3D(PArray3D<T> &a) : PArray3D()
 
 #ifdef CXX11
 PArray3D <class T>
-ArrayBase<T>::PArray3D(PArray3D<T> &&a) : PArray3D()
+PArray3D<T>::PArray3D(PArray3D<T> &&a) : PArrayBase<T>(std::move(a))
 {
     PArray3DSwap(*this, a);
 }
@@ -112,15 +112,6 @@ PArray3D<T>& PArray3D<T>::operator=(PArray3D<T> a)
     return *this;
 }
 
-
-#ifdef CXX11
-template <class T>
-PArray3D<T>& PArray3D<T>::operator=(PArray3D<T> &&a)
-{
-    PArray3DSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 // DATA ACCESS AND MODIFICATION FUNCTIONS

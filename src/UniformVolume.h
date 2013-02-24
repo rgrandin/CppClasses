@@ -152,7 +152,7 @@ public:
         referenced object.
     @return None.
     */
-    UniformVolume(UniformVolume<T> &uc3d);
+    UniformVolume(const UniformVolume<T> &uc3d);
 
 
 #ifdef CXX11
@@ -180,17 +180,6 @@ public:
      * @return Reference to instance of UniformVolume.
      */
     UniformVolume& operator=(UniformVolume<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to UniformVolume object being assigned.
-     * @return Reference to instance of UniformVolume.
-     * @warning This function requires C++11 compiler support.
-     */
-    UniformVolume& operator=(UniformVolume<T> &&a);
-#endif
 
 
     /**

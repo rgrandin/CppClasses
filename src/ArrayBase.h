@@ -154,17 +154,6 @@ public:
     ArrayBase& operator=(ArrayBase<T> ab);
 
 
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param ab Rvalue to ArrayBase object being assigned.
-     * @return Reference to instance of ArrayBase.
-     * @warning This function requires C++11 compiler support.
-     */
-    ArrayBase& operator=(ArrayBase<T> &&ab);
-#endif
-
-
     /**
      * @brief Array subscription operator.
      * @param idx Index to be accessed.

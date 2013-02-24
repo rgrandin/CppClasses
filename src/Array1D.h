@@ -263,17 +263,6 @@ public:
     Array1D& operator=(Array1D<T> a);
 
 
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to Array1D object being assigned.
-     * @return Reference to instance of Array1D.
-     * @warning This function requires C++11 compiler support.
-     */
-    Array1D& operator=(Array1D<T> &&a);
-#endif
-
-
 	/**
 	 * @brief Get the memory occupied by this object.
 	 * @pre Array object exists.

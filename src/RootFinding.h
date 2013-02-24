@@ -89,7 +89,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing RootFinding object to be copied.
      */
-    RootFinding(RootFinding<T> &a);
+    RootFinding(const RootFinding<T> &a);
 
 
 #ifdef CXX11
@@ -117,17 +117,6 @@ public:
      * @return Reference to instance of RootFinding.
      */
     RootFinding& operator=(RootFinding<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to RootFinding object being assigned.
-     * @return Reference to instance of RootFinding.
-     * @warning This function requires C++11 compiler support.
-     */
-    RootFinding& operator=(RootFinding<T> &&a);
-#endif
 
 
     /**

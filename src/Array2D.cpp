@@ -54,7 +54,7 @@ Array2D<T>::Array2D(const Array2D<T> &a) : ArrayBase<T>(a),
 
 #ifdef CXX11
 template <class T>
-Array2D<T>::Array2D(Array2D<T> &&a) : Array2D<T>()
+Array2D<T>::Array2D(Array2D<T> &&a) : ArrayBase<T>(std::move(a))
 {
     Array2DSwap(*this, a);
 }

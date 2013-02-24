@@ -17,7 +17,7 @@ PhysVec1D<T>::PhysVec1D()
 
 
 template <class T>
-PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &a) : PhysVec1D()
+PhysVec1D<T>::PhysVec1D(const PhysVec1D<T> &a) : PhysVec1D()
 {
     PhysVec1DSwap(*this, a);
 }
@@ -25,7 +25,7 @@ PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &a) : PhysVec1D()
 
 #ifdef CXX11
 template <class T>
-PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &&a) : PhysVec1D()
+PhysVec1D<T>::PhysVec1D(PhysVec1D<T> &&a) : Array1D<T>(std::move(a))
 {
     PhysVec1DSwap(*this, a);
 }
@@ -52,16 +52,6 @@ PhysVec1D<T>& PhysVec1D<T>::operator=(PhysVec1D<T> a)
     PhysVec1DSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-PhysVec1D<T>& PhysVec1D<T>::operator=(PhysVec1D<T> &&a)
-{
-    PhysVec1DSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

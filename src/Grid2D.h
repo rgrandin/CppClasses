@@ -119,7 +119,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing Grid2D object to be copied.
      */
-    Grid2D(Grid2D<T> &a);
+    Grid2D(const Grid2D<T> &a);
 
 
 #ifdef CXX11
@@ -489,18 +489,6 @@ public:
      * @return Reference to instance of Grid2D.
      */
     Grid2D& operator=(Grid2D<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to Grid2D object being assigned.
-     * @return Reference to instance of Grid2D.
-     * @warning This function requires C++11 compiler support.
-     */
-    Grid2D& operator=(Grid2D<T> &&a);
-#endif
-
 
     /**
       @brief Copy the grid node coordinates from one grid to this grid.

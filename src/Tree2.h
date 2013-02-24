@@ -144,7 +144,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing Tree2 object to be copied.
      */
-    Tree2(Tree2<T> &a);
+    Tree2(const Tree2<T> &a);
 
 
 #ifdef CXX11
@@ -177,17 +177,6 @@ public:
      * @return Reference to instance of Tree2.
      */
     Tree2& operator=(Tree2<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to Tree2 object being assigned.
-     * @return Reference to instance of Tree2.
-     * @warning This function requires C++11 compiler support.
-     */
-    Tree2& operator=(Tree2<T> &&a);
-#endif
 
 
 	/**

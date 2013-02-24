@@ -19,7 +19,7 @@ ProgressInfo::ProgressInfo()
 }
 
 
-ProgressInfo::ProgressInfo(ProgressInfo &a) : ProgressInfo()
+ProgressInfo::ProgressInfo(const ProgressInfo &a) : ProgressInfo()
 {
     ProgressInfoSwap(*this, a);
 }
@@ -44,12 +44,3 @@ ProgressInfo& ProgressInfo::operator=(ProgressInfo &a)
     ProgressInfoSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-ProgressInfo& ProgressInfo::operator=(ProgressInfo &&a)
-{
-    ProgressInfoSwap(*this, a);
-    return *this;
-}
-#endif

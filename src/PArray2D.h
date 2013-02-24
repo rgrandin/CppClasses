@@ -117,7 +117,7 @@ class PArray2D : public PArrayBase<T>{
      * @brief Copy constructor.
      * @param a Reference to existing PArray2D object to be copied.
      */
-    PArray2D(PArray2D<T> &a);
+    PArray2D(const PArray2D<T> &a);
 
 
 #ifdef CXX11
@@ -202,17 +202,6 @@ class PArray2D : public PArrayBase<T>{
      * @return Reference to instance of PArray2D.
      */
     PArray2D& operator=(PArray2D<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to PArray2D object being assigned.
-     * @return Reference to instance of PArray2D.
-     * @warning This function requires C++11 compiler support.
-     */
-    PArray2D& operator=(PArray2D<T> &&a);
-#endif
 
 
 	/**

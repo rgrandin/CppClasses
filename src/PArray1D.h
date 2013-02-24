@@ -121,7 +121,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing PArray1D object to be copied.
      */
-    PArray1D(PArray1D<T> &a);
+    PArray1D(const PArray1D<T> &a);
 
 
 #ifdef CXX11
@@ -222,17 +222,6 @@ public:
      * @return Reference to instance of PArray1D.
      */
     PArray1D& operator=(PArray1D<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to PArray1D object being assigned.
-     * @return Reference to instance of PArray1D.
-     * @warning This function requires C++11 compiler support.
-     */
-    PArray1D& operator=(PArray1D<T> &&a);
-#endif
 
 
 private:

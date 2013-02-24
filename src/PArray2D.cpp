@@ -42,7 +42,7 @@ PArray2D<T>::PArray2D(size_t dim1, size_t dim2)
 
 
 template <class T>
-PArray2D<T>::PArray2D(PArray2D<T> &a) : PArray2D()
+PArray2D<T>::PArray2D(const PArray2D<T> &a) : PArray2D()
 {
     PArray2DSwap(*this, a);
 }
@@ -50,7 +50,7 @@ PArray2D<T>::PArray2D(PArray2D<T> &a) : PArray2D()
 
 #ifdef CXX11
 template <class T>
-PArray2D<T>::PArray2D(PArray2D<T> &&a) : PArray2D()
+PArray2D<T>::PArray2D(PArray2D<T> &&a) : PArrayBase<T>(std::move(a))
 {
     PArray2DSwap(*this, a);
 }
@@ -108,16 +108,6 @@ PArray2D<T>& PArray2D<T>::operator=(PArray2D<T> a)
     PArray2DSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-PArray2D<T>& PArray2D<T>::operator=(PArray2D<T> &&a)
-{
-    PArray2DSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 

@@ -392,7 +392,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing ArrayBase object to be copied.
      */
-    UnitConvert(UnitConvert<T> &a);
+    UnitConvert(const UnitConvert<T> &a);
 
 
 #ifdef CXX11
@@ -420,17 +420,6 @@ public:
      * @return Reference to instance of UnitConvert.
      */
     UnitConvert& operator=(UnitConvert<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to UnitConvert object being assigned.
-     * @return Reference to instance of UnitConvert.
-     * @warning This function requires C++11 compiler support.
-     */
-    UnitConvert& operator=(UnitConvert<T> &&a);
-#endif
 
 
 	/**

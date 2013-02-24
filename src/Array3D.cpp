@@ -67,7 +67,7 @@ Array3D<T>::Array3D(const Array3D<T> &a) : ArrayBase<T>(a),
 
 #ifdef CXX11
 template <class T>
-Array3D<T>::Array3D(Array3D<T> &&a) : Array3D<T>()
+Array3D<T>::Array3D(Array3D<T> &&a) : ArrayBase<T>(std::move(a))
 {
     Array3DSwap(*this, a);
 }
@@ -126,17 +126,6 @@ Array3D<T>& Array3D<T>::operator=(Array3D<T> a)
     Array3DSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-Array3D<T>& Array3D<T>::operator=(Array3D<T> &&a)
-{
-    Array3DSwap(*this, a);
-    return *this;
-}
-#endif
-
 
 
 // DATA ACCESS AND MODIFICATION FUNCTIONS

@@ -52,7 +52,7 @@ PArrayBase<T>::PArrayBase(size_t dim1)
 
 
 template <class T>
-PArrayBase<T>::PArrayBase(PArrayBase<T> &a) : PArrayBase()
+PArrayBase<T>::PArrayBase(const PArrayBase<T> &a) : PArrayBase()
 {
     PArrayBaseSwap(*this, a);
 }
@@ -60,7 +60,7 @@ PArrayBase<T>::PArrayBase(PArrayBase<T> &a) : PArrayBase()
 
 #ifdef CXX11
 template <class T>
-PArrayBase<T>::PArrayBase(PArrayBase<T> &&a) : PArrayBase()
+PArrayBase<T>::PArrayBase(PArrayBase<T> &&a) : PArrayBase<T>()
 {
     PArrayBaseSwap(*this, a);
 }
@@ -139,16 +139,6 @@ PArrayBase<T>& PArrayBase<T>::operator=(PArrayBase<T> a)
     PArrayBaseSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-PArrayBase<T>& PArrayBase<T>::operator=(PArrayBase<T> &&a)
-{
-    PArrayBaseSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

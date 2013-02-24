@@ -144,17 +144,6 @@ public:
     DataFilters& operator=(DataFilters<T> a);
 
 
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to DataFilters object being assigned.
-     * @return Reference to instance of DataFilters.
-     * @warning This function requires C++11 compiler support.
-     */
-    DataFilters& operator=(DataFilters<T> &&a);
-#endif
-
-
 	/**
 	 * @brief One-dimensional median filter.
 	 * @pre Input data created.

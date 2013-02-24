@@ -87,7 +87,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing ODE object to be copied.
      */
-    ODE(ODE<T> &a);
+    ODE(const ODE<T> &a);
 
 
 #ifdef CXX11
@@ -114,17 +114,6 @@ public:
      * @return Reference to instance of ODE.
      */
     ODE& operator=(ODE<T> a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to ODE object being assigned.
-     * @return Reference to instance of ODE.
-     * @warning This function requires C++11 compiler support.
-     */
-    ODE& operator=(ODE<T> &&a);
-#endif
 
 
 	/**

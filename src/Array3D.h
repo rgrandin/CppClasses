@@ -255,17 +255,6 @@ class Array3D : public ArrayBase<T>{
     Array3D& operator=(Array3D<T> a);
 
 
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to Array3D object being assigned.
-     * @return Reference to instance of Array3D.
-     * @warning This function requires C++11 compiler support.
-     */
-    Array3D& operator=(Array3D<T> &&a);
-#endif
-
-
 	/**
 	 * @brief Get the memory occupied by this object.
 	 * @pre Array object exists.

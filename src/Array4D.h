@@ -272,17 +272,6 @@ public:
     Array4D& operator=(Array4D<T> a);
 
 
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to Array4D object being assigned.
-     * @return Reference to instance of Array4D.
-     * @warning This function requires C++11 compiler support.
-     */
-    Array4D& operator=(Array4D<T> &&a);
-#endif
-
-
     /**
      * @brief Get the memory occupied by this object.
      * @pre Array object exists.

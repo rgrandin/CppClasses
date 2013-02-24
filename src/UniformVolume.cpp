@@ -571,124 +571,117 @@ UniformVolume<T>::UniformVolume()
 }
 
 
-//template <class T>
-//UniformVolume<T>::UniformVolume(UniformVolume<T> &uc3d) : QtIntermediaryBase()
-//{
-//    /* Set resolution and copy all data */
-//    nscalars = 0;
-//    nvectors = 0;
-//    qtysize = 256;
-
-//    int nx = 0; int ny = 0; int nz = 0;
-//    nx = uc3d.GetResolution(1);
-//    ny = uc3d.GetResolution(0);
-//    nz = uc3d.GetResolution(2);
-//    UniformVolume<T>::ResetResolution(ny,nx,nz,0.0e0);
-
-//    int n_scalars = uc3d.NumScalarQuantities();
-//    int n_vectors = uc3d.NumVectorQuantities();
-//    std::string qtyname("name");
-
-//    for(int q=0; q<n_scalars; q++){
-//        qtyname = uc3d.ScalarQuantityName(q);
-//        UniformVolume<T>::AddScalarQuantity(qtyname);
-//        for(int k=0; k<vslices; k++){
-//            for(int i=0; i<vrows; i++){
-//                for(int j=0; j<vcols; j++){
-//                    pscalars(nscalars-1)->operator ()(i,j,k) = uc3d(i,j,k,q);
-//                }
-//            }
-//        }
-//    }
-
-//    int ncomp = 0;
-//    for(int q=0; q<n_vectors; q++){
-//        qtyname = uc3d.VectorQuantityName(q);
-//        ncomp = uc3d.VectorQuantityComponents(q);
-//        UniformVolume<T>::AddVectorQuantity(qtyname,ncomp);
-//        for(int k=0; k<vslices; k++){
-//            for(int i=0; i<vrows; i++){
-//                for(int j=0; j<vcols; j++){
-//                    for(int l=0; l<ncomp; l++){
-//                        pvectors(nvectors-1)->operator ()(i,j,k,l) = uc3d(i,j,k,l,q);
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-//    /* Set spatial parameters */
-//    xmin = uc3d.SpatialExtent(1,-1); xmax = uc3d.SpatialExtent(1,1);
-//    ymin = uc3d.SpatialExtent(0,-1); ymax = uc3d.SpatialExtent(0,1);
-//    zmin = uc3d.SpatialExtent(2,-1); zmax = uc3d.SpatialExtent(2,1);
-//    if(vcols > 1){
-//        xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
-//    } else {
-//        xspacing = 0.0e0;
-//    }
-//    if(vrows > 1){
-//        yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
-//    } else {
-//        yspacing = 0.0e0;
-//    }
-//    if(vslices > 1){
-//        zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
-//    } else {
-//        zspacing = 0.0e0;
-//    }
-
-//    std::cout << "Spatial limits: x " << xmin << " , " << xmax << "  " << xspacing << std::endl;
-//    std::cout << "                y " << ymin << " , " << ymax << "  " << yspacing << std::endl;
-//    std::cout << "                z " << zmin << " , " << zmax << "  " << zspacing << std::endl;
-
-//    /* Set output parameters */
-//    outputdir = uc3d.OutputDirectory();
-//    filenamestem = uc3d.FilenameStem();
-//    imageoutput = uc3d.VTKImageDataOutput();
-//    rectoutput = uc3d.VTKRectDataOutput();
-//    volname = filenamestem;
-
-//    /* Set type name */
-//    dtypename = "unknown_type";
-//    if(typeid(T) == typeid(char)){
-//        dtypename = "char";
-//    }
-//    if(typeid(T) == typeid(short)){
-//        dtypename = "short";
-//    }
-//    if(typeid(T) == typeid(int)){
-//        dtypename = "int";
-//    }
-//    if(typeid(T) == typeid(long)){
-//        dtypename = "long";
-//    }
-//    if(typeid(T) == typeid(long long)){
-//        dtypename = "long long";
-//    }
-//    if(typeid(T) == typeid(float)){
-//        dtypename = "float";
-//    }
-//    if(typeid(T) == typeid(double)){
-//        dtypename = "double";
-//    }
-//    if(typeid(T) == typeid(long double)){
-//        dtypename = "long double";
-//    }
-
-//    writebigendian = false;
-//}
-
-
 template <class T>
-UniformVolume<T>::UniformVolume(UniformVolume<T> &a) : UniformVolume()
+UniformVolume<T>::UniformVolume(const UniformVolume<T> &uc3d) : QtIntermediaryBase()
 {
-    UniformVolumeSwap(*this, a);
+    /* Set resolution and copy all data */
+    nscalars = 0;
+    nvectors = 0;
+    qtysize = 256;
+
+    int nx = 0; int ny = 0; int nz = 0;
+    nx = uc3d.GetResolution(1);
+    ny = uc3d.GetResolution(0);
+    nz = uc3d.GetResolution(2);
+    UniformVolume<T>::ResetResolution(ny,nx,nz,0.0e0);
+
+    int n_scalars = uc3d.NumScalarQuantities();
+    int n_vectors = uc3d.NumVectorQuantities();
+    std::string qtyname("name");
+
+    for(int q=0; q<n_scalars; q++){
+        qtyname = uc3d.ScalarQuantityName(q);
+        UniformVolume<T>::AddScalarQuantity(qtyname);
+        for(int k=0; k<vslices; k++){
+            for(int i=0; i<vrows; i++){
+                for(int j=0; j<vcols; j++){
+                    pscalars(nscalars-1)->operator ()(i,j,k) = uc3d(i,j,k,q);
+                }
+            }
+        }
+    }
+
+    int ncomp = 0;
+    for(int q=0; q<n_vectors; q++){
+        qtyname = uc3d.VectorQuantityName(q);
+        ncomp = uc3d.VectorQuantityComponents(q);
+        UniformVolume<T>::AddVectorQuantity(qtyname,ncomp);
+        for(int k=0; k<vslices; k++){
+            for(int i=0; i<vrows; i++){
+                for(int j=0; j<vcols; j++){
+                    for(int l=0; l<ncomp; l++){
+                        pvectors(nvectors-1)->operator ()(i,j,k,l) = uc3d(i,j,k,l,q);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Set spatial parameters */
+    xmin = uc3d.SpatialExtent(1,-1); xmax = uc3d.SpatialExtent(1,1);
+    ymin = uc3d.SpatialExtent(0,-1); ymax = uc3d.SpatialExtent(0,1);
+    zmin = uc3d.SpatialExtent(2,-1); zmax = uc3d.SpatialExtent(2,1);
+    if(vcols > 1){
+        xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
+    } else {
+        xspacing = 0.0e0;
+    }
+    if(vrows > 1){
+        yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
+    } else {
+        yspacing = 0.0e0;
+    }
+    if(vslices > 1){
+        zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
+    } else {
+        zspacing = 0.0e0;
+    }
+
+    std::cout << "Spatial limits: x " << xmin << " , " << xmax << "  " << xspacing << std::endl;
+    std::cout << "                y " << ymin << " , " << ymax << "  " << yspacing << std::endl;
+    std::cout << "                z " << zmin << " , " << zmax << "  " << zspacing << std::endl;
+
+    /* Set output parameters */
+    outputdir = uc3d.OutputDirectory();
+    filenamestem = uc3d.FilenameStem();
+    imageoutput = uc3d.VTKImageDataOutput();
+    rectoutput = uc3d.VTKRectDataOutput();
+    volname = filenamestem;
+
+    /* Set type name */
+    dtypename = "unknown_type";
+    if(typeid(T) == typeid(char)){
+        dtypename = "char";
+    }
+    if(typeid(T) == typeid(short)){
+        dtypename = "short";
+    }
+    if(typeid(T) == typeid(int)){
+        dtypename = "int";
+    }
+    if(typeid(T) == typeid(long)){
+        dtypename = "long";
+    }
+    if(typeid(T) == typeid(long long)){
+        dtypename = "long long";
+    }
+    if(typeid(T) == typeid(float)){
+        dtypename = "float";
+    }
+    if(typeid(T) == typeid(double)){
+        dtypename = "double";
+    }
+    if(typeid(T) == typeid(long double)){
+        dtypename = "long double";
+    }
+
+    writebigendian = false;
 }
 
 
 #ifdef CXX11
 template <class T>
-UniformVolume<T>::UniformVolume(UniformVolume<T> &&a) : UniformVolume()
+UniformVolume<T>::UniformVolume(UniformVolume<T> &&a) : UniformVolume<T>()
 {
     UniformVolumeSwap(*this, a);
 }
@@ -710,16 +703,6 @@ UniformVolume<T>& UniformVolume<T>::operator=(UniformVolume<T> a)
     UniformVolumeSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-UniformVolume<T>& UniformVolume<T>::operator=(UniformVolume<T> &&a)
-{
-    UniformVolumeSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

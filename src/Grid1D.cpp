@@ -42,7 +42,7 @@ Grid1D<T>::Grid1D()
 
 
 template <class T>
-Grid1D<T>::Grid1D(Grid1D<T> &a) : Grid1D()
+Grid1D<T>::Grid1D(const Grid1D<T> &a) : Grid1D()
 {
     Grid1DSwap(*this, a);
 }
@@ -50,7 +50,7 @@ Grid1D<T>::Grid1D(Grid1D<T> &a) : Grid1D()
 
 #ifdef CXX11
 template <class T>
-Grid1D<T>::Grid1D(Grid1D<T> &&a) : Grid1D()
+Grid1D<T>::Grid1D(Grid1D<T> &&a) : Grid1D<T>()
 {
     Grid1DSwap(*this, a);
 }
@@ -577,16 +577,6 @@ Grid1D<T>& Grid1D<T>::operator=(Grid1D<T> a)
     Grid1DSwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-Grid1D<T>& Grid1D<T>::operator=(Grid1D<T> &&a)
-{
-    Grid1DSwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

@@ -86,7 +86,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing ProgressInfo object to be copied.
      */
-    ProgressInfo(ProgressInfo &a);
+    ProgressInfo(const ProgressInfo &a);
 
 
 #ifdef CXX11
@@ -111,17 +111,6 @@ public:
      * @return Reference to instance of ProgressInfo.
      */
     ProgressInfo& operator=(ProgressInfo &a);
-
-
-#ifdef CXX11
-    /**
-     * @brief Move-assignment operator (C++11).
-     * @param a Rvalue to ProgressInfo object being assigned.
-     * @return Reference to instance of ProgressInfo.
-     * @warning This function requires C++11 compiler support.
-     */
-    ProgressInfo& operator=(ProgressInfo &&a);
-#endif
 
 
     /** @brief Function completion progress, expressed as a decimal between 0.0 and 1.0. */

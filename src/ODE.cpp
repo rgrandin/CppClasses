@@ -117,7 +117,7 @@ ODE<T>::ODE()
 
 
 template <class T>
-ODE<T>::ODE(ODE<T> &a) : ODE()
+ODE<T>::ODE(const ODE<T> &a) : ODE()
 {
     ODESwap(*this, a);
 }
@@ -125,7 +125,7 @@ ODE<T>::ODE(ODE<T> &a) : ODE()
 
 #ifdef CXX11
 template <class T>
-ODE<T>::ODE(ODE<T> &&a) : ODE()
+ODE<T>::ODE(ODE<T> &&a) : ODE<T>()
 {
     ODESwap(*this, a);
 }
@@ -145,16 +145,6 @@ ODE<T>& ODE<T>::operator=(ODE<T> a)
     ODESwap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-ODE<T>& ODE<T>::operator=(ODE<T> &&a)
-{
-    ODESwap(*this, a);
-    return *this;
-}
-#endif
 
 
 template <class T>

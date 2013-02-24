@@ -33,10 +33,9 @@ DLList<T,I>::DLList()
 
 
 template <class T, int I>
-DLList<T,I>::DLList(DLList<T,I> &list)
+DLList<T,I>::DLList(const DLList<T,I> &list) : DLList<T,I>(list),
+    pHead(list.pHead), pCurrent(list.pCurrent), nodecount(list.nodecount)
 {
-    DLListSwap(*this, list);
-
     /* Identify this instance as a copy. */
 	iscopy = true;
 }
@@ -44,7 +43,7 @@ DLList<T,I>::DLList(DLList<T,I> &list)
 
 #ifdef CXX11
 template <class T, int I>
-DLList<T,I>::DLList(DLList<T,I> &&a) : DLList()
+DLList<T,I>::DLList(DLList<T, I> &&a) : DLList<T,I>()
 {
     DLListSwap(*this, a);
 }
@@ -91,20 +90,6 @@ DLList<T,I>& DLList<T,I>::operator=(DLList<T,I> sourcelist)
 
 	return *this;
 }
-
-
-#ifdef CXX11
-template <class T, int I>
-DLList<T,I>& DLList<T,I>::operator=(DLList<T,I>&& sourcelist)
-{
-    DLListSwap(*this, sourcelist);
-
-    /* Identify this instance as a copy. */
-    iscopy = true;
-
-    return *this;
-}
-#endif
 
 
 template <class T, int I>

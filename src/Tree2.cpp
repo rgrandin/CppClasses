@@ -26,7 +26,7 @@ Tree2<T>::Tree2()
 
 
 template <class T>
-Tree2<T>::Tree2(Tree2<T> &a) : Tree2()
+Tree2<T>::Tree2(const Tree2<T> &a) : Tree2()
 {
     Tree2Swap(*this, a);
 }
@@ -34,7 +34,7 @@ Tree2<T>::Tree2(Tree2<T> &a) : Tree2()
 
 #ifdef CXX11
 template <class T>
-Tree2<T>::Tree2(Tree2<T> &&a) : Tree2()
+Tree2<T>::Tree2(Tree2<T> &&a) : Tree2<T>()
 {
     Tree2Swap(*this, a);
 }
@@ -74,16 +74,6 @@ Tree2<T>& Tree2<T>::operator=(Tree2<T> a)
     Tree2Swap(*this, a);
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T>
-Tree2<T>& Tree2<T>::operator=(Tree2<T> &&a)
-{
-    Tree2Swap(*this, a);
-    return *this;
-}
-#endif
 
 
 

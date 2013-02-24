@@ -38,7 +38,7 @@ SLList<T,I>::SLList()
 
 
 template <class T, int I>
-SLList<T>::SLList(SLList<T,I> &list) : SLList()
+SLList<T>::SLList(const SLList<T,I> &list) : SLList()
 {
     SLListSwap(*this, list);
     iscopy = true;
@@ -47,7 +47,7 @@ SLList<T>::SLList(SLList<T,I> &list) : SLList()
 
 #ifdef CXX11
 template <class T, int I>
-SLList<T>::SLList(SLList<T,I> &&a) : SLList()
+SLList<T>::SLList(SLList<T,I> &&a) : SLList<T,I>()
 {
     SLListSwap(*this, a);
     iscopy = true;
@@ -95,17 +95,6 @@ SLList<T>& SLList<T,I>::operator=(SLList<T,I> a)
     iscopy = true;
     return *this;
 }
-
-
-#ifdef CXX11
-template <class T, int I>
-SLList<T>& SLList<T,I>::operator=(SLList<T,I> &&a)
-{
-    SLListSwap(*this, a);
-    iscopy = true;
-    return *this;
-}
-#endif
 
 
 
