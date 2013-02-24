@@ -63,15 +63,19 @@ Array4D<T>::Array4D(int dim1, int dim2, int dim3, int dim4,
 
 
 template <class T>
-Array4D<T>::Array4D(Array4D<T> &a) : Array4D()
+Array4D<T>::Array4D(const Array4D<T> &a) : ArrayBase<T>(a),
+    size1(a.size1),
+    size2(a.size2),
+    size3(a.size3),
+    size4(a.size4),
+    npoints(a.npoints)
 {
-    Array4DSwap(*this, a);
 }
 
 
 #ifdef CXX11
 template <class T>
-Array4D<T>::Array4D(Array4D<T> &&a) : Array4D()
+Array4D<T>::Array4D(Array4D<T> &&a) : Array4D<T>()
 {
     Array4DSwap(*this, a);
 }

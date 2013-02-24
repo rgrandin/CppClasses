@@ -44,9 +44,10 @@ Array1D<T>::Array1D(size_t dim1, const T initvalue)
 
 
 template <class T>
-Array1D<T>::Array1D(Array1D<T> &a) : Array1D()
+Array1D<T>::Array1D(const Array1D<T> &a) : ArrayBase<T>(a)
 {
-    Array1DSwap(*this, a);
+    /* No actions required here.  Calling the copy constructor of ArrayBase
+     * takes care of the rest of the work. */
 }
 
 

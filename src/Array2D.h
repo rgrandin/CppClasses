@@ -119,7 +119,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing Array2D object to be copied.
      */
-    Array2D(Array2D<T> &a);
+    Array2D(const Array2D<T> &a);
 
 
 #ifdef CXX11

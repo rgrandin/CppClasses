@@ -361,6 +361,13 @@ T ArrayBase<T>::RMS() const
 
 
 template <class T>
+size_t ArrayBase<T>::NPts()
+{
+    return npoints;
+}
+
+
+template <class T>
 void ArrayBase<T>::Test(std::string &result)
 {
     result = "SUCCESS";
@@ -370,7 +377,7 @@ void ArrayBase<T>::Test(std::string &result)
     size_t npts = 15;
     ArrayBase<T> array1(npts);
     for(size_t i=0; i<npts; i++){
-        array1[i] = (T)i;
+        array1[i] = (T)i + (T)1.0e0;
     }
 
 
@@ -408,6 +415,54 @@ void ArrayBase<T>::Test(std::string &result)
         }
         result += "  - Copy assignment failed \n";
     }
+
+
+    /* Test array statistics calculations. */
+    T truesum = (T)npts*((T)npts + (T)1.0)*(T)0.5e0;
+    T truemean = truesum/(T)array1.NPts();
+    T testmean = array1.Mean();
+    if(fabs(truemean - testmean) > eps){
+        if(!errorfound){
+            errorfound = true;
+            result = "";
+        }
+        result += "  - Mean calculation failed \n";
+    }
+
+    T truemedian = (T)0.0e0;
+    if(npts % 2 == 1){
+        truemedian = array1[npts/2];
+    } else {
+        truemedian = 0.5e0*(array1[(npts-1)/2] + array1[npts/2]);
+    }
+    T testmedian = array1.MedianVal();
+    if(fabs(truemedian - testmedian) > eps){
+        if(!errorfound){
+            errorfound = true;
+            result = "";
+        }
+        result += "  - Median calculation failed \n";
+    }
+
+    T truemin = (T)1.0e0;
+    T truemax = (T)npts;
+    T testmin = array1.MinVal();
+    T testmax = array1.MaxVal();
+    if(fabs(truemin - testmin) > eps){
+        if(!errorfound){
+            errorfound = true;
+            result = "";
+        }
+        result += "  - Min-value calculation failed \n";
+    }
+    if(fabs(truemax - testmax) > eps){
+        if(!errorfound){
+            errorfound = true;
+            result = "";
+        }
+        result += "  - Max-value calculation failed \n";
+    }
+
 
 
 

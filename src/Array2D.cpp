@@ -44,15 +44,17 @@ Array2D<T>::Array2D(size_t dim1, size_t dim2, const T initvalue)
 
 
 template <class T>
-Array2D<T>::Array2D(Array2D<T> &a) : Array2D()
+Array2D<T>::Array2D(const Array2D<T> &a) : ArrayBase<T>(a),
+    size1(a.size1),
+    size2(a.size2),
+    npoints(a.npoints)
 {
-    Array2DSwap(*this, a);
 }
 
 
 #ifdef CXX11
 template <class T>
-Array2D<T>::Array2D(Array2D<T> &&a) : Array2D()
+Array2D<T>::Array2D(Array2D<T> &&a) : Array2D<T>()
 {
     Array2DSwap(*this, a);
 }

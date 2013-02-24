@@ -115,7 +115,7 @@ class Array3D : public ArrayBase<T>{
      * @brief Copy constructor.
      * @param a Reference to existing Array3D object to be copied.
      */
-    Array3D(Array3D<T> &a);
+    Array3D(const Array3D<T> &a);
 
 
 #ifdef CXX11

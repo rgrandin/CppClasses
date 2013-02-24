@@ -127,7 +127,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing Array1D object to be copied.
      */
-    Array1D(Array1D<T> &a);
+    Array1D(const Array1D<T> &a);
 
 
 #ifdef CXX11

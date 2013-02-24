@@ -56,15 +56,18 @@ Array3D<T>::Array3D(int dim1, int dim2, int dim3, const T initvalue)
 
 
 template <class T>
-Array3D<T>::Array3D(Array3D<T> &a) : Array3D()
+Array3D<T>::Array3D(const Array3D<T> &a) : ArrayBase<T>(a),
+    size1(a.size1),
+    size2(a.size2),
+    size3(a.size3),
+    npoints(a.npoints)
 {
-    Array3DSwap(*this, a);
 }
 
 
 #ifdef CXX11
 template <class T>
-Array3D<T>::Array3D(Array3D<T> &&a) : Array3D()
+Array3D<T>::Array3D(Array3D<T> &&a) : Array3D<T>()
 {
     Array3DSwap(*this, a);
 }

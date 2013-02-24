@@ -123,7 +123,7 @@ public:
      * @brief Copy constructor.
      * @param a Reference to existing Array4D object to be copied.
      */
-    Array4D(Array4D<T> &a);
+    Array4D(const Array4D<T> &a);
 
 
 #ifdef CXX11
