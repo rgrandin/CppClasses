@@ -1,5 +1,6 @@
 #include <ArrayBase.h>
 #include <DataFilters.h>
+#include <UniformVolume.h>
 
 
 
@@ -408,8 +409,9 @@ public:
 
 int main()
 {
-    int testcase = 0;   /* 0: Illustrative sample classes defined above. */
+    int testcase = 2;   /* 0: Illustrative sample classes defined above. */
                         /* 1: Run Test() functions for general-use C++ classes. */
+                        /* 2: Sandbox area for general testing/debugging. */
 
     if(testcase == 0){
 
@@ -528,5 +530,20 @@ int main()
 
 
     } /* if(testcase == 1) */
+
+
+
+
+
+
+
+    if(testcase == 2){
+
+        UniformVolume<float> *uv = new UniformVolume<float>;
+        uv->AddScalarQuantity("test");
+
+        delete uv;
+
+    } /* if(testcase == 2) */
 
 } /* main() */

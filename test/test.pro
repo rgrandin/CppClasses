@@ -2,14 +2,19 @@ QT       += core
 
 QT       -= gui
 
+DEFINES += USEQT
+
 TARGET = cpp-classes-test
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+HEADERS +=  \
+            ../src/QtIntermediaryBase.h
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+            ../src/QtIntermediaryBase.cpp
 
 
 CONFIG(debug, debug|release) {
