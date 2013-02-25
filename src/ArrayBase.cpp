@@ -69,7 +69,10 @@ template <class T>
 ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints),
     p_array(npoints ? new T[npoints] : 0)
 {
-    std::copy(ab.p_array, ab.p_array + npoints, p_array);
+    //std::copy(ab.p_array, ab.p_array + npoints, p_array);
+    for(size_t i=0; i<npoints; i++){
+        p_array[i] = ab.p_array[i];
+    }
 }
 
 
@@ -375,9 +378,9 @@ void ArrayBase<T>::Test(std::string &result)
     /* Test copy constructor. */
     ArrayBase<T> array2(array1);
     bool compare = true;
-    T eps = 1.0e-10;
+    T eps = (T)1.0e-10;
     for(size_t i=0; i<npts; i++){
-        if(fabs(array1[i] - array2[i]) > eps){
+        if(fabs((float)(array1[i] - array2[i])) > eps){
             compare = false;
         }
     }
@@ -395,7 +398,7 @@ void ArrayBase<T>::Test(std::string &result)
     array3 = array1;
     compare = true;
     for(size_t i=0; i<npts; i++){
-        if(fabs(array1[i] - array3[i]) > eps){
+        if(fabs((float)(array1[i] - array3[i])) > eps){
             compare = false;
         }
     }
@@ -412,7 +415,7 @@ void ArrayBase<T>::Test(std::string &result)
     T truesum = (T)npts*((T)npts + (T)1.0)*(T)0.5e0;
     T truemean = truesum/(T)array1.NPts();
     T testmean = array1.Mean();
-    if(fabs(truemean - testmean) > eps){
+    if(fabs((float)(truemean - testmean)) > eps){
         if(!errorfound){
             errorfound = true;
             result = "FAILED \n";
@@ -424,10 +427,10 @@ void ArrayBase<T>::Test(std::string &result)
     if(npts % 2 == 1){
         truemedian = array1[npts/2];
     } else {
-        truemedian = 0.5e0*(array1[(npts-1)/2] + array1[npts/2]);
+        truemedian = (T)0.5e0*(array1[(npts-1)/2] + array1[npts/2]);
     }
     T testmedian = array1.MedianVal();
-    if(fabs(truemedian - testmedian) > eps){
+    if(fabs((float)(truemedian - testmedian)) > eps){
         if(!errorfound){
             errorfound = true;
             result = "FAILED \n";
@@ -439,14 +442,14 @@ void ArrayBase<T>::Test(std::string &result)
     T truemax = (T)npts;
     T testmin = array1.MinVal();
     T testmax = array1.MaxVal();
-    if(fabs(truemin - testmin) > eps){
+    if(fabs((float)(truemin - testmin)) > eps){
         if(!errorfound){
             errorfound = true;
             result = "FAILED \n";
         }
         result += "  - Min-value calculation failed \n";
     }
-    if(fabs(truemax - testmax) > eps){
+    if(fabs((float)(truemax - testmax)) > eps){
         if(!errorfound){
             errorfound = true;
             result = "FAILED \n";

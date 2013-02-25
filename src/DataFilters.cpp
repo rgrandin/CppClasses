@@ -297,8 +297,22 @@ DataFilters<T>::DataFilters(const DataFilters<T> &a) :
     sinc_fft(n_sinc_fft ? new fftw_complex[n_sinc_fft] : 0),
     custom2d_fft(custom2d_nfft1*custom2d_nfft2 ? new fftw_complex[custom2d_nfft1*custom2d_nfft2] : 0)
 {
-    std::copy(a.custom2d_fft, a.custom2d_fft + custom2d_nfft1*custom2d_nfft2, custom2d_fft);
-    std::copy(a.sinc_fft, a.sinc_fft + n_sinc_fft, sinc_fft);
+    //std::copy(a.custom2d_fft, a.custom2d_fft + custom2d_nfft1*custom2d_nfft2, custom2d_fft);
+    //std::copy(a.sinc_fft, a.sinc_fft + n_sinc_fft, sinc_fft);
+    size_t npts = custom2d_nfft1*custom2d_nfft2;
+    if(custom2d_fft){
+        for(size_t i=0; i<npts; i++){
+            custom2d_fft[i][0] = a.custom2d_fft[i][0];
+            custom2d_fft[i][1] = a.custom2d_fft[i][1];
+        }
+    }
+
+    if(sinc_fft){
+        for(size_t i=0; i<n_sinc_fft; i++){
+            sinc_fft[i][0] = a.sinc_fft[i][0];
+            sinc_fft[i][1] = a.sinc_fft[i][1];
+        }
+    }
 }
 
 
