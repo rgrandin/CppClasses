@@ -57,6 +57,11 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
     nvectors = 0;
     qtysize = qty_label_size;
 
+    pscalars.ResetSize(1);
+    pvectors.ResetSize(1);
+    scalar_names.ResetSize(1);
+    vector_names.ResetSize(1);
+
     std::string scalarlabel("Scalar");
     std::stringstream ssnum;
     for(int i=0; i<n_scalars; i++){

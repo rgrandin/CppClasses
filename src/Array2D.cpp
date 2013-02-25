@@ -29,7 +29,8 @@ Array2D<T>::Array2D()
 {
 	size1 = 1;
 	size2 = 1;
-    ArrayBase<T>::npoints = size1*size2;
+
+    ArrayBase<T>::ResetSize(size1*size2, (T)0.0e0);
 }
 
 
@@ -38,8 +39,8 @@ Array2D<T>::Array2D(size_t dim1, size_t dim2, const T initvalue)
 {
 	size1 = dim1;
 	size2 = dim2;
-    ArrayBase<T>::npoints = size1*size2;
-    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
+    size_t npts = size1*size2;
+    ArrayBase<T>::ResetSize(npts, initvalue);
 }
 
 
