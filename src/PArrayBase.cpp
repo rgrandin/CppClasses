@@ -20,12 +20,12 @@ void PArrayBase<T>::initialize(int dim1)
 {
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
-		array = (T*)NULL;					// SET POINTER TO NULL
+        p_array = (T*)NULL;					// SET POINTER TO NULL
 	} else {								// ALLOCATE MEMORY FOR array
-		array = new T[npoints];
+        p_array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
-			array[i] = NULL;				// INITIALIZE TO NULL
+            p_array[i] = NULL;				// INITIALIZE TO NULL
 		}
 	}
 }
@@ -53,9 +53,9 @@ PArrayBase<T>::PArrayBase(size_t dim1)
 
 template <class T>
 PArrayBase<T>::PArrayBase(const PArrayBase<T> &a) : npoints(a.npoints),
-    array(npoints ? new T[npoints] : 0)
+    p_array(npoints ? new T[npoints] : 0)
 {
-    std::copy(a.array, a.array + npoints, array);
+    std::copy(a.p_array, a.p_array + npoints, p_array);
 }
 
 
@@ -72,9 +72,9 @@ template <class T>
 PArrayBase<T>::~PArrayBase()
 {
     for(size_t i=0; i<npoints; i++){
-		delete array[i];
+        delete p_array[i];
 	}
-	delete [] array;
+    delete [] p_array;
 }
 
 
@@ -88,23 +88,23 @@ void PArrayBase<T>::ResetSize(size_t dim1)
 	// THE ARRAY SIZE AS REQUIRED.
 	if(dim1 != npoints){
         for(size_t i=0; i<npoints; i++){
-			if(array[i] != NULL){
-				delete array[i];
+            if(p_array[i] != NULL){
+                delete p_array[i];
 			}
 		}
 
 		npoints = dim1;
-		delete [] array;
-		array = new T[npoints];
+        delete [] p_array;
+        p_array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
-			array[i] = NULL;
+            p_array[i] = NULL;
 		}
 	} else {
 		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
 		// NULL.
         for(size_t i=0; i<npoints; i++){
-			array[i] = NULL;
+            p_array[i] = NULL;
 		}
 	}
 }
@@ -114,7 +114,7 @@ template <class T>
 void PArrayBase<T>::ResetVal(const T initvalue)
 {
 	for(int i=0; i<npoints; i++){
-		array[i] = initvalue;
+        p_array[i] = initvalue;
 	}
 }
 
@@ -145,12 +145,12 @@ PArrayBase<T>& PArrayBase<T>::operator=(PArrayBase<T> a)
 template <class T>
 T& PArrayBase<T>::operator [](const size_t idx)
 {
-    return array[idx];
+    return p_array[idx];
 }
 
 
 template <class T>
 const T& PArrayBase<T>::operator [](const size_t idx) const
 {
-    return array[idx];
+    return p_array[idx];
 }

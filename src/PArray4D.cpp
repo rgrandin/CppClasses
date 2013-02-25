@@ -81,12 +81,12 @@ T& PArray4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3, size_t ind4)
 		assert(ind2 >= 0 && ind2 < size2);
 		assert(ind3 >= 0 && ind3 < size3);
 		assert(ind4 >= 0 && ind4 < size4);
-		return PArrayBase<T>::array[IND1_IND2_IND3_IND4];
+        return PArrayBase<T>::p_array[IND1_IND2_IND3_IND4];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return PArrayBase<T>::array[IND1_IND2_IND3_IND4];
+        return PArrayBase<T>::p_array[IND1_IND2_IND3_IND4];
 	#endif
 }
 
@@ -102,12 +102,12 @@ const T& PArray4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3,
 		assert(ind2 >= 0 && ind2 < size2);
 		assert(ind3 >= 0 && ind3 < size3);
 		assert(ind4 >= 0 && ind4 < size4);
-		return PArrayBase<T>::array[IND1_IND2_IND3_IND4];
+        return PArrayBase<T>::p_array[IND1_IND2_IND3_IND4];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return PArrayBase<T>::array[IND1_IND2_IND3_IND4];
+        return PArrayBase<T>::p_array[IND1_IND2_IND3_IND4];
 	#endif
 }
 
@@ -150,7 +150,7 @@ template <class T>
 void PArray4D<T>::ResetVal(const T initval)
 {
     for(size_t i=0; i<PArrayBase<T>::npoints; i++){
-		PArrayBase<T>::array[i] = initval;
+        PArrayBase<T>::p_array[i] = initval;
 	}
 }
 
@@ -171,7 +171,7 @@ void PArray4D<T>::ResetSize(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 		// IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
 		// NULL
 		for(int i=0; i<PArrayBase<T>::npoints; i++){
-			PArrayBase<T>::array[i] = NULL;
+            PArrayBase<T>::p_array[i] = NULL;
 		}
 	}
 }

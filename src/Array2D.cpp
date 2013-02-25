@@ -80,12 +80,12 @@ T& Array2D<T>::operator()(size_t ind1, size_t ind2)
 		 */
         assert(ind1 < size1);
         assert(ind2 < size2);
-		return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
 	#endif
 }
 
@@ -98,12 +98,12 @@ const T& Array2D<T>::operator()(size_t ind1, size_t ind2) const
 		 */
 		assert(ind1 >= 0 && ind1 < size1);
 		assert(ind2 >= 0 && ind2 < size2);
-		return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
 	#endif
 }
 
@@ -119,12 +119,12 @@ T& Array2D<T>::operator()(int ind1i, int ind2i)
          */
         assert(ind1 < size1);
         assert(ind2 < size2);
-        return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
     #else
         /*
          * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
          */
-        return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
     #endif
 }
 
@@ -139,12 +139,12 @@ const T& Array2D<T>::operator()(int ind1i, int ind2i) const
          */
         assert(ind1 >= 0 && ind1 < size1);
         assert(ind2 >= 0 && ind2 < size2);
-        return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
     #else
         /*
          * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
          */
-        return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
     #endif
 }
 
@@ -186,12 +186,12 @@ T Array2D<T>::GetValue(size_t ind1, size_t ind2) const
 		 */
 		assert(ind1 >= 0 && ind1 < size1);
 		assert(ind2 >= 0 && ind2 < size2);
-		return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return ArrayBase<T>::array[IND1_IND2];
+        return ArrayBase<T>::p_array[IND1_IND2];
 	#endif
 }
 
@@ -204,12 +204,12 @@ void Array2D<T>::SetValue(size_t ind1, size_t ind2, T value)
 		 */
 		assert(ind1 >= 0 && ind1 < size1);
 		assert(ind2 >= 0 && ind2 < size2);
-		ArrayBase<T>::array[IND1_IND2] = value;
+        ArrayBase<T>::p_array[IND1_IND2] = value;
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		ArrayBase<T>::array[IND1_IND2] = value;
+        ArrayBase<T>::p_array[IND1_IND2] = value;
 	#endif
 }
 
@@ -217,7 +217,7 @@ template <class T>
 void Array2D<T>::ResetVal(const T initval)
 {
     for(int i=0; i<ArrayBase<T>::npoints; i++){
-		ArrayBase<T>::array[i] = initval;
+        ArrayBase<T>::p_array[i] = initval;
 	}
 }
 
@@ -238,14 +238,14 @@ void Array2D<T>::ResetSize(size_t dim1, size_t dim2, const T initvalue)
 	if(dim1 != size1 || dim2 != size2){
 		size1 = dim1;
 		size2 = dim2;
-        ArrayBase<T>::npoints = size1*size2;
+        size_t npts = size1*size2;
 
-        ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
+        ArrayBase<T>::ResetSize(npts, initvalue);
 	} else {
 		// IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
 		// 'initvalue'
         for(size_t i=0; i<ArrayBase<T>::npoints; i++){
-			ArrayBase<T>::array[i] = initvalue;
+            ArrayBase<T>::p_array[i] = initvalue;
 		}
 	}
 }
@@ -366,7 +366,7 @@ void Array2D<T>::ReadCSVFile(const std::string filename, const int nheader, cons
 			// Set dummy variables to make use of macro defined above
 			ind1 = i;
 			ind2 = qty_count;
-			ArrayBase<T>::array[IND1_IND2] = qty_val;
+            ArrayBase<T>::p_array[IND1_IND2] = qty_val;
 
 			qty_count++;
 		}
@@ -404,10 +404,10 @@ void Array2D<T>::WriteCSVFile(const std::string filename, const PArray1D<std::st
     int ind2 = 0;
     for(ind1=0; ind1<GetDim(1); ind1++){
         for(ind2=0; ind2<ncols-1; ind2++){
-            file << ArrayBase<T>::array[IND1_IND2] << ", ";
+            file << ArrayBase<T>::p_array[IND1_IND2] << ", ";
         }
         ind2 = ncols-1;
-        file << ArrayBase<T>::array[IND1_IND2] << std::endl;
+        file << ArrayBase<T>::p_array[IND1_IND2] << std::endl;
     }
 
     file.close();

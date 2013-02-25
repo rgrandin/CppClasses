@@ -75,12 +75,12 @@ T& Array1D<T>::operator()(size_t ind1)
 		 * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
 		 */
         assert(ind1 < ArrayBase<T>::npoints);
-		return ArrayBase<T>::array[ind1];
+        return ArrayBase<T>::p_array[ind1];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return ArrayBase<T>::array[ind1];
+        return ArrayBase<T>::p_array[ind1];
 	#endif
 }
 
@@ -93,12 +93,12 @@ const T& Array1D<T>::operator()(size_t ind1) const
 		 * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
 		 */
 		assert(ind1 >= 0 && ind1 < ArrayBase<T>::npoints);
-		return ArrayBase<T>::array[ind1];
+        return ArrayBase<T>::p_array[ind1];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return ArrayBase<T>::array[ind1];
+        return ArrayBase<T>::p_array[ind1];
 	#endif
 }
 
@@ -126,12 +126,12 @@ T Array1D<T>::GetVal(size_t ind1) const
 		 * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
 		 */
 		assert(ind1 >= 0 && ind1 < ArrayBase<T>::npoints);
-		return ArrayBase<T>::array[ind1];
+        return ArrayBase<T>::p_array[ind1];
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		return ArrayBase<T>::array[ind1];
+        return ArrayBase<T>::p_array[ind1];
 	#endif
 }
 
@@ -143,12 +143,12 @@ void Array1D<T>::SetVal(size_t ind1, T value)
 		 * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
 		 */
 		assert(ind1 >= 0 && ind1 < ArrayBase<T>::npoints);
-		ArrayBase<T>::array[ind1] = value;
+        ArrayBase<T>::p_array[ind1] = value;
 	#else
 		/*
 		 * "RELEASE" DEFINED, SO DISABLE BOUNDS-CHECKING
 		 */
-		ArrayBase<T>::array[ind1] = value;
+        ArrayBase<T>::p_array[ind1] = value;
 	#endif
 }
 

@@ -18,12 +18,12 @@ void ArrayBase<T>::initialize(size_t dim1, T initvalue)
 {
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
-        array = (T*)NULL;					// SET POINTER TO NULL
+        p_array = (T*)NULL;					// SET POINTER TO NULL
 	} else {								// ALLOCATE MEMORY FOR array
-        array = new T[npoints];
+        p_array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
-            array[i] = initvalue;           // INITIALIZE TO SPECIFIED VALUE
+            p_array[i] = initvalue;           // INITIALIZE TO SPECIFIED VALUE
 		}
 
 	}
@@ -67,9 +67,9 @@ ArrayBase<T>::ArrayBase(size_t dim1, const T initvalue)
 
 template <class T>
 ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints),
-    array(npoints ? new T[npoints] : 0)
+    p_array(npoints ? new T[npoints] : 0)
 {
-    std::copy(ab.array, ab.array + npoints, array);
+    std::copy(ab.p_array, ab.p_array + npoints, p_array);
 }
 
 
@@ -85,10 +85,10 @@ ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab) : ArrayBase<T>()
 template <class T>
 ArrayBase<T>::~ArrayBase()
 {
-    if(array != NULL){
-        delete [] array;
+    if(p_array != NULL){
+        delete [] p_array;
     }
-    array = NULL;
+    p_array = NULL;
 }
 
 
@@ -103,14 +103,14 @@ ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> ab)
 template <class T>
 T& ArrayBase<T>::operator [](const size_t idx)
 {
-    return array[idx];
+    return p_array[idx];
 }
 
 
 template <class T>
 const T& ArrayBase<T>::operator [](const size_t idx) const
 {
-    return array[idx];
+    return p_array[idx];
 }
 
 
@@ -122,8 +122,8 @@ void ArrayBase<T>::ResetSize(size_t dim1)
 		// CHECK FOR NEW DIMENSIONS MATCHING EXISTING DIMENSIONS.  IF NOT, RESET
 		// THE ARRAY SIZE AS REQUIRED.
 		if(dim1 != npoints){
-            delete [] array;
-            array = new T[dim1];
+            delete [] p_array;
+            p_array = new T[dim1];
 			npoints = dim1;
 		}
 	} else {
@@ -145,17 +145,17 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
 	// THE ARRAY SIZE AS REQUIRED.
 	if(dim1 != npoints){
 		npoints = dim1;
-        delete [] array;
-        array = new T[npoints];
+        delete [] p_array;
+        p_array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
-            array[i] = initvalue;
+            p_array[i] = initvalue;
 		}
 	} else {
 		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
 		// initvalue.
         for(size_t i=0; i<npoints; i++){
-            array[i] = initvalue;
+            p_array[i] = initvalue;
 		}
 	}
 }
@@ -164,9 +164,9 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
 template <class T>
 void ArrayBase<T>::ResetVal(const T initval)
 {
-    assert(array);
+    assert(p_array);
     for(size_t i=0; i<npoints; i++){
-        ArrayBase<T>::array[i] = initval;
+        p_array[i] = initval;
 	}
 }
 
@@ -178,7 +178,7 @@ T ArrayBase<T>::Mean() const
 
     T sum = (T)0.0e0;
     for(size_t i=0; i<npoints; i++){
-        sum += array[i];
+        sum += p_array[i];
     }
     retval = (T)sum/(T)npoints;
 
@@ -193,7 +193,7 @@ float ArrayBase<T>::MeanFloat() const
 	float sum = 0.0e0;
 
 	for(int i=0; i<npoints; i++){
-        sum += (float)array[i];
+        sum += (float)p_array[i];
 	}
 
 	retval = sum/(float)npoints;
@@ -210,7 +210,7 @@ T ArrayBase<T>::Variance() const
 
     T diffsq = (T)0.0e0;
     for(size_t i=0; i<npoints; i++){
-        diffsq += (array[i] - mean)*(array[i] - mean);
+        diffsq += (p_array[i] - mean)*(p_array[i] - mean);
     }
     retval = diffsq/(T)npoints;
 
@@ -225,7 +225,7 @@ float ArrayBase<T>::VarianceFloat() const
 	float mean = ArrayBase<T>::Mean();
 	float diffsq = 0.0e0;
 	for(int i=0; i<npoints; i++){
-        diffsq += ((float)array[i] - mean)*((float)array[i] - mean);
+        diffsq += ((float)p_array[i] - mean)*((float)p_array[i] - mean);
 	}
 	retval = diffsq/(float)npoints;
 
@@ -264,8 +264,8 @@ T ArrayBase<T>::MinVal(size_t &loc) const
 
 	// LOOP THROUGH ARRAY AND CHECK IF ARRAY VALUE IS LESS THAN CURRENT MINIMUM
     for(size_t i=0; i<npoints; i++){
-        if(array[i] < min){
-            min = array[i];
+        if(p_array[i] < min){
+            min = p_array[i];
 			loc = i;
 		}
 	}
@@ -290,8 +290,8 @@ T ArrayBase<T>::MaxVal(size_t &loc) const
 
 	// LOOP THROUGH ARRAY AND CHECK IF ARRAY VALUE IS LESS THAN CURRENT MINIMUM
     for(size_t i=0; i<npoints; i++){
-        if(array[i] > max){
-            max = array[i];
+        if(p_array[i] > max){
+            max = p_array[i];
 			loc = i;
 		}
 	}
@@ -306,7 +306,7 @@ T ArrayBase<T>::MedianVal() const
     // COPY DATA TO TEMPORARY ARRAY TO AVOID REORDERING DATA IN array
     T *ptmp = new T[npoints];
     for(size_t i=0; i<npoints; i++){
-        ptmp[i] = array[i];
+        ptmp[i] = p_array[i];
     }
 
     // CALL qsort.  ptmp WILL CONTAIN THE ASCENDINGLY-SORTED VALUES
@@ -344,7 +344,7 @@ T ArrayBase<T>::RMS() const
     T xrms = (T)0.0e0;
 
     for(size_t i=0; i<npoints; i++){
-        xrms += array[i]*array[i];
+        xrms += p_array[i]*p_array[i];
     }
 
     return (T)sqrt((double)xrms/(double)npoints);

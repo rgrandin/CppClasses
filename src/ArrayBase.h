@@ -387,7 +387,7 @@ protected:
 
 	/** @brief Pointer to actual array.  'Protected' status to allow access by
 	 * derived classes. */
-    T *array;
+    T *p_array;
 
 
 	/**
@@ -409,7 +409,7 @@ protected:
     friend void ArrayBaseSwap(ArrayBase<T> &first, ArrayBase<T> &second)
     {
         std::swap(first.npoints, second.npoints);
-        std::swap(first.array, second.array);
+        std::swap(first.p_array, second.p_array);
     }
 
 

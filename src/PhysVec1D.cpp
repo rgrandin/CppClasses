@@ -62,7 +62,7 @@ const T PhysVec1D<T>::Norm(const T p) const
 		T sum = (T)0.0e0;
 
 		for(int i=0; i<ArrayBase<T>::npoints; i++){
-			sum += pow(ArrayBase<T>::array[i],p);
+            sum += pow(ArrayBase<T>::p_array[i],p);
 		}
 
 		retval = pow(sum,1.0e0/p);
@@ -82,7 +82,7 @@ const T PhysVec1D<T>::Dot(const PhysVec1D<T> &vec) const
 	T sum = (T)0.0e0;
 
 	for(int i=0; i<ArrayBase<T>::npoints; i++){
-		sum += ArrayBase<T>::array[i]*vec(i);
+        sum += ArrayBase<T>::p_array[i]*vec(i);
 	}
 
 	return sum;
@@ -104,9 +104,9 @@ PhysVec1D& PhysVec1D<T>::Cross(const PhysVec1D<T> &ivec)
 	T b1 = (T)0.0e0;
 	T b2 = (T)0.0e0;
 	T b3 = (T)0.0e0;
-	a1 = ArrayBase<T>::array[0];
-	a2 = ArrayBase<T>::array[1];
-	if(ArrayBase<T>::npoints == 3){ a3 = ArrayBase<T>::array[2]; }
+    a1 = ArrayBase<T>::p_array[0];
+    a2 = ArrayBase<T>::p_array[1];
+    if(ArrayBase<T>::npoints == 3){ a3 = ArrayBase<T>::p_array[2]; }
 	b1 = ivec(0);
 	b2 = ivec(1);
 	if(ivec.GetDim() == 3){ b3 = ivec(2); }
@@ -122,9 +122,9 @@ PhysVec1D& PhysVec1D<T>::Cross(const PhysVec1D<T> &ivec)
 template <class T>
 void PhysVec1D<T>::Rotate(const T alpha, const T beta, const T gamma)
 {
-	T px0 = ArrayBase<T>::array[0];
-	T py0 = ArrayBase<T>::array[1];
-	T pz0 = ArrayBase<T>::array[2];
+    T px0 = ArrayBase<T>::p_array[0];
+    T py0 = ArrayBase<T>::p_array[1];
+    T pz0 = ArrayBase<T>::p_array[2];
 
 
 
@@ -135,11 +135,11 @@ void PhysVec1D<T>::Rotate(const T alpha, const T beta, const T gamma)
 	T cosgamma = cos(gamma);
 	T singamma = sin(gamma);
 
-	ArrayBase<T>::array[0] = px0*cosbeta*cosgamma - py0*cosbeta*singamma + pz0*sinbeta;
-	ArrayBase<T>::array[1] = px0*(cosalpha*singamma + cosgamma*sinalpha*sinbeta) +
+    ArrayBase<T>::p_array[0] = px0*cosbeta*cosgamma - py0*cosbeta*singamma + pz0*sinbeta;
+    ArrayBase<T>::p_array[1] = px0*(cosalpha*singamma + cosgamma*sinalpha*sinbeta) +
 			py0*(cosalpha*cosgamma - sinalpha*sinbeta*singamma) -
 			pz0*cosbeta*sinalpha;
-	ArrayBase<T>::array[2] = px0*(sinalpha*singamma - cosalpha*cosgamma*sinbeta) +
+    ArrayBase<T>::p_array[2] = px0*(sinalpha*singamma - cosalpha*cosgamma*sinbeta) +
 			py0*(cosgamma*sinalpha + cosalpha*sinbeta*singamma) +
 			pz0*cosalpha*cosbeta;
 
