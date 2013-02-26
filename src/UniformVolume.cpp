@@ -571,7 +571,7 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 template <class T>
 UniformVolume<T>::UniformVolume()
 {
-    UniformVolume<T>::Initialize(1,1,1, -1.0e0, 1.0e0, -1.0e0, 1.0e0, -1.0e0, 1.0e0, 0.0e0, 0, 0, 256);
+    UniformVolume<T>::Initialize(1,1,1, -1.0e0, 1.0e0, -1.0e0, 1.0e0, -1.0e0, 1.0e0, 0.0e0, 1, 0, 256);
 }
 
 
