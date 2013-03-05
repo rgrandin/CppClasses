@@ -2497,6 +2497,7 @@ size_t UniformVolume<T>::MemoryRequired() const
 template <class T>
 void UniformVolume<T>::PerformCalculations()
 {
+    UniformVolume<T>::setScalarDestinationArray(NULL, (size_t)0);
     UniformVolume<T>::ReadFile(conversion_options.input_file,conversion_options.isBigEndian);
 
     if(conversion_options.output_VTKImageData){
@@ -3200,7 +3201,6 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
 
             /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
             scalar_data = NULL;
-            UniformVolume<T>::RemoveAllData();
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
