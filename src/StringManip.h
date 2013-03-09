@@ -54,10 +54,11 @@
 #ifndef StringManip_
 #define StringManip_
 
-
+#include <algorithm>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
+#include <string.h>
 #include <sstream>
 #include <math.h>
 #include <limits>
@@ -692,6 +693,34 @@ static inline std::string &rtrim(std::string &s) {
  */
 static inline std::string &trim(std::string &s) {
         return ltrim(rtrim(s));
+}
+
+
+
+/**
+ * @brief DetermNumElements counts the number of elements in a std::stringstream.
+ * @param stream std::stringstream for which the number of elements is to be determined.
+ * @return Number of elements in stream.
+ */
+static int DetermNumElements(std::stringstream &stream)
+{
+    /* Save current state of stream into string. */
+    std::string originalstream;
+    originalstream = stream.str();
+
+    /* Count elements in stream. */
+    std::string word;
+    int count = 0;
+
+    while(getline(stream,word,' ')){
+        count++;
+    }
+
+    /* Set stream to original value using saved string. */
+    stream.str(originalstream);
+
+    /* Return number of elements in stream. */
+    return count;
 }
 
 
