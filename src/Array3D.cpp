@@ -272,4 +272,83 @@ T Array3D<T>::MaxVal(size_t &loc1, size_t &loc2, size_t &loc3) const
 }
 
 
+template <class T>
+void Array3D<T>::Transpose(const int dim1, const int dim2)
+{
+    /* Require valid values for dimensions to be transposed. */
+    assert(dim1 >= 0 && dim1 < 3);
+    assert(dim2 >= 0 && dim2 < 3);
 
+    T tmpval;
+    size_t tmpsize;
+    size_t idx1, idx2;
+
+
+    /* Transpose 1st and 2nd dimensions. */
+    if((dim1 == 0 && dim2 == 1) || (dim1 == 1 && dim2 == 0)){
+
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+
+                    idx1 = k*size1*size2 + i*size2 + j;
+                    idx2 = k*size1*size2 + j*size1 + i;
+                    tmpval = ArrayBase<T>::p_array[idx1];
+                    ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
+                    ArrayBase<T>::p_array[idx2] = tmpval;
+
+                }
+            }
+        }
+
+        tmpsize = size1;
+        size1 = size2;
+        size2 = tmpsize;
+    }
+
+
+    /* Transpose 1st and 3rd dimensions. */
+    if((dim1 == 0 && dim2 == 2) || (dim1 == 2 && dim2 == 0)){
+
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+
+                    idx1 = k*size1*size2 + i*size2 + j;
+                    idx2 = i*size3*size2 + k*size2 + j;
+                    tmpval = ArrayBase<T>::p_array[idx1];
+                    ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
+                    ArrayBase<T>::p_array[idx2] = tmpval;
+
+                }
+            }
+        }
+
+        tmpsize = size1;
+        size1 = size3;
+        size3 = tmpsize;
+    }
+
+
+    /* Transpose 2nd and 3rd dimensions. */
+    if((dim1 == 1 && dim2 == 2) || (dim1 == 2 && dim2 == 1)){
+
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+
+                    idx1 = k*size1*size2 + i*size2 + j;
+                    idx2 = j*size1*size3 + i*size3 + k;
+                    tmpval = ArrayBase<T>::p_array[idx1];
+                    ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
+                    ArrayBase<T>::p_array[idx2] = tmpval;
+
+                }
+            }
+        }
+
+        tmpsize = size2;
+        size2 = size3;
+        size3 = tmpsize;
+    }
+}

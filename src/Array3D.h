@@ -302,10 +302,19 @@ class Array3D : public ArrayBase<T>{
     virtual T MaxVal(size_t &loc1, size_t &loc2, size_t &loc3) const;
 
 
+    /**
+     * @brief Transpose specified array dimensions.  Order of specified dimensions does not
+     *  matter.
+     * @param dim1 First dimension to be switched.  Must be 0, 1, or 2.
+     * @param dim2 Second dimension to be switched.  Must be 0, 1, or 2.
+     */
+    void Transpose(const int dim1, const int dim2);
+
+
 	
 	
 	
-  protected:
+protected:
 	// VARIABLES
 	/** @brief Number of points along the first dimension. */
     size_t size1;

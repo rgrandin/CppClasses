@@ -414,3 +414,22 @@ void Array2D<T>::WriteCSVFile(const std::string filename, const PArray1D<std::st
     file.close();
 
 }
+
+
+template <class T>
+void Array2D<T>::Transpose()
+{
+    T tmpval;
+
+    for(size_t i=0; i<size1; i++){
+        for(size_t j=0; j<size2; j++){
+            tmpval = ArrayBase<T>::p_array[i*size2 + j];
+            ArrayBase<T>::p_array[i*size2 + j] = ArrayBase<T>::p_array[j*size1 + i];
+            ArrayBase<T>::p_array[j*size1 + i] = tmpval;
+        }
+    }
+
+    size_t tmpsize = size1;
+    size1 = size2;
+    size2 = tmpsize;
+}

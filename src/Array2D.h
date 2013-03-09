@@ -360,6 +360,12 @@ public:
     void WriteCSVFile(const std::string filename, const PArray1D<std::string *> &labels, const int ndec) const;
 
 
+    /**
+     * @brief Transpose transpose the array.
+     */
+    void Transpose();
+
+
 protected:
     // VARIABLES
     /** @brief Number of points along the first dimension */
