@@ -23,7 +23,8 @@ HEADERS += \
 SOURCES += \
     $$PWD/ProgressInfo.cpp \
     $$PWD/QtIntermediary.cpp \
-    $$PWD/QtIntermediaryBase.cpp
+    $$PWD/QtIntermediaryBase.cpp \
+    $$PWD/StringManip.cpp
 
 
 
