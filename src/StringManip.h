@@ -642,6 +642,60 @@ void DetermFileStem(const std::string &filename, std::string &stem, size_t &ndig
     index_value = (size_t)StringManip::StrToUInt(tmpstem.substr(tmpsize-ndigits));
 }
 
+
+/**
+ * @brief Convert string to all uppercase letters.
+ * @param s String to be converted.
+ */
+inline
+void uppercaseString(std::string &s)
+{
+    for(int i=0; s[i]!='\0'; i++)
+    {
+        s[i] = toupper(s[i]);
+    }
+}
+
+
+/**
+ * @brief Trim leading whitespace from string.
+ *
+ *  Copied from http://stackoverflow.com/a/217605 on 8 March 2013.
+ * @param s String to be trimmed.
+ * @return Trimmed version of string.
+ */
+static inline std::string &ltrim(std::string &s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+        return s;
+}
+
+
+/**
+ * @brief Trim trailing whitespace from string.
+ *
+ *  Copied from http://stackoverflow.com/a/217605 on 8 March 2013.
+ * @param s String to be trimmed.
+ * @return Trimmed version of string.
+ */
+static inline std::string &rtrim(std::string &s) {
+        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
+
+
+/**
+ * @brief Trim whitespace from front <b>and</b> back of string.
+ *
+ *  Copied from http://stackoverflow.com/a/217605 on 8 March 2013.
+ * @param s String to be trimmed.
+ * @return Trimmed version of string.
+ */
+static inline std::string &trim(std::string &s) {
+        return ltrim(rtrim(s));
+}
+
+
+
 } /* StringManip Namespace */
 
 #endif /* StringManip_ */
