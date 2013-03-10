@@ -419,22 +419,81 @@ void Array2D<T>::WriteCSVFile(const std::string filename, const PArray1D<std::st
 template <class T>
 void Array2D<T>::Transpose()
 {
-    T tmpval;
-    size_t idx1, idx2;
+    if(sizeof(T) == sizeof(float)){
 
-    for(size_t i=0; i<size1; i++){
-        for(size_t j=i+1; j<size2; j++){
+        /* Create FFTW plan for transposing data. */
+        fftwf_iodim howmany_dims[2];
 
-            idx1 = i*size2 + j;
-            idx2 = j*size1 + i;
-            tmpval = ArrayBase<T>::p_array[idx1];
-            ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
-            ArrayBase<T>::p_array[idx2] = tmpval;
+        howmany_dims[0].n  = size1;
+        howmany_dims[0].is = size2;
+        howmany_dims[0].os = 1;
+        howmany_dims[1].n  = size2;
+        howmany_dims[1].is = 1;
+        howmany_dims[1].os = size1;
 
-        }
+        const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
+
+        fftwf_plan transpose_plan = fftwf_plan_guru_r2r(0, NULL, howmany_rank, howmany_dims,
+                                                        (float*)ArrayBase<T>::p_array,
+                                                        (float*)ArrayBase<T>::p_array,
+                                                        NULL, FFTW_ESTIMATE);
+
+        fftwf_execute(transpose_plan);
+
+        fftwf_destroy_plan(transpose_plan);
     }
+
+    if(sizeof(T) == sizeof(double)){
+
+        /* Create FFTW plan for transposing data. */
+        fftw_iodim howmany_dims[2];
+
+        howmany_dims[0].n  = size1;
+        howmany_dims[0].is = size2;
+        howmany_dims[0].os = 1;
+        howmany_dims[1].n  = size2;
+        howmany_dims[1].is = 1;
+        howmany_dims[1].os = size1;
+
+        const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
+
+        fftw_plan transpose_plan = fftw_plan_guru_r2r(0, NULL, howmany_rank, howmany_dims,
+                                                      (double*)ArrayBase<T>::p_array,
+                                                      (double*)ArrayBase<T>::p_array,
+                                                      NULL, FFTW_ESTIMATE);
+
+        fftw_execute(transpose_plan);
+
+        fftw_destroy_plan(transpose_plan);
+    }
+
+    if(sizeof(T) == sizeof(long double)){
+
+        /* Create FFTW plan for transposing data. */
+        fftwl_iodim howmany_dims[2];
+
+        howmany_dims[0].n  = size1;
+        howmany_dims[0].is = size2;
+        howmany_dims[0].os = 1;
+        howmany_dims[1].n  = size2;
+        howmany_dims[1].is = 1;
+        howmany_dims[1].os = size1;
+
+        const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
+
+        fftwl_plan transpose_plan = fftwl_plan_guru_r2r(0, NULL, howmany_rank, howmany_dims,
+                                                        (long double*)ArrayBase<T>::p_array,
+                                                        (long double*)ArrayBase<T>::p_array,
+                                                        NULL, FFTW_ESTIMATE);
+
+        fftwl_execute(transpose_plan);
+
+        fftwl_destroy_plan(transpose_plan);
+    }
+
 
     size_t tmpsize = size1;
     size1 = size2;
     size2 = tmpsize;
+
 }

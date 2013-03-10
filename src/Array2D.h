@@ -16,6 +16,10 @@
  * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
  * using '-DRELEASE' on gcc, will disable bounds-checking.
  *
+ * The transpose function requires the use of the FFTW library for single, double,
+ * and long-double precisions.  This means that the following libraries must be
+ * linked by the compiler: -lfftw3 -lfftw3f -lfftw3l
+ *
  * All functions contained within this class are intended for use with the GNU
  * C++ compiler (g++).  Use with other compilers may produce unexpected results
  * and such use is at the users' own risk.
@@ -24,17 +28,22 @@
  *
  * @section Revisions
  *
+ * This list may not be complete.
+ *
  * @date 15 October 2010
  *	- Creation date.
  * @date 17 August 2011
  * 	- Modified to be derived from ArrayBase
- *
+ * @date February 2013
+ *  - Addition of additional constructors and assignment operators.
+ * @date 9 March 2013
+ *  - Addition of transpose operation.
  *
  *
  *
  * @section License
  *
- * Copyright (c) 2010-2011, Robert Grandin
+ * Copyright (c) 2010-2013, Robert Grandin
  * All rights reserved.
  *
  * Redistribution and use of this file is permitted provided that the following
@@ -74,6 +83,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+
+#include <fftw3.h>
 
 #include <ArrayBase.h>
 #include <PArray1D.h>
@@ -362,6 +373,17 @@ public:
 
     /**
      * @brief Transpose transpose the array.
+     *
+     *  Implementation taken from http://agentzlerich.blogspot.com/2010/01/using-fftw-for-in-place-matrix.html.
+     * @warning This function requires the use of numerical data.  Supported datatypes must fit on of the
+     *  following criteria:
+     *      - sizeof(datatype) == sizeof(float)
+     *          - Integers should work in this case since sizeof(int) == sizeof(float)
+     *      - sizeof(datatype) == sizeof(double)
+     *      - sizeof(datatype) == sizeof(long double)
+     *  The float routines require -lfftw3f, double routines require -lfftw3 (this is the default for FFTW),
+     *  and long-double routines require -lfftw3l.  If any one of these libraries is not present on your system,
+     *  the corresponding FFTW routines will not be available and unexpected results may occur.
      */
     void Transpose();
 
