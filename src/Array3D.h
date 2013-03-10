@@ -73,6 +73,7 @@
 #include <fftw3.h>
 
 #include <ArrayBase.h>
+#include <Array2D.h>
 
 /**
  * @brief Class definition for storing 3-dimensional data.

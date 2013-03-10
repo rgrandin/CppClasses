@@ -547,7 +547,7 @@ int main()
 //        delete uv;
 
         size_t size1 = 4;
-        size_t size2 = 4;
+        size_t size2 = 9;
         size_t size3 = 4;
         Array2D<int> a2d(size1, size2, 0.0f);
         Array3D<float> a3d(size1, size2, size3, 0.0f);
