@@ -420,12 +420,17 @@ template <class T>
 void Array2D<T>::Transpose()
 {
     T tmpval;
+    size_t idx1, idx2;
 
     for(size_t i=0; i<size1; i++){
-        for(size_t j=0; j<size2; j++){
-            tmpval = ArrayBase<T>::p_array[i*size2 + j];
-            ArrayBase<T>::p_array[i*size2 + j] = ArrayBase<T>::p_array[j*size1 + i];
-            ArrayBase<T>::p_array[j*size1 + i] = tmpval;
+        for(size_t j=i+1; j<size2; j++){
+
+            idx1 = i*size2 + j;
+            idx2 = j*size1 + i;
+            tmpval = ArrayBase<T>::p_array[idx1];
+            ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
+            ArrayBase<T>::p_array[idx2] = tmpval;
+
         }
     }
 

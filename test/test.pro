@@ -10,11 +10,15 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-HEADERS +=  \
-            ../src/QtIntermediaryBase.h
+include( ../src/include-cppclasses.pri )
 
-SOURCES += main.cpp \
-            ../src/QtIntermediaryBase.cpp
+#HEADERS +=  \
+#            ../src/QtIntermediaryBase.h
+
+#SOURCES += main.cpp \
+#            ../src/QtIntermediaryBase.cpp
+
+SOURCES += main.cpp
 
 
 CONFIG(debug, debug|release) {

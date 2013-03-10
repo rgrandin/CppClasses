@@ -1,4 +1,6 @@
 #include <ArrayBase.h>
+#include <Array2D.h>
+#include <Array3D.h>
 #include <DataFilters.h>
 #include <UniformVolume.h>
 
@@ -539,10 +541,84 @@ int main()
 
     if(testcase == 2){
 
-        UniformVolume<float> *uv = new UniformVolume<float>;
-        uv->AddScalarQuantity("test");
+//        UniformVolume<float> *uv = new UniformVolume<float>;
+//        uv->AddScalarQuantity("test");
 
-        delete uv;
+//        delete uv;
+
+        size_t size1 = 4;
+        size_t size2 = 5;
+        size_t size3 = 6;
+        Array2D<float> a2d(size1, size2, 0.0f);
+        Array3D<float> a3d(size1, size2, size3, 0.0f);
+
+        float count = 0.0f;
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+                    if(k == 0){
+                        a2d(i,j) = count;
+                    }
+
+                    a3d(i,j,k) = count;
+
+                    count += 1.0f;
+                }
+            }
+        }
+
+
+        Array2D<float> a2d_2(a2d);
+        Array3D<float> a3d_2(a3d);
+
+        a2d.Transpose();
+
+        float eps = 1.0e-5;
+        bool pass = true;
+        for(size_t i=0; i<size1; i++){
+            for(size_t j=0; j<size2; j++){
+
+                float val1 = a2d(j,i);
+                float val2 = a2d_2(i,j);
+                float diff = val2 - val1;
+
+                if(fabs(diff) > eps){
+                    pass = false;
+                }
+
+            }
+        }
+
+        std::cout << "2D transpose check passed: " << StringManip::BoolToString(pass) << std::endl;
+
+
+
+
+        a3d.Transpose(1,0);
+
+        eps = 1.0e-5;
+        pass = true;
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+
+                    float val1 = a3d(j,i,k);
+                    float val2 = a3d_2(i,j,k);
+                    float diff = val2 - val1;
+
+                    if(fabs(diff) > eps){
+                        pass = false;
+                    }
+
+                }
+            }
+        }
+
+        std::cout << "3D transpose check passed: " << StringManip::BoolToString(pass) << std::endl;
+
+        a2d(0,0) = 100.0f;
+        a3d(0,0,0) = 100.0f;
+
 
     } /* if(testcase == 2) */
 
