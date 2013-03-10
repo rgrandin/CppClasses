@@ -280,76 +280,154 @@ void Array3D<T>::Transpose(const int dim1, const int dim2)
     assert(dim1 >= 0 && dim1 < 3);
     assert(dim2 >= 0 && dim2 < 3);
 
-    T tmpval;
-    size_t tmpsize;
-    size_t idx1, idx2;
+    /* If dimensions are the same, return without taking any actions. */
+    if(dim1 == dim2){
+        return;
+    }
 
+    /* Set default values for new (post-transpose) array size and the FFTW idiom
+     * struct.  These values are for transposing the 0 and 1 dimensions. */
+    size_t size1_new = size2;
+    size_t size2_new = size1;
+    size_t size3_new = size3;
 
-    /* Transpose 1st and 2nd dimensions. */
+    size_t loopsize  = size3;
+    size_t loopstride = size1*size2;
+
+    int input_size    = (int)size1;
+    int input_stridei = (int)size2;
+    int input_strideo = 1;
+
+    int output_size    = (int)size2;
+    int output_stridei = 1;
+    int output_strideo = (int)size1;
+
     if((dim1 == 0 && dim2 == 1) || (dim1 == 1 && dim2 == 0)){
-
-        for(size_t k=0; k<size3; k++){
-            for(size_t i=0; i<size1; i++){
-                for(size_t j=0; j<size2; j++){
-
-                    idx1 = k*size1*size2 + i*size2 + j;
-                    idx2 = k*size1*size2 + j*size1 + i;
-                    tmpval = ArrayBase<T>::p_array[idx1];
-                    ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
-                    ArrayBase<T>::p_array[idx2] = tmpval;
-
-                }
-            }
-        }
-
-        tmpsize = size1;
-        size1 = size2;
-        size2 = tmpsize;
+        /* Nothing to do here.  Default values correspond to this transposition. */
     }
 
-
-    /* Transpose 1st and 3rd dimensions. */
     if((dim1 == 0 && dim2 == 2) || (dim1 == 2 && dim2 == 0)){
+        //#define IND1_IND2_IND3 ind3*size1*size2 + ind1*size2 + ind2
+        input_size    = (int)size1;
+        input_stridei = (int)size2;
+        input_strideo = (int)(size2*size3);
 
-        for(size_t k=0; k<size3; k++){
-            for(size_t i=0; i<size1; i++){
-                for(size_t j=0; j<size2; j++){
+        output_size    = (int)size3;
+        output_stridei = (int)(size1*size2);
+        output_strideo = (int)size2;
 
-                    idx1 = k*size1*size2 + i*size2 + j;
-                    idx2 = i*size3*size2 + k*size2 + j;
-                    tmpval = ArrayBase<T>::p_array[idx1];
-                    ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
-                    ArrayBase<T>::p_array[idx2] = tmpval;
+        size1_new = size3;
+        size2_new = size2;
+        size3_new = size1;
 
-                }
-            }
-        }
-
-        tmpsize = size1;
-        size1 = size3;
-        size3 = tmpsize;
+        loopsize = size2;
+        loopstride = 1;
     }
 
-
-    /* Transpose 2nd and 3rd dimensions. */
     if((dim1 == 1 && dim2 == 2) || (dim1 == 2 && dim2 == 1)){
+        input_size    = (int)size2;
+        input_stridei = 1;
+        input_strideo = (int)(size2*size1);
 
-        for(size_t k=0; k<size3; k++){
-            for(size_t i=0; i<size1; i++){
-                for(size_t j=0; j<size2; j++){
+        output_size    = (int)size3;
+        output_stridei = (int)(size2*size1);
+        output_strideo = 1;
 
-                    idx1 = k*size1*size2 + i*size2 + j;
-                    idx2 = j*size1*size3 + i*size3 + k;
-                    tmpval = ArrayBase<T>::p_array[idx1];
-                    ArrayBase<T>::p_array[idx1] = ArrayBase<T>::p_array[idx2];
-                    ArrayBase<T>::p_array[idx2] = tmpval;
+        size1_new = size1;
+        size2_new = size3;
+        size3_new = size2;
 
-                }
-            }
+        loopsize = size1;
+        loopstride = size2;
+    }
+
+
+    if(sizeof(T) == sizeof(float)){
+
+        /* Create FFTW plan for transposing data. */
+        fftwf_iodim howmany_dims[2];
+
+        howmany_dims[0].n  = input_size;
+        howmany_dims[0].is = input_stridei;
+        howmany_dims[0].os = input_strideo;
+        howmany_dims[1].n  = output_size;
+        howmany_dims[1].is = output_stridei;
+        howmany_dims[1].os = output_strideo;
+
+        const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
+
+        fftwf_plan transpose_plan = fftwf_plan_guru_r2r(0, NULL, howmany_rank, howmany_dims,
+                                                        (float*)ArrayBase<T>::p_array,
+                                                        (float*)ArrayBase<T>::p_array,
+                                                        NULL, FFTW_ESTIMATE);
+
+        if(transpose_plan == NULL){
+            std::cerr << "Array3D<T>::Transpose()  ERROR: Invalid FFTW plan." << std::endl;
+            std::cerr << "                                Aborting..." << std::endl;
+            return;
         }
 
-        tmpsize = size2;
-        size2 = size3;
-        size3 = tmpsize;
+        for(size_t k=0; k<loopsize; k++){
+            size_t offset = k*loopstride;
+
+            fftwf_execute_r2r(transpose_plan,
+                              (float*)&ArrayBase<T>::p_array[offset],
+                              (float*)&ArrayBase<T>::p_array[offset]);
+        }
+
+        fftwf_destroy_plan(transpose_plan);
     }
+
+    if(sizeof(T) == sizeof(double)){
+
+        /* Create FFTW plan for transposing data. */
+        fftw_iodim howmany_dims[2];
+
+        howmany_dims[0].n  = input_size;
+        howmany_dims[0].is = input_stridei;
+        howmany_dims[0].os = input_strideo;
+        howmany_dims[1].n  = output_size;
+        howmany_dims[1].is = output_stridei;
+        howmany_dims[1].os = output_strideo;
+
+        const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
+
+        fftw_plan transpose_plan = fftw_plan_guru_r2r(0, NULL, howmany_rank, howmany_dims,
+                                                      (double*)ArrayBase<T>::p_array,
+                                                      (double*)ArrayBase<T>::p_array,
+                                                      NULL, FFTW_ESTIMATE);
+
+        fftw_execute(transpose_plan);
+
+        fftw_destroy_plan(transpose_plan);
+    }
+
+    if(sizeof(T) == sizeof(long double)){
+
+        /* Create FFTW plan for transposing data. */
+        fftwl_iodim howmany_dims[2];
+
+        howmany_dims[0].n  = input_size;
+        howmany_dims[0].is = input_stridei;
+        howmany_dims[0].os = input_strideo;
+        howmany_dims[1].n  = output_size;
+        howmany_dims[1].is = output_stridei;
+        howmany_dims[1].os = output_strideo;
+
+        const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
+
+        fftwl_plan transpose_plan = fftwl_plan_guru_r2r(0, NULL, howmany_rank, howmany_dims,
+                                                        (long double*)ArrayBase<T>::p_array,
+                                                        (long double*)ArrayBase<T>::p_array,
+                                                        NULL, FFTW_ESTIMATE);
+
+        fftwl_execute(transpose_plan);
+
+        fftwl_destroy_plan(transpose_plan);
+    }
+
+    size1 = size1_new;
+    size2 = size2_new;
+    size3 = size3_new;
+
 }

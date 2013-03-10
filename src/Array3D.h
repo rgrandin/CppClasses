@@ -69,6 +69,9 @@
 #include <cstdlib>
 #include <memory>
 #include <cmath>
+
+#include <fftw3.h>
+
 #include <ArrayBase.h>
 
 /**
@@ -305,8 +308,19 @@ class Array3D : public ArrayBase<T>{
     /**
      * @brief Transpose specified array dimensions.  Order of specified dimensions does not
      *  matter.
+     *
+     * Implementation taken from http://agentzlerich.blogspot.com/2010/01/using-fftw-for-in-place-matrix.html.
      * @param dim1 First dimension to be switched.  Must be 0, 1, or 2.
      * @param dim2 Second dimension to be switched.  Must be 0, 1, or 2.
+     * @warning This function requires the use of numerical data.  Supported datatypes must fit on of the
+     *  following criteria:
+     *      - sizeof(datatype) == sizeof(float)
+     *          - Integers should work in this case since sizeof(int) == sizeof(float)
+     *      - sizeof(datatype) == sizeof(double)
+     *      - sizeof(datatype) == sizeof(long double)
+     *  The float routines require -lfftw3f, double routines require -lfftw3 (this is the default for FFTW),
+     *  and long-double routines require -lfftw3l.  If any one of these libraries is not present on your system,
+     *  the corresponding FFTW routines will not be available and unexpected results may occur.
      */
     void Transpose(const int dim1, const int dim2);
 

@@ -30,6 +30,10 @@ CONFIG(debug, debug|release) {
 
 INCLUDEPATH += ../src
 
+LIBS += -lfftw3 \       # Double-precision routines
+    -lfftw3f \          # Single-precision routines
+#    -lfftw3l            # Long-Double-precision routines
+
 
 
 unix:{

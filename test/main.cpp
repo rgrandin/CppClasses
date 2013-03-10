@@ -547,9 +547,9 @@ int main()
 //        delete uv;
 
         size_t size1 = 4;
-        size_t size2 = 5;
-        size_t size3 = 6;
-        Array2D<float> a2d(size1, size2, 0.0f);
+        size_t size2 = 4;
+        size_t size3 = 4;
+        Array2D<int> a2d(size1, size2, 0.0f);
         Array3D<float> a3d(size1, size2, size3, 0.0f);
 
         float count = 0.0f;
@@ -557,7 +557,7 @@ int main()
             for(size_t i=0; i<size1; i++){
                 for(size_t j=0; j<size2; j++){
                     if(k == 0){
-                        a2d(i,j) = count;
+                        a2d(i,j) = (int)count;
                     }
 
                     a3d(i,j,k) = count;
@@ -568,8 +568,9 @@ int main()
         }
 
 
-        Array2D<float> a2d_2(a2d);
+        Array2D<int> a2d_2(a2d);
         Array3D<float> a3d_2(a3d);
+        Array3D<float> a3d_original(a3d);
 
         a2d.Transpose();
 
@@ -578,8 +579,8 @@ int main()
         for(size_t i=0; i<size1; i++){
             for(size_t j=0; j<size2; j++){
 
-                float val1 = a2d(j,i);
-                float val2 = a2d_2(i,j);
+                float val1 = (float)a2d(j,i);
+                float val2 = (float)a2d_2(i,j);
                 float diff = val2 - val1;
 
                 if(fabs(diff) > eps){
@@ -595,7 +596,6 @@ int main()
 
 
         a3d.Transpose(1,0);
-
         eps = 1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
@@ -613,11 +613,58 @@ int main()
                 }
             }
         }
+        a3d = a3d_original;
 
-        std::cout << "3D transpose check passed: " << StringManip::BoolToString(pass) << std::endl;
+        std::cout << "3D transpose (0 <--> 1) check passed: " << StringManip::BoolToString(pass) << std::endl;
 
-        a2d(0,0) = 100.0f;
-        a3d(0,0,0) = 100.0f;
+
+
+
+        a3d.Transpose(0,2);
+        eps = 1.0e-5;
+        pass = true;
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+
+                    float val1 = a3d(k,j,i);
+                    float val2 = a3d_2(i,j,k);
+                    float diff = val2 - val1;
+
+                    if(fabs(diff) > eps){
+                        pass = false;
+                    }
+
+                }
+            }
+        }
+        a3d = a3d_original;
+
+        std::cout << "3D transpose (0 <--> 2) check passed: " << StringManip::BoolToString(pass) << std::endl;
+
+
+        a3d.Transpose(1,2);
+        eps = 1.0e-5;
+        pass = true;
+        for(size_t k=0; k<size3; k++){
+            for(size_t i=0; i<size1; i++){
+                for(size_t j=0; j<size2; j++){
+
+                    float val1 = a3d(i,k,j);
+                    float val2 = a3d_2(i,j,k);
+                    float diff = val2 - val1;
+
+                    if(fabs(diff) > eps){
+                        pass = false;
+                    }
+
+                }
+            }
+        }
+        a3d = a3d_original;
+
+        std::cout << "3D transpose (1 <--> 2) check passed: " << StringManip::BoolToString(pass) << std::endl;
+
 
 
     } /* if(testcase == 2) */
