@@ -1,3 +1,5 @@
+INCLUDEPATH += $$PWD
+
 HEADERS += \
     $$PWD/ProgressInfo.h \
     $$PWD/QtIntermediary.h \

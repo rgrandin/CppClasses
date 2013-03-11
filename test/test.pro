@@ -28,9 +28,6 @@ CONFIG(debug, debug|release) {
 }
 
 
-INCLUDEPATH += ../src
-
-
 
 DEFINES += FFTW_TRANSPOSE
 LIBS += -lfftw3 \       # Double-precision routines

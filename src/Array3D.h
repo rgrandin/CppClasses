@@ -16,6 +16,14 @@
  * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
  * using '-DRELEASE' on gcc, will disable bounds-checking.
  *
+ * The transpose function makes use of the FFTW library for single, double,
+ * and long-double precisions.  This means that the following libraries must be
+ * linked by the compiler: -lfftw3 -lfftw3f -lfftw3l.  To use the FFTW library to
+ * perform the transposition, the symbol 'FFTW_TRANSPOSE' must be defined.  Failure
+ * to define this symbol will result in a full-copy of the data being made, which
+ * requires more memory than the FFTW operations.  The data-copy method is also
+ * approximately 4x slower than the FFTW-based method.
+ *
  * All functions contained within this class are intended for use with the GNU
  * C++ compiler (g++).  Use with other compilers may produce unexpected results
  * and such use is at the users' own risk.
