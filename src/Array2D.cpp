@@ -419,6 +419,8 @@ void Array2D<T>::WriteCSVFile(const std::string filename, const PArray1D<std::st
 template <class T>
 void Array2D<T>::Transpose()
 {
+#ifdef FFTW_TRANSPOSE
+    /* Use FFTW to perform transpose. */
     if(sizeof(T) == sizeof(float)){
 
         /* Create FFTW plan for transposing data. */
@@ -495,5 +497,21 @@ void Array2D<T>::Transpose()
     size_t tmpsize = size1;
     size1 = size2;
     size2 = tmpsize;
+#else
+    /* Perform transposition using a copy array. */
+    size_t size1_new = size2;
+    size_t size2_new = size1;
 
+    Array2D<T> data_copy(size1_new, size2_new, (T)0.0e0);
+
+    for(size_t i=0; i<size1; i++){
+        for(size_t j=0; j<size2; j++){
+            data_copy(j,i) = this->operator ()(i,j);
+        }
+    }
+
+    *this = data_copy;
+
+
+#endif
 }

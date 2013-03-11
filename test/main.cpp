@@ -4,7 +4,7 @@
 #include <DataFilters.h>
 #include <UniformVolume.h>
 
-
+#include <omp.h>
 
 
 /* Define symbols to control implementation of code. */
@@ -546,9 +546,25 @@ int main()
 
 //        delete uv;
 
-        size_t size1 = 4;
-        size_t size2 = 9;
+#ifdef FFTW_TRANSPOSE
+        std::cout << "Transposition tests using FFTW (2D and 3D for 0 <--> 1)" << std::endl;
+#else
+        std::cout << "Transposition tests using copy arrays" << std::endl;
+#endif
+
+        size_t size1 = 2;
+        size_t size2 = 3;
         size_t size3 = 4;
+
+        if(true){
+            size1 = 450;
+            size2 = 1000;
+            size3 = 360;
+        } else {
+            size1 = 2;
+            size2 = 2;
+            size3 = 2;
+        }
         Array2D<int> a2d(size1, size2, 0.0f);
         Array3D<float> a3d(size1, size2, size3, 0.0f);
 
@@ -572,7 +588,9 @@ int main()
         Array3D<float> a3d_2(a3d);
         Array3D<float> a3d_original(a3d);
 
+        double t1 = omp_get_wtime();
         a2d.Transpose();
+        double t2 = omp_get_wtime();
 
         float eps = 1.0e-5;
         bool pass = true;
@@ -590,12 +608,15 @@ int main()
             }
         }
 
+        std::cout << std::endl;
         std::cout << "2D transpose check passed: " << StringManip::BoolToString(pass) << std::endl;
+        std::cout << "   Time: " << t2-t1 << " [sec]" << std::endl;
 
 
 
-
+        t1 = omp_get_wtime();
         a3d.Transpose(1,0);
+        t2 = omp_get_wtime();
         eps = 1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
@@ -615,12 +636,14 @@ int main()
         }
         a3d = a3d_original;
 
+        std::cout << std::endl;
         std::cout << "3D transpose (0 <--> 1) check passed: " << StringManip::BoolToString(pass) << std::endl;
+        std::cout << "   Time: " << t2-t1 << " [sec]" << std::endl;
 
 
-
-
+        t1 = omp_get_wtime();
         a3d.Transpose(0,2);
+        t2 = omp_get_wtime();
         eps = 1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
@@ -640,10 +663,13 @@ int main()
         }
         a3d = a3d_original;
 
+        std::cout << std::endl;
         std::cout << "3D transpose (0 <--> 2) check passed: " << StringManip::BoolToString(pass) << std::endl;
+        std::cout << "   Time: " << t2-t1 << " [sec]" << std::endl;
 
-
+        t1 = omp_get_wtime();
         a3d.Transpose(1,2);
+        t2 = omp_get_wtime();
         eps = 1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
@@ -663,8 +689,9 @@ int main()
         }
         a3d = a3d_original;
 
+        std::cout << std::endl;
         std::cout << "3D transpose (1 <--> 2) check passed: " << StringManip::BoolToString(pass) << std::endl;
-
+        std::cout << "   Time: " << t2-t1 << " [sec]" << std::endl;
 
 
     } /* if(testcase == 2) */

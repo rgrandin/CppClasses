@@ -70,10 +70,13 @@
 #include <memory>
 #include <cmath>
 
+#ifdef FFTW_TRANSPOSE
 #include <fftw3.h>
+#endif
 
 #include <ArrayBase.h>
-#include <Array2D.h>
+
+
 
 /**
  * @brief Class definition for storing 3-dimensional data.

@@ -84,7 +84,9 @@
 #include <string>
 #include <sstream>
 
+#ifdef FFTW_TRANSPOSE
 #include <fftw3.h>
+#endif
 
 #include <ArrayBase.h>
 #include <PArray1D.h>
