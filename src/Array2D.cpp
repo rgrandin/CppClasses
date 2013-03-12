@@ -426,12 +426,12 @@ void Array2D<T>::Transpose()
         /* Create FFTW plan for transposing data. */
         fftwf_iodim howmany_dims[2];
 
-        howmany_dims[0].n  = size1;
-        howmany_dims[0].is = size2;
+        howmany_dims[0].n  = (int)size1;
+        howmany_dims[0].is = (int)size2;
         howmany_dims[0].os = 1;
-        howmany_dims[1].n  = size2;
+        howmany_dims[1].n  = (int)size2;
         howmany_dims[1].is = 1;
-        howmany_dims[1].os = size1;
+        howmany_dims[1].os = (int)size1;
 
         const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
 
@@ -450,12 +450,12 @@ void Array2D<T>::Transpose()
         /* Create FFTW plan for transposing data. */
         fftw_iodim howmany_dims[2];
 
-        howmany_dims[0].n  = size1;
-        howmany_dims[0].is = size2;
+        howmany_dims[0].n  = (int)size1;
+        howmany_dims[0].is = (int)size2;
         howmany_dims[0].os = 1;
-        howmany_dims[1].n  = size2;
+        howmany_dims[1].n  = (int)size2;
         howmany_dims[1].is = 1;
-        howmany_dims[1].os = size1;
+        howmany_dims[1].os = (int)size1;
 
         const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
 
@@ -474,12 +474,12 @@ void Array2D<T>::Transpose()
         /* Create FFTW plan for transposing data. */
         fftwl_iodim howmany_dims[2];
 
-        howmany_dims[0].n  = size1;
-        howmany_dims[0].is = size2;
+        howmany_dims[0].n  = (int)size1;
+        howmany_dims[0].is = (int)size2;
         howmany_dims[0].os = 1;
-        howmany_dims[1].n  = size2;
+        howmany_dims[1].n  = (int)size2;
         howmany_dims[1].is = 1;
-        howmany_dims[1].os = size1;
+        howmany_dims[1].os = (int)size1;
 
         const int howmany_rank = sizeof(howmany_dims)/sizeof(howmany_dims[0]);
 

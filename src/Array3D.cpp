@@ -34,7 +34,7 @@ Array3D<T>::Array3D()
 
 
 template <class T>
-Array3D<T>::Array3D(int dim1, int dim2, int dim3)
+Array3D<T>::Array3D(size_t dim1, size_t dim2, size_t dim3)
 {
     size1 = dim1;
     size2 = dim2;
@@ -45,7 +45,7 @@ Array3D<T>::Array3D(int dim1, int dim2, int dim3)
 
 
 template <class T>
-Array3D<T>::Array3D(int dim1, int dim2, int dim3, const T initvalue)
+Array3D<T>::Array3D(size_t dim1, size_t dim2, size_t dim3, const T initvalue)
 {
     size1 = dim1;
     size2 = dim2;

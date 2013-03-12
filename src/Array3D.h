@@ -111,7 +111,7 @@ class Array3D : public ArrayBase<T>{
 	 * @return None.
 	 * @post Array object created and initialized to default value.
 	 */
-	Array3D(int dim1, int dim2, int dim3);
+    Array3D(size_t dim1, size_t dim2, size_t dim3);
 
 
 	/**
@@ -123,7 +123,7 @@ class Array3D : public ArrayBase<T>{
 	 * @return None.
 	 * @post Array object created and initialized to default value.
 	 */
-	Array3D(int dim1, int dim2, int dim3, const T initvalue);
+    Array3D(size_t dim1, size_t dim2, size_t dim3, const T initvalue);
 
 
     /**

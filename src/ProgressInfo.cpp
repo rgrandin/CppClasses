@@ -28,7 +28,7 @@ ProgressInfo::ProgressInfo(const ProgressInfo &a) :
 
 
 #ifdef CXX11
-ProgressInfo::ProgressInfo(ProgressInfo &&a) : ProgressInfo()
+ProgressInfo::ProgressInfo(ProgressInfo &&a)
 {
     ProgressInfoSwap(*this, a);
 }
