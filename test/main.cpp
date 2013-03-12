@@ -142,7 +142,7 @@ public:
      * @brief Move constructor.
      * @param tb Instance of TestBase class to be moved.
      */
-    TestBase(TestBase &&tb) : TestBase() {
+    TestBase(TestBase &&tb) {
         /* Use default constructor to create a default instance of this object. Then,
          * use std::swap to replace the default instance values with those of the
          * passed-in instance. */
@@ -411,7 +411,7 @@ public:
 
 int main()
 {
-    int testcase = 2;   /* 0: Illustrative sample classes defined above. */
+    int testcase = 0;   /* 0: Illustrative sample classes defined above. */
                         /* 1: Run Test() functions for general-use C++ classes. */
                         /* 2: Sandbox area for general testing/debugging. */
 
@@ -592,7 +592,7 @@ int main()
         a2d.Transpose();
         double t2 = omp_get_wtime();
 
-        float eps = 1.0e-5;
+        float eps = (float)1.0e-5;
         bool pass = true;
         for(size_t i=0; i<size1; i++){
             for(size_t j=0; j<size2; j++){
@@ -617,7 +617,7 @@ int main()
         t1 = omp_get_wtime();
         a3d.Transpose(1,0);
         t2 = omp_get_wtime();
-        eps = 1.0e-5;
+        eps = (float)1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
             for(size_t i=0; i<size1; i++){
@@ -644,7 +644,6 @@ int main()
         t1 = omp_get_wtime();
         a3d.Transpose(0,2);
         t2 = omp_get_wtime();
-        eps = 1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
             for(size_t i=0; i<size1; i++){
@@ -670,7 +669,6 @@ int main()
         t1 = omp_get_wtime();
         a3d.Transpose(1,2);
         t2 = omp_get_wtime();
-        eps = 1.0e-5;
         pass = true;
         for(size_t k=0; k<size3; k++){
             for(size_t i=0; i<size1; i++){

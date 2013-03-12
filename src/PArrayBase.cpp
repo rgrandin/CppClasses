@@ -61,7 +61,7 @@ PArrayBase<T>::PArrayBase(const PArrayBase<T> &a) : npoints(a.npoints),
 
 #ifdef CXX11
 template <class T>
-PArrayBase<T>::PArrayBase(PArrayBase<T> &&a) : PArrayBase<T>()
+PArrayBase<T>::PArrayBase(PArrayBase<T> &&a)
 {
     PArrayBaseSwap(*this, a);
 }

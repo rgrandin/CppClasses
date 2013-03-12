@@ -29,11 +29,6 @@ CONFIG(debug, debug|release) {
 
 
 
-DEFINES += FFTW_TRANSPOSE
-LIBS += -lfftw3 \       # Double-precision routines
-        -lfftw3f        # Single-precision routines
-
-
 
 unix:{
     DEFINES += COMPILELINUX
@@ -46,10 +41,17 @@ unix:{
     QMAKE_CXXFLAGS += -std=c++11
     DEFINES += CXX11
 
-    LIBS += -lfftw3
+    DEFINES += FFTW_TRANSPOSE
+    LIBS += -lfftw3 \       # Double-precision routines
+            -lfftw3f        # Single-precision routines
 
 }
 win32:{
+    DEFINES += FFTW_TRANSPOSE
+    INCLUDEPATH += C:\\FFTW
+    QMAKE_LIBDIR += C:\\FFTW
+    LIBS += -llibfftw3-3 -llibfftw3f-3 -llibfftw3l-3
+
     DEFINES += _CRT_SECURE_NO_WARNINGS
     DEFINES += CXX11
 }

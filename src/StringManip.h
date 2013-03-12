@@ -55,13 +55,16 @@
 #define StringManip_
 
 #include <algorithm>
-#include <stdio.h>
-#include <iostream>
+#include <cctype>
+#include <functional>
 #include <iomanip>
-#include <string.h>
-#include <sstream>
-#include <math.h>
+#include <iostream>
 #include <limits>
+#include <math.h>
+#include <stdio.h>
+#include <sstream>
+#include <string.h>
+
 
 
 

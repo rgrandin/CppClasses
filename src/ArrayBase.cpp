@@ -78,7 +78,7 @@ ArrayBase<T>::ArrayBase(const ArrayBase<T> &ab) : npoints(ab.npoints),
 
 #ifdef CXX11
 template <class T>
-ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab) : ArrayBase<T>()
+ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab)
 {
     ArrayBaseSwap(*this, ab);
 }
