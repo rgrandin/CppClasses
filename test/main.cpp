@@ -142,7 +142,7 @@ public:
      * @brief Move constructor.
      * @param tb Instance of TestBase class to be moved.
      */
-    TestBase(TestBase &&tb) : TestBase() {
+    TestBase(TestBase &&tb){
         /* Use default constructor to create a default instance of this object. Then,
          * use std::swap to replace the default instance values with those of the
          * passed-in instance. */
@@ -411,7 +411,7 @@ public:
 
 int main()
 {
-    int testcase = 2;   /* 0: Illustrative sample classes defined above. */
+    int testcase = 0;   /* 0: Illustrative sample classes defined above. */
                         /* 1: Run Test() functions for general-use C++ classes. */
                         /* 2: Sandbox area for general testing/debugging. */
 
