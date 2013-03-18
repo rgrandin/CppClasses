@@ -29,8 +29,25 @@ CONFIG(debug, debug|release) {
 
 
 
+macx:{
+    #message("Mac OS X")
+    #DEFINES += COMPILELINUX
 
-unix:{
+    # OpenMP support -- GCC/MinGW
+    #QMAKE_CXXFLAGS += -fopenmp
+    #QMAKE_LFLAGS += -fopenmp
+
+    # Enable C++11 support
+    #QMAKE_CXXFLAGS += -std=c++11
+    #DEFINES += CXX11
+
+    #DEFINES += FFTW_TRANSPOSE
+    #LIBS += -lfftw3 \       # Double-precision routines
+    #        -lfftw3f        # Single-precision routines
+
+}
+unix:!macx{
+    #message("Unix")
     DEFINES += COMPILELINUX
 
     # OpenMP support -- GCC/MinGW
