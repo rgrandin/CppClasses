@@ -1,0 +1,1 @@
+OpenMP requires gcc version 4.4+.  To install: sudo port install gcc45.  This requires xcode 3.2+ in OS X 10.6.
