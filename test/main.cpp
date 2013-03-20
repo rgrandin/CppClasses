@@ -5,6 +5,7 @@
 #include <UniformVolume.h>
 
 #include <vtkxmliotest.h>
+#include <xdmfiotest.h>
 
 #include <omp.h>
 
@@ -553,7 +554,13 @@ int main()
             size_t size1 = 1500;            /* Large test size. */
             size_t size2 = 1500;
             size_t size3 = 1000;
-            writeVTKFile(size1, size2, size3);
+            //writeVTKFile(size1, size2, size3);
+
+            //std::string filename("output.pvti");
+            //readVTKFile(filename);
+
+
+            writeXDMFFile(size1, size2, size3);
         }
 
 

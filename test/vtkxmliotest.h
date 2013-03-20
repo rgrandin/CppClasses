@@ -37,6 +37,40 @@ template<class TReader> vtkDataSet *ReadAnXMLFile(const char*fileName)
 
 
 
+void readVTKFile(std::string filename)
+{
+    Array3D<float> *data = new Array3D<float>;
+
+
+    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
+    vtkDataSet *dataset;
+
+    dataset = ReadAnXMLFile<vtkXMLPImageDataReader>(filename.c_str());
+    //dataset = ReadAnXMLFile<vtkXMLImageDataReader>(filename.c_str());
+
+    int dims[3] = {0, 0, 0};
+    imageExport->SetInputData(dataset);
+    imageExport->GetDataDimensions(dims);
+
+    data->ResetSize((size_t)dims[1], (size_t)dims[2], (size_t)dims[0], 0.0f);
+
+    imageExport->SetExportVoidPointer(&data->operator [](0));
+
+    imageExport->Export();
+
+
+    std::cout << std::endl;
+    std::cout << "Test values: " << std::endl;
+    std::cout << "  " << data->operator ()(0,0,0) << " " << data->operator ()(0,1,0)
+              << " " << data->operator ()(0,2,0) << std::endl;
+    std::cout << std::endl;
+
+
+    delete data;
+}
+
+
+
 int writeVTKFile(size_t size1, size_t size2, size_t size3)
 {
     if(false){
@@ -118,40 +152,20 @@ int writeVTKFile(size_t size1, size_t size2, size_t size3)
     std::cout << "File written" << std::endl;
 
 
-    data->ResetSize(1,1,1);
-
-
-    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-    vtkDataSet *dataset;
-
-    dataset = ReadAnXMLFile<vtkXMLPImageDataReader>(filename.c_str());
-    //dataset = ReadAnXMLFile<vtkXMLImageDataReader>(filename.c_str());
-
-    int dims[3] = {0, 0, 0};
-    imageExport->SetInputData(dataset);
-    imageExport->GetDataDimensions(dims);
-
-    data->ResetSize((size_t)dims[1], (size_t)dims[2], (size_t)dims[0], datavalue-1.0f);
-
-    imageExport->SetExportVoidPointer(&data->operator [](0));
-
-    imageExport->Export();
-
-
-    std::cout << std::endl;
-    std::cout << "Test values: " << std::endl;
-    std::cout << "  " << data->operator ()(0,0,0) << " " << data->operator ()(0,1,0)
-              << " " << data->operator ()(0,2,0) << std::endl;
-    std::cout << std::endl;
-    std::cout << "Correct value: " << datavalue << std::endl;
-
-
-
     delete data;
+
+
+
+    readVTKFile(filename);
+
 
 
     return EXIT_SUCCESS;
 }
+
+
+
+
 
 
 #endif // VTKXMLIOTEST_H

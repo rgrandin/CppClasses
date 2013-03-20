@@ -16,7 +16,8 @@ include( ../src/include-cppclasses.pri )
 
 
 HEADERS += \
-    vtkxmliotest.h
+    vtkxmliotest.h \
+    xdmfiotest.h
 
 SOURCES += main.cpp
 
@@ -62,16 +63,23 @@ unix:!macx{
     LIBS += -lfftw3 \       # Double-precision routines
             -lfftw3f        # Single-precision routines
 
-    # Include path for VTK libraries, version 5.10.1
+    # VTK libraries, version 5.10.1
     #INCLUDEPATH += /usr/local/include/vtk-5.10
     #LIBS += -L/usr/local/lib/vtk-5.10 -lvtkIO -lvtkCommon -lvtkImaging -lvtkFiltering -lvtkDICOMParser \
     #        -lvtkNetCDF -lvtkNetCDF_cxx -lvtkmetaio -lvtksqlite -lvtkpng -lvtkzlib \
     #        -lvtkjpeg -lvtkexpat -lvtksys -lvtkhdf5_hl -lvtkhdf5 -lvtktiff \
     #        -lLSDyna
 
-    # Include path for VTK libraries, version 6.0
+    # VTK libraries, version 6.0
     INCLUDEPATH += /usr/local/include/vtk-6.0
     LIBS += -L/usr/local/lib -lvtkIOXML-6.0 -lvtkCommonCore-6.0 -lvtkIOImage-6.0
+
+
+    # XDMF
+    INCLUDEPATH += /usr/local/include                       # XDMF classes
+    INCLUDEPATH += /usr/lib64/mpi/gcc/openmpi/include       # MPI header
+    LIBS += -L/usr/local/xdmf/lib/ -lmetis -lvtkexoIIc -lvtkhdf5 -lvtklibxml2 -lXdmf -lXdmfUtils
+    LIBS += -L/usr/lib64/mpi/gcc/openmpi/lib64 -lmpi -lmpi_cxx
 
 }
 win32:{
