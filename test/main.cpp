@@ -4,6 +4,8 @@
 #include <DataFilters.h>
 #include <UniformVolume.h>
 
+#include <vtkxmliotest.h>
+
 #include <omp.h>
 
 
@@ -541,113 +543,20 @@ int main()
 
     if(testcase == 2){
 
-//        UniformVolume<float> *uv = new UniformVolume<float>;
-//        uv->AddScalarQuantity("test");
-
-//        delete uv;
 
         /* Test VTK XML. */
         if(true){
-//            size_t size1 = 2;
-//            size_t size2 = 2147483647;      /* Max-value of 'int' */
-
-            size_t size1 = 2147483647/200;
-            size_t size2 = 199;
-
-//            while(size1*size2 <= 2147483647){
-//                size2++;
-//            }
-
-            size1 = 16384;
-            size2 = 16384;
-
-            size_t npieces = 9;
-            size_t start_extent = 0;
-            size_t end_extent = size2 - 1;
-
-            Array2D<float> *data = new Array2D<float>(size1, size2*npieces, (float)3);
-
-            std::ofstream file;
-            file.open("TestFile_BINARY.vti", std::ios::binary);
-//            file.open("TestFile_ASCII.vti");
-            char buffer[512];
-            int size;
-
-            if(file.is_open()){
-                size = sprintf(buffer,"<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
-                file.write(buffer, size);
-
-                size = sprintf(buffer,"  <ImageData WholeExtent=\"0 %d 0 %d 0 0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n", (int)size1-1, (int)size2*(int)npieces-1);
-                file.write(buffer, size);
-
-                for(size_t n=0; n<npieces; n++){
-
-                    size = sprintf(buffer,"    <Piece Extent=\"0 %d %d %d 0 0\">\n", (int)size1-1, (int)start_extent, (int)end_extent);
-                    file.write(buffer, size);
-
-                    start_extent += size2;
-                    end_extent += size2;
-
-                    size = sprintf(buffer,"      <PointData Scalars=\"intensity\">\n");
-                    file.write(buffer, size);
-
-    //                size = sprintf(buffer,"        <DataArray type=\"Int16\" Name=\"array_name\" format=\"appended\" RangeMin=\"3\" RangeMax=\"3\" offset=\"0\" />\n");
-
-                    std::stringstream tmpss;
-                    tmpss << "        <DataArray type=\"Float32\" Name=\"array_name\" format=\"appended\" RangeMin=\"3\" RangeMax=\"3\" offset=\"" << size1*size2*n << "\" />\n";
-                    size = sprintf(buffer,"%s", tmpss.str().c_str());
-                    file.write(buffer, size);
-
-                    size = sprintf(buffer,"      </PointData>\n");
-                    file.write(buffer, size);
-
-                    size = sprintf(buffer,"    </Piece>\n");
-                    file.write(buffer, size);
-
-                }
-
-                size = sprintf(buffer,"  </ImageData>\n");
-                file.write(buffer, size);
-
-                size = sprintf(buffer,"  <AppendedData encoding=\"raw\">\n");
-                file.write(buffer, size);
-
-                size = sprintf(buffer,"   _");
-                file.write(buffer, size);
-
-                file.write((char*)&data->operator [](0), sizeof(float)*size1*size2*npieces);
-
-                size = sprintf(buffer,"\n  </AppendedData>\n");
-                file.write(buffer, size);
-
-                size = sprintf(buffer,"</VTKFile>\n");
-                file.write(buffer, size);
-
-//                file << "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\">" << std::endl;
-//                file << "  <ImageData WholeExtent=\"0 " << size1-1 << " 0 " << size2-1 << " 0 0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">" << std::endl;
-//                file << "    <Piece Extent=\"0 " << size1-1 << " 0 " << size2-1 << " 0 0\">" << std::endl;
-//                file << "      <PointData Scalars=\"intensity\">" << std::endl;
-//                file << "        <DataArray type=\"Int16\" Name=\"array_name\" format=\"ascii\">" << std::endl;
-//                for(size_t i=0; i<size1; i++){
-//                    for(size_t j=0; j<size2; j++){
-//                        file << data->operator ()(i,j) << " ";
-//                    }
-//                    file << std::endl;
-//                }
-//                file << "        </DataArray>" << std::endl;
-//                file << "      </PointData>" << std::endl;
-//                file << "    </Piece>" << std::endl;
-//                file << "  </ImageData>" << std::endl;
-//                file << "</VTKFile>" << std::endl;
-
-//                file.close();
-
-            } else {
-                std::cerr << "ERROR: Could not open file." << std::endl;
-            }
-
-
+//            size_t npts = 2147483648;     /* Max-value of signed integer. */
+//            size_t size1 = 1500/4;        /* Small test size. */
+//            size_t size2 = 1500/4;
+//            size_t size3 = 1000/4;
+            size_t size1 = 1500;            /* Large test size. */
+            size_t size2 = 1500;
+            size_t size3 = 1000;
+            writeVTKFile(size1, size2, size3);
         }
+
+
 
 
 

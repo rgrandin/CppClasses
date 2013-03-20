@@ -12,11 +12,11 @@ TEMPLATE = app
 
 include( ../src/include-cppclasses.pri )
 
-#HEADERS +=  \
-#            ../src/QtIntermediaryBase.h
 
-#SOURCES += main.cpp \
-#            ../src/QtIntermediaryBase.cpp
+
+
+HEADERS += \
+    vtkxmliotest.h
 
 SOURCES += main.cpp
 
@@ -30,8 +30,7 @@ CONFIG(debug, debug|release) {
 
 
 macx:{
-    #message("Mac OS X")
-    #DEFINES += COMPILELINUX
+    DEFINES += COMPILEMAC
 
     # OpenMP support -- GCC/MinGW
     #QMAKE_CXXFLAGS += -fopenmp
@@ -47,7 +46,8 @@ macx:{
 
 }
 unix:!macx{
-    #message("Unix")
+    # "unix" is also valid for Mac system, so "!macx" is required for Linux-only
+
     DEFINES += COMPILELINUX
 
     # OpenMP support -- GCC/MinGW
@@ -62,8 +62,21 @@ unix:!macx{
     LIBS += -lfftw3 \       # Double-precision routines
             -lfftw3f        # Single-precision routines
 
+    # Include path for VTK libraries, version 5.10.1
+    INCLUDEPATH += /usr/local/include/vtk-5.10
+    LIBS += -L/usr/local/lib/vtk-5.10 -lvtkIO -lvtkCommon -lvtkImaging -lvtkFiltering -lvtkDICOMParser \
+            -lvtkNetCDF -lvtkNetCDF_cxx -lvtkmetaio -lvtksqlite -lvtkpng -lvtkzlib \
+            -lvtkjpeg -lvtkexpat -lvtksys -lvtkhdf5_hl -lvtkhdf5 -lvtktiff \
+            -lLSDyna
+
+    # Include path for VTK libraries, version 6.0
+    #INCLUDEPATH += /usr/local/include/vtk-6.0
+    #LIBS += -L/usr/local/lib -lvtkIOXML-6.0 -lvtkCommonCore-6.0 -lvtkIOImage-6.0
+
 }
 win32:{
+    DEFINES += COMPILEWIN32
+
     DEFINES += FFTW_TRANSPOSE
     INCLUDEPATH += C:\\FFTW
     QMAKE_LIBDIR += C:\\FFTW
@@ -72,3 +85,4 @@ win32:{
     DEFINES += _CRT_SECURE_NO_WARNINGS
     DEFINES += CXX11
 }
+
