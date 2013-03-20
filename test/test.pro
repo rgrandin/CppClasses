@@ -63,15 +63,15 @@ unix:!macx{
             -lfftw3f        # Single-precision routines
 
     # Include path for VTK libraries, version 5.10.1
-    INCLUDEPATH += /usr/local/include/vtk-5.10
-    LIBS += -L/usr/local/lib/vtk-5.10 -lvtkIO -lvtkCommon -lvtkImaging -lvtkFiltering -lvtkDICOMParser \
-            -lvtkNetCDF -lvtkNetCDF_cxx -lvtkmetaio -lvtksqlite -lvtkpng -lvtkzlib \
-            -lvtkjpeg -lvtkexpat -lvtksys -lvtkhdf5_hl -lvtkhdf5 -lvtktiff \
-            -lLSDyna
+    #INCLUDEPATH += /usr/local/include/vtk-5.10
+    #LIBS += -L/usr/local/lib/vtk-5.10 -lvtkIO -lvtkCommon -lvtkImaging -lvtkFiltering -lvtkDICOMParser \
+    #        -lvtkNetCDF -lvtkNetCDF_cxx -lvtkmetaio -lvtksqlite -lvtkpng -lvtkzlib \
+    #        -lvtkjpeg -lvtkexpat -lvtksys -lvtkhdf5_hl -lvtkhdf5 -lvtktiff \
+    #        -lLSDyna
 
     # Include path for VTK libraries, version 6.0
-    #INCLUDEPATH += /usr/local/include/vtk-6.0
-    #LIBS += -L/usr/local/lib -lvtkIOXML-6.0 -lvtkCommonCore-6.0 -lvtkIOImage-6.0
+    INCLUDEPATH += /usr/local/include/vtk-6.0
+    LIBS += -L/usr/local/lib -lvtkIOXML-6.0 -lvtkCommonCore-6.0 -lvtkIOImage-6.0
 
 }
 win32:{

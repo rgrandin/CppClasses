@@ -3,7 +3,7 @@
 
 #include <Array3D.h>
 
-//#include <vtkVersion.h>
+#include <vtkVersion.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
 #include <vtkXMLStructuredGridWriter.h>
@@ -29,9 +29,10 @@ template<class TReader> vtkDataSet *ReadAnXMLFile(const char*fileName)
 {
     vtkSmartPointer<TReader> reader = vtkSmartPointer<TReader>::New();
     reader->SetFileName(fileName);
-    reader->Update();
+    reader->UpdateInformation();
+    reader->UpdateWholeExtent();
     reader->GetOutput()->Register(reader);
-    return vtkDataSet::SafeDownCast(reader->GetOutput());
+    return vtkDataSet::SafeDownCast(reader->GetOutputAsDataSet());
 }
 
 
@@ -96,15 +97,17 @@ int writeVTKFile(size_t size1, size_t size2, size_t size3)
     imageData = imageImport->GetOutput();
 
 
-    //int npieces = 16;
-    //std::string filename("output.pvti");
-    //vtkSmartPointer<vtkXMLPImageDataWriter> writer2 = vtkSmartPointer<vtkXMLPImageDataWriter>::New();
-    std::string filename("output_serial.vti");
-    vtkSmartPointer<vtkXMLImageDataWriter> writer2 = vtkSmartPointer<vtkXMLImageDataWriter>::New();
+    int npieces = 16;
+    std::string filename("output.pvti");
+    vtkSmartPointer<vtkXMLPImageDataWriter> writer2 = vtkSmartPointer<vtkXMLPImageDataWriter>::New();
+    //std::string filename("output_serial.vti");
+    //vtkSmartPointer<vtkXMLImageDataWriter> writer2 = vtkSmartPointer<vtkXMLImageDataWriter>::New();
     writer2->SetFileName(filename.c_str());
-    //writer2->SetNumberOfPieces(npieces);
-    //writer2->SetStartPiece(0);
-    //writer2->SetEndPiece(npieces-1);
+    writer2->SetHeaderTypeToUInt64();
+    //writer2->SetDataModeToBinary();
+    writer2->SetNumberOfPieces(npieces);
+    writer2->SetStartPiece(0);
+    writer2->SetEndPiece(npieces-1);
 #if VTK_MAJOR_VERSION <= 5
     writer2->SetInput(imageData);
 #else
@@ -121,11 +124,11 @@ int writeVTKFile(size_t size1, size_t size2, size_t size3)
     vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
     vtkDataSet *dataset;
 
-//    dataset = ReadAnXMLFile<vtkXMLPImageDataReader>(filename.c_str());
-    dataset = ReadAnXMLFile<vtkXMLImageDataReader>(filename.c_str());
+    dataset = ReadAnXMLFile<vtkXMLPImageDataReader>(filename.c_str());
+    //dataset = ReadAnXMLFile<vtkXMLImageDataReader>(filename.c_str());
 
     int dims[3] = {0, 0, 0};
-    imageExport->SetInput(dataset);
+    imageExport->SetInputData(dataset);
     imageExport->GetDataDimensions(dims);
 
     data->ResetSize((size_t)dims[1], (size_t)dims[2], (size_t)dims[0], datavalue-1.0f);
