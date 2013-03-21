@@ -18,13 +18,33 @@
 #include <omp.h>
 
 
+/** @brief Namespace demonstrating basic XDMF usage. */
 namespace basicXdmfTest{
 
 
+/**
+ * @brief Write a single array to disk using XDMF/HDF5 format.
+ *
+ *  User will be asked for array dimensions and file name during function execution.
+ */
 void writeXDMFFile();
 
 
+/**
+ * @brief Read an XDMF/HDF5 file and write data information to std::cout.
+ *
+ *  User will be asked for filename during function execution.
+ */
+void readXDMFFile();
+
+
+/**
+ * @brief Convert a volume file (VTK or CNDE VOL format) to XDMF/HDF5 format.
+ *
+ *  User will be asked for filenames during function execution.
+ */
 void convertVolume();
+
 
 
 }

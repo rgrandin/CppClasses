@@ -291,3 +291,120 @@ void basicXdmfTest::convertVolume()
                      * This behavior was verified using Valgrind to locate memory
                      * leaks, and this implementation produced no errors. */
 }
+
+
+
+void basicXdmfTest::readXDMFFile()
+{
+    /* This function adapted from:
+     *   http://www.xdmf.org/index.php/XDMF_API (see Reading XDMF at bottom of page)
+     */
+
+
+    /* Get extra info. */
+    std::string filename;
+
+    std::cout << std::endl;
+    std::cout << "Running readXDMFFile()" << std::endl;
+    std::cout << "  Enter name of volume file to be read: ";
+    std::cin >> filename;
+    std::cout << std::endl;
+
+    XdmfDOM *d = new XdmfDOM;
+    XdmfGrid *grid = new XdmfGrid;
+    XdmfTopology *topo = new XdmfTopology;
+    XdmfGeometry *geo = new XdmfGeometry;
+    XdmfArray *connect = new XdmfArray;
+    XdmfArray *data = new XdmfArray;
+
+
+    float *fdata;
+
+
+
+    d->Parse(filename.c_str());
+
+    XdmfXmlNode node;
+    node = d->FindElementByPath("/Xdmf/Domain/Grid");
+
+    grid->SetDOM(d);
+    grid->SetElement(node);
+    grid->UpdateInformation();
+    grid->Update();
+    std::cout << "Grid" << std::endl;
+    std::cout << "  Name:   " << grid->GetName() << std::endl;
+    std::cout << "  Type:   " << grid->GetGridTypeAsString() << std::endl;
+    std::cout << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
+
+    for(int a=0; a<grid->GetNumberOfAttributes(); a++){
+        std::cout << "    Attrib " << a << std::endl;
+        XdmfAttribute *at = grid->GetAttribute(a);
+        std::cout << "      Type: " << at->GetAttributeTypeAsString() << std::endl;
+
+        at->UpdateInformation();
+        //at->Update();
+
+
+        XdmfArray *d2 = at->GetValues(1);
+        d2->SetDataPointer(fdata);
+
+        at->Update();
+
+
+        XdmfInt64 nel = d2->GetNumberOfElements();
+
+
+
+
+        std::cout << "      Data" << std::endl;
+        std::cout << "        # Points: " << nel << std::endl;
+        if(nel > 0){
+            std::cout << "        Shape:    " << d2->GetShapeAsString() << std::endl;
+            std::cout << "        Datatype: " << d2->GetNumberTypeAsString() << std::endl;
+
+            int rank = d2->GetRank();
+            XdmfInt64 dims[rank];
+
+            rank = d2->GetShape(dims);
+            XdmfInt64 npts = 1;
+            for(int i=0; i<rank; i++){
+                npts *= dims[i];
+            }
+
+            fdata = new float[npts];
+
+            std::cout << "test (pre):  " << fdata[1] << std::endl;
+
+            at->Update();
+
+            std::cout << "test (post): " << fdata[1] << std::endl;
+        }
+
+    }
+
+    std::cout << std::endl;
+
+    topo = grid->GetTopology();
+    topo->DebugOn();
+    std::cout << "Topology: " << topo->GetTopologyTypeAsString() << std::endl;
+
+    connect = topo->GetConnectivity();
+    std::cout << "Connectivity: " << connect->GetValues() << std::endl;
+
+    geo = grid->GetGeometry();
+    geo->UpdateInformation();
+    geo->Update();
+    std::cout << "Geometry type: " << geo->GetGeometryTypeAsString() << std::endl;
+
+    data = geo->GetPoints();
+    std::cout << "Data" << std::endl;
+    std::cout << "  Name:     " << data->GetMemberName(0) << std::endl;
+    std::cout << "  # Points: " << data->GetNumberOfElements() << std::endl;
+    std::cout << "  Shape:    " << data->GetShapeAsString() << std::endl;
+    std::cout << "  Datatype: " << data->GetNumberTypeAsString() << std::endl;
+
+
+
+    std::cout << std::endl;
+
+}

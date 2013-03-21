@@ -13,6 +13,7 @@ int main()
     std::cout << "Enter demo selection: " << std::endl;
     std::cout << "   0 - Write 3D array, user specified size, value = 100*k + 10*i + j" << std::endl;
     std::cout << "   1 - Convert volume file to XDMF" << std::endl;
+    std::cout << "   2 - Read XDMF file and write information to std::cout" << std::endl;
     std::cout << std::endl;
 
     std::cout << "Selection: ";
@@ -27,6 +28,10 @@ int main()
 
     case(1):
         basicXdmfTest::convertVolume();
+        break;
+
+    case(2):
+        basicXdmfTest::readXDMFFile();
         break;
 
     default:
