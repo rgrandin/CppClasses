@@ -2939,8 +2939,10 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
             }
 
             /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
-            scalar_data = NULL;
-            UniformVolume<T>::RemoveAllData();
+            if(scalar_data != NULL){
+                scalar_data = NULL;
+                UniformVolume<T>::RemoveAllData();
+            }
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
@@ -3200,7 +3202,10 @@ void UniformVolume<T>::VTKReadLegacyBinary(std::fstream &file, const bool isBigE
             }
 
             /* Set pointer to external array to NULL to prevent overwriting the freshly-read data. */
-            scalar_data = NULL;
+            if(scalar_data != NULL){
+                scalar_data = NULL;
+                UniformVolume<T>::RemoveAllData();
+            }
 
             desc = "";
             qtsignals->EmitFunctionDesc(desc);
