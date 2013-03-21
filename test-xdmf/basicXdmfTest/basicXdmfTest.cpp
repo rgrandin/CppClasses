@@ -1,42 +1,70 @@
 #include <basicXdmfTest.h>
 
-void basicXdmfTest::writeXDMFFile(size_t size1, size_t size2, size_t size3)
+void basicXdmfTest::writeXDMFFile()
 {
     /* This function adapted from:
      *   http://www.xdmf.org/index.php/XDMF_API (see Writing XDMF at bottom of page)
      */
 
 
-    /* Create dummy 3D array of values to be written. */
-    Array3D<float> data(size1, size2, size3, 1.0f);
+    /* Get extra info. */
+    std::string arrayname;
+    std::string outputname;
+    int compression;
+    size_t s1, s2, s3;
 
-    for(size_t k=0; k<size3; k++){
-        for(size_t i=0; i<size1; i++){
-            for(size_t j=0; j<size2; j++){
+    std::cout << std::endl;
+    std::cout << "Running writeXDMFFile()" << std::endl;
+    std::cout << "  Enter 3D array size (rows, cols, slices): ";
+    std::cin >> s1 >> s2 >> s3;
+    std::cout << "  Enter name for array: ";
+    std::cin >> arrayname;
+    std::cout << "  Enter name for output file (no extension): ";
+    std::cin >> outputname;
+    std::cout << "  Enter compression of heavy data (0 - 9, 0 uncompressed): ";
+    std::cin >> compression;
+    std::cout << std::endl;
+
+
+
+
+
+    std::cout << "  Creating 3D float array of size ( " << s1 << " , " << s2 << " , "
+              << s3 << " )" << std::endl;
+
+    /* Create dummy 3D array of values to be written. */
+    Array3D<float> data(s1, s2, s3, 1.0f);
+
+    for(size_t k=0; k<s3; k++){
+        for(size_t i=0; i<s1; i++){
+            for(size_t j=0; j<s2; j++){
                 data(i,j,k) = (float)k*100.0 + (float)i*10.0 + (float)j;
 
             }
         }
     }
 
+    std::cout << "    Done!" << std::endl;
+    std::cout << "    value(i,j,k) = 100*k + 10*i + j" << std::endl;
+
+
+
+
+
+    std::cout << std::endl;
+    std::cout << "  Writing data as XDMF file with heavy data stored as HDF5" << std::endl;
+    double t1 = omp_get_wtime();
 
 
     /* Represent data as XdmfArray. */
     XdmfArray *xarray = new XdmfArray;
-    XdmfInt64 shape[3] = { (XdmfInt64)size3, (XdmfInt64)size1, (XdmfInt64)size2 };
+    XdmfInt64 shape[3] = { (XdmfInt64)s3, (XdmfInt64)s1, (XdmfInt64)s2 };
 
     xarray->SetAllowAllocate(false);
     xarray->SetShape(3, shape);
     xarray->SetDataPointer(&data[0]);
     xarray->SetNumberType(XDMF_FLOAT32_TYPE);
 
-
-    XdmfHDF *xhdf = new XdmfHDF;
-    xhdf->CopyShape(xarray);
-    xhdf->CopyType(xarray);
-    xhdf->Open("h5test.h5:/Sample01", "w");
-    xhdf->Write(xarray);
-    xhdf->Close();
 
     XdmfDOM *d = new XdmfDOM;
     XdmfRoot *root = new XdmfRoot;
@@ -72,29 +100,195 @@ void basicXdmfTest::writeXDMFFile(size_t size1, size_t size2, size_t size3)
 
     domain->Insert(grid);
 
-    attrib->SetName("TestData");
+    attrib->SetName(arrayname.c_str());
     attrib->SetAttributeCenter(XDMF_ATTRIBUTE_CENTER_NODE);
     attrib->SetAttributeType(XDMF_ATTRIBUTE_TYPE_SCALAR);
     attrib->SetValues(xarray);
 
-    xarray->SetHeavyDataSetName("h5test.h5:/Sample01");
+    std::string heavydataname(outputname);
+    heavydataname = heavydataname + ".h5:/" + arrayname;
+
+    xarray->SetHeavyDataSetName(heavydataname.c_str());
+    xarray->SetCompression(compression);
 
     grid->Insert(attrib);
 
     root->Build();
 
-    d->Write("test.xmf");
+    outputname = outputname + ".xmf";
+    d->Write(outputname.c_str());
+
+    double t2 = omp_get_wtime();
 
 
-//    std::cout << "Debugging:" << std::endl;
-//    std::cout << "  Topology type: " << topo->GetTopologyType() << std::endl;
-//    std::cout << "  Geometry type: " << geo->GetGeometryType() << std::endl;
-//    std::cout << std::endl;
+    std::cout << "    Done!" << std::endl;
+    std::cout << "    XDMF File: " << outputname << std::endl;
+    std::cout << "    Heavy Data: " << heavydataname << std::endl;
+    std::cout << "    Write time: " << t2 - t1 << " [sec]" << std::endl;
+    std::cout << std::endl;
+
 
 
     /* Need to include this cleanup to prevent memory leaks. */
     delete xarray;
-    delete xhdf;
+//    delete xhdf;
+    delete d;
+    delete root;
+    delete domain;
+    delete grid;
+//    delete topo;      /* Commented-out to avoid runtime seg-fault. */
+//    delete geo;       /* Commented-out to avoid runtime seg-fault. */
+    delete attrib;
+    delete info;
+}
+
+
+
+void basicXdmfTest::convertVolume()
+{
+    /* This function adapted from:
+     *   http://www.xdmf.org/index.php/XDMF_API (see Writing XDMF at bottom of page)
+     */
+
+
+    /* Get extra info. */
+    std::string volumename;
+    std::string arrayname;
+    std::string outputname;
+    size_t s1, s2, s3;
+    int compression;
+
+    std::cout << std::endl;
+    std::cout << "Running convertVolume()" << std::endl;
+    std::cout << "  Enter name of volume file to be converted: ";
+    std::cin >> volumename;
+    std::cout << "  Enter name for array: ";
+    std::cin >> arrayname;
+    std::cout << "  Enter name for output file (no extension): ";
+    std::cin >> outputname;
+    std::cout << "  Enter compression of heavy data (0 - 9, 0 uncompressed): ";
+    std::cin >> compression;
+    std::cout << std::endl;
+
+
+
+
+
+
+    std::cout << "  Reading volume file" << std::endl;
+
+    bool isBigEndian = false;
+    if(StringManip::DetermFileExt(volumename) == "vtk" || StringManip::DetermFileExt(volumename) == "VTK"){
+        isBigEndian = true;
+    }
+
+    UniformVolume<float> uv;
+    uv.ReadFile(volumename, isBigEndian);
+
+
+    std::cout << "    Done!" << std::endl;
+
+
+
+    /* Get pointer to start of data array (want actual data, not Array3D which contains the data. */
+    float *data_start = &uv(0,0,0,0);
+
+    /* Get volume size, point spacing, and origin. */
+    s1 = uv.GetResolution(1);
+    s2 = uv.GetResolution(0);
+    s3 = uv.GetResolution(2);
+
+    double sp1 = (double)uv.PointSpacing(0);
+    double sp2 = (double)uv.PointSpacing(1);
+    double sp3 = (double)uv.PointSpacing(2);
+
+    double o1 = (double)uv.SpatialExtent(1, -1);
+    double o2 = (double)uv.SpatialExtent(0, -1);
+    double o3 = (double)uv.SpatialExtent(2, -1);
+
+
+
+    std::cout << std::endl;
+    std::cout << "  Writing data as XDMF file with heavy data stored as HDF5" << std::endl;
+    double t1 = omp_get_wtime();
+
+
+    /* Represent data as XdmfArray. */
+    XdmfArray *xarray = new XdmfArray;
+    XdmfInt64 shape[3] = { (XdmfInt64)s3, (XdmfInt64)s2, (XdmfInt64)s1 };
+
+    xarray->SetAllowAllocate(false);
+    xarray->SetShape(3, shape);
+    xarray->SetDataPointer(data_start);
+    xarray->SetNumberType(XDMF_FLOAT32_TYPE);
+
+
+    XdmfDOM *d = new XdmfDOM;
+    XdmfRoot *root = new XdmfRoot;
+    XdmfDomain *domain = new XdmfDomain;
+    XdmfGrid *grid = new XdmfGrid;
+    XdmfTopology *topo = new XdmfTopology;
+    XdmfGeometry *geo = new XdmfGeometry;
+    XdmfAttribute *attrib = new XdmfAttribute;
+    XdmfInformation *info = new XdmfInformation;
+
+
+
+    root->SetDOM(d);
+    root->SetVersion(2.2);
+    root->Build();
+
+    info->SetName("InfoName");
+    info->SetValue("1.23");
+    root->Insert(info);
+
+    root->Insert(domain);
+
+    grid->SetName("Structured Grid");
+
+    topo = grid->GetTopology();
+    topo->SetTopologyType(XDMF_3DCORECTMESH);
+    topo->GetShapeDesc()->SetShape(3, shape);
+
+    geo = grid->GetGeometry();
+    geo->SetGeometryType(XDMF_GEOMETRY_ORIGIN_DXDYDZ);
+    geo->SetOrigin(o1, o2, o3);
+    geo->SetDxDyDz(sp1, sp2, sp3);
+
+    domain->Insert(grid);
+
+    attrib->SetName(arrayname.c_str());
+    attrib->SetAttributeCenter(XDMF_ATTRIBUTE_CENTER_NODE);
+    attrib->SetAttributeType(XDMF_ATTRIBUTE_TYPE_SCALAR);
+    attrib->SetValues(xarray);
+
+    std::string heavydataname(outputname);
+    heavydataname = heavydataname + ".h5:/" + arrayname;
+
+    xarray->SetHeavyDataSetName(heavydataname.c_str());
+    xarray->SetCompression(compression);
+
+    grid->Insert(attrib);
+
+    root->Build();
+
+    outputname = outputname + ".xmf";
+    d->Write(outputname.c_str());
+
+    double t2 = omp_get_wtime();
+
+
+    std::cout << "    Done!" << std::endl;
+    std::cout << "    XDMF File: " << outputname << std::endl;
+    std::cout << "    Heavy Data: " << heavydataname << std::endl;
+    std::cout << "    Write time: " << t2 - t1 << " [sec]" << std::endl;
+    std::cout << std::endl;
+
+
+
+    /* Need to include this cleanup to prevent memory leaks. */
+    delete xarray;
+//    delete xhdf;
     delete d;
     delete root;
     delete domain;

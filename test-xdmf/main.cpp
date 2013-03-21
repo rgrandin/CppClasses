@@ -12,6 +12,7 @@ int main()
     std::cout << std::endl;
     std::cout << "Enter demo selection: " << std::endl;
     std::cout << "   0 - Write 3D array, user specified size, value = 100*k + 10*i + j" << std::endl;
+    std::cout << "   1 - Convert volume file to XDMF" << std::endl;
     std::cout << std::endl;
 
     std::cout << "Selection: ";
@@ -21,10 +22,11 @@ int main()
 
     switch(selection){
     case(0):
-        size_t s1, s2, s3;
-        std::cout << "Enter 3D array size (rows, cols, slices): ";
-        std::cin >> s1 >> s2 >> s3;
-        basicXdmfTest::writeXDMFFile(s1,s2,s3);
+        basicXdmfTest::writeXDMFFile();
+        break;
+
+    case(1):
+        basicXdmfTest::convertVolume();
         break;
 
     default:

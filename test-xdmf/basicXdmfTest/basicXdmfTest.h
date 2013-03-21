@@ -12,12 +12,20 @@
 #include <XdmfH5Driver.h>
 
 #include <Array3D.h>
+#include <StringManip.h>
+#include <UniformVolume.h>
+
+#include <omp.h>
 
 
 namespace basicXdmfTest{
 
 
-void writeXDMFFile(size_t size1, size_t size2, size_t size3);
+void writeXDMFFile();
+
+
+void convertVolume();
+
 
 }
 

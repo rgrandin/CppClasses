@@ -27,33 +27,14 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")    # Include req'd to find 'XdmfDemoConfig.h'
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
-
-# Add General-Use C++ Classes
-include_directories("${PROJECT_SOURCE_DIR}/../src")
-
-# Add project dependencies -- XDMF library
-find_package(XDMF REQUIRED)
-if(${XDMF_FOUND})
-    #include_directories(${XDMF_INCLUDE_PATH})
-    #target_link_libraries(${PROJECT_NAME} ${XDMF_LIBRARIES})
-    set(XDMF_INCLUDES ${XDMF_INCLUDE_PATH})
-    set(XDMF_LIBS ${XDMF_LIBRARIES})
-else()
-    set(XDMF_INCLUDES "/usr/local/include")
-    set(XDMF_LIBS "-L/usr/local/xdmf/lib/ -lmetis -lvtkexoIIc -lvtkhdf5 -lvtklibxml2 -lXdmf -lXdmfUtils")
+# Enable C++11 support for GCC compiler
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-include_directories(${XDMF_INCLUDES})
-target_link_libraries(basicXdmfTest ${XDMF_LIBS})
 
-
-
-
-# Add project dependencies -- HDF5 library
-find_package(HDF5 REQUIRED)
-include_directories(${HDF5_INCLUDE_PATH})
+# Set build type
+set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
 
 # Add project dependencies -- MPI
@@ -62,6 +43,15 @@ if(MPI_CXX_FOUND)
     include_directories(${MPI_CXX_INCLUDE_PATH})
     target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARY} ${MPI_CXX_LIBRARIES})
 endif()
+
+
+# Add General-Use C++ Classes
+set(GEN_CXX_CLASSES_DIR "${PROJECT_SOURCE_DIR}/../src")
+include_directories(${GEN_CXX_CLASSES_DIR})
+
+
+
+
 
 
 # Add project dependencies -- My basic test of XDMF library
