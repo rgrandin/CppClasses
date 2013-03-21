@@ -129,17 +129,14 @@ void basicXdmfTest::writeXDMFFile()
 
 
 
-    /* Need to include this cleanup to prevent memory leaks. */
-    delete xarray;
-//    delete xhdf;
-    delete d;
-    delete root;
-    delete domain;
-    delete grid;
-//    delete topo;      /* Commented-out to avoid runtime seg-fault. */
-//    delete geo;       /* Commented-out to avoid runtime seg-fault. */
-    delete attrib;
-    delete info;
+    /* Cleanup pointers. */
+    delete xarray;  /* Deletion of XmdfDOM object does not delete array, so 'xarray'
+                     * must be manually deleted here. */
+    delete d;       /* Deleting XmdfDOM object deletes its children, so other
+                     * Xmdf____ objects do not need to be manually deleted here.
+                     * This behavior was verified using Valgrind to locate memory
+                     * leaks, and this implementation produced no errors. */
+
 }
 
 
@@ -286,15 +283,11 @@ void basicXdmfTest::convertVolume()
 
 
 
-    /* Need to include this cleanup to prevent memory leaks. */
-    delete xarray;
-//    delete xhdf;
-    delete d;
-    delete root;
-    delete domain;
-    delete grid;
-//    delete topo;      /* Commented-out to avoid runtime seg-fault. */
-//    delete geo;       /* Commented-out to avoid runtime seg-fault. */
-    delete attrib;
-    delete info;
+    /* Cleanup pointers. */
+    delete xarray;  /* Deletion of XmdfDOM object does not delete array, so 'xarray'
+                     * must be manually deleted here. */
+    delete d;       /* Deleting XmdfDOM object deletes its children, so other
+                     * Xmdf____ objects do not need to be manually deleted here.
+                     * This behavior was verified using Valgrind to locate memory
+                     * leaks, and this implementation produced no errors. */
 }
