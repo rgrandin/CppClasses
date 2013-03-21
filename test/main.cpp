@@ -548,12 +548,12 @@ int main()
         /* Test VTK XML. */
         if(true){
 //            size_t npts = 2147483648;     /* Max-value of signed integer. */
-//            size_t size1 = 1500/4;        /* Small test size. */
-//            size_t size2 = 1500/4;
-//            size_t size3 = 1000/4;
-            size_t size1 = 1500;            /* Large test size. */
-            size_t size2 = 1500;
-            size_t size3 = 1000;
+            size_t size1 = 1500/8;        /* Small test size. */
+            size_t size2 = 1500/8;
+            size_t size3 = 1000/8;
+//            size_t size1 = 1500;            /* Large test size. */
+//            size_t size2 = 1500;
+//            size_t size3 = 1000;
             //writeVTKFile(size1, size2, size3);
 
             //std::string filename("output.pvti");
