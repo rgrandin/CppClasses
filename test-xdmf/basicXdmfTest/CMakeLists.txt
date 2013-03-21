@@ -16,7 +16,7 @@ set(XDMF_LIBS "-L/usr/local/xdmf/lib/ -lmetis -lvtkexoIIc -lvtkhdf5 -lvtklibxml2
 
 include_directories(${XDMF_INCLUDES})
 
-add_library(basicXdmfTest STATIC basicXdmfTest.cpp)
+add_library(basicXdmfTest SHARED basicXdmfTest.cpp)
 target_link_libraries(basicXdmfTest ${XDMF_LIBS})
 
 set(TESTVAR "test")
