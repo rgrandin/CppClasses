@@ -34,7 +34,8 @@ endif()
 
 
 # Set build type
-set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+#set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+set(CMAKE_BUILD_TYPE "Debug")
 
 
 # Add project dependencies -- MPI

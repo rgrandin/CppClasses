@@ -32,6 +32,15 @@ void writeXDMFFile();
 
 
 /**
+ * @brief Write a multiple arrays to disk using XDMF/HDF5 format.
+ *
+ *  User will be asked for array quantity, array dimensions and file name during
+ *  function execution.
+ */
+void writeXDMFFile_MultiArray();
+
+
+/**
  * @brief Read an XDMF/HDF5 file and write data information to std::cout.
  *
  *  User will be asked for filename during function execution.

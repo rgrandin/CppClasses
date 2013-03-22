@@ -14,10 +14,11 @@ int main()
     std::cout << "   0 - Write 3D array, user specified size, value = 100*k + 10*i + j" << std::endl;
     std::cout << "   1 - Convert volume file to XDMF" << std::endl;
     std::cout << "   2 - Read XDMF file and write information to std::cout" << std::endl;
+    std::cout << "   3 - Write multiple 3D arrays, user specified size, value = 100*k + 10*i + j" << std::endl;
     std::cout << std::endl;
 
     std::cout << "Selection: ";
-    //std::cin >> selection;
+    std::cin >> selection;
     std::cout << std::endl;
     std::cout << std::endl;
 
@@ -32,6 +33,10 @@ int main()
 
     case(2):
         basicXdmfTest::readXDMFFile();
+        break;
+
+    case(3):
+        basicXdmfTest::writeXDMFFile_MultiArray();
         break;
 
     default:

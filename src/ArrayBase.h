@@ -426,6 +426,12 @@ protected:
     }
 
 
+    /**
+     * @brief Free memory.  This wraps performs the appropriate 'free'/'delete' action.
+     */
+    void FreeMemory();
+
+
 	/**
      * @brief Function for comparing two input values (required by qsort).
      *

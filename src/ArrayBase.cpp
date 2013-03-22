@@ -90,18 +90,22 @@ ArrayBase<T>::ArrayBase(ArrayBase<T> &&ab)
 template <class T>
 ArrayBase<T>::~ArrayBase()
 {
-    if(p_array != NULL){
+    FreeMemory();
+    p_array = NULL;
+}
 
+
+template <class T>
+void ArrayBase<T>::FreeMemory()
+{
+    if(p_array != NULL){
         if(use_free){
             free(p_array);
         } else {
             delete [] p_array;
         }
-
     }
-    p_array = NULL;
 }
-
 
 template <class T>
 ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> ab)
@@ -133,9 +137,10 @@ void ArrayBase<T>::ResetSize(size_t dim1)
 		// CHECK FOR NEW DIMENSIONS MATCHING EXISTING DIMENSIONS.  IF NOT, RESET
 		// THE ARRAY SIZE AS REQUIRED.
 		if(dim1 != npoints){
-            delete [] p_array;
+            FreeMemory();
             p_array = new T[dim1];
 			npoints = dim1;
+            use_free = false;
 		}
 	} else {
 		// CALL ResetSize WITH INITIAL VALUE SPECIFIED TO DEFAULT VALUE OF "0".
@@ -156,8 +161,9 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
 	// THE ARRAY SIZE AS REQUIRED.
 	if(dim1 != npoints){
 		npoints = dim1;
-        delete [] p_array;
+        FreeMemory();
         p_array = new T[npoints];
+        use_free = false;
 
         for(size_t i=0; i<npoints; i++){
             p_array[i] = initvalue;
