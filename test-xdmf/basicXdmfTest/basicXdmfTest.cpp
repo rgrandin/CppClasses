@@ -302,23 +302,23 @@ void basicXdmfTest::readXDMFFile()
 
 
     /* Get extra info. */
-    std::string filename;
+    //std::string filename("test01.xmf");   /* 800 MiB, good for verifying non-duplication of data. */
+    std::string filename("c.xmf");          /* ~32 kiB, good for quick testing. */
 
     std::cout << std::endl;
     std::cout << "Running readXDMFFile()" << std::endl;
-    std::cout << "  Enter name of volume file to be read: ";
-    std::cin >> filename;
+    //std::cout << "  Enter name of volume file to be read: ";
+    //std::cin >> filename;
     std::cout << std::endl;
 
     XdmfDOM *d = new XdmfDOM;
     XdmfGrid *grid = new XdmfGrid;
-    XdmfTopology *topo = new XdmfTopology;
-    XdmfGeometry *geo = new XdmfGeometry;
-    XdmfArray *connect = new XdmfArray;
-    XdmfArray *data = new XdmfArray;
+//    XdmfTopology *topo = new XdmfTopology;
+//    XdmfGeometry *geo = new XdmfGeometry;
+//    XdmfArray *connect = new XdmfArray;
 
 
-    float *fdata;
+    Array1D<float> datavals(1, 0.0f);
 
 
 
@@ -337,21 +337,54 @@ void basicXdmfTest::readXDMFFile()
     std::cout << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
 
     for(int a=0; a<grid->GetNumberOfAttributes(); a++){
-        std::cout << "    Attrib " << a << std::endl;
+        std::cout << "    Attrib #" << a << std::endl;
         XdmfAttribute *at = grid->GetAttribute(a);
+
         std::cout << "      Type: " << at->GetAttributeTypeAsString() << std::endl;
 
-        at->UpdateInformation();
-        //at->Update();
+        at->UpdateInformation();    /* Data 'metadata' read.  Heavy data not read yet. */
+
+        XdmfDataDesc *desc = at->GetShapeDesc();
+        int rank = desc->GetRank();
+        XdmfInt64 dims[rank];
+
+        rank = desc->GetShape(dims);
+        XdmfInt64 nel = desc->GetNumberOfElements();
+
+        datavals.ResetSize(1);                  /* Set to single-element to ensure that a valid pointer
+                                                 * is created.  All we want here is availability of the
+                                                 * pointer.  Allocation of the array here will cause duplicate
+                                                 * memory allocations and thus double memory required to
+                                                 * read-in the data. */
+
+        XdmfArray *data = new XdmfArray;        /* Create XdmfArray object to receive the data. */
+
+        data->SetDataPointer(&datavals[0]);     /* Setting the XdmfArray data pointer to an existing array
+                                                 * allows the Xdmf library to control memory (e.g., allocate
+                                                 * as-needed), but it flags the memory as not belonging to
+                                                 * the XdmfArray object, so deletion of the object does not
+                                                 * cause the data to be lost. */
+
+        at->Update();                           /* Memory allocated for data & data read into memory. */
+
+        data = at->GetValues(0);                /* Assign the read-in data to the XdmfArray object. */
 
 
-        XdmfArray *d2 = at->GetValues(1);
-        d2->SetDataPointer(fdata);
+        /* Reset the pointer for data within my Array1D object to be that of the XdmfArray data.  The
+         * Xdmf library allocates memory using 'malloc()', so it must be free'd with 'free()'.  My
+         * array class uses 'new'/'delete', so the third parameter to this function informs the class
+         * that it will need to use 'free()' when releasing the memory occupied by this data.  If
+         * the data is stored in a "normal" c-array (i.e., not in my Array1D container), 'free()'
+         * must still be used to release the memory. */
+        datavals.SetArrayPointer((float*)data->GetDataPointer(), (size_t)nel, true);
 
-        at->Update();
+        data->Reset();                          /* Resets XdmfArray object to allow clean deletion. */
 
-
-        XdmfInt64 nel = d2->GetNumberOfElements();
+        delete data;                            /* Delete XdmfArray.  This is needed because of the 'new'
+                                                 * operation above, and is placed here so that when I
+                                                 * check the data using my Array1D object I can be sure
+                                                 * that the data has survived the destruction of its
+                                                 * original array. */
 
 
 
@@ -359,51 +392,43 @@ void basicXdmfTest::readXDMFFile()
         std::cout << "      Data" << std::endl;
         std::cout << "        # Points: " << nel << std::endl;
         if(nel > 0){
-            std::cout << "        Shape:    " << d2->GetShapeAsString() << std::endl;
-            std::cout << "        Datatype: " << d2->GetNumberTypeAsString() << std::endl;
+            std::cout << "        Shape:    " << desc->GetShapeAsString() << std::endl;
+            std::cout << "        Datatype: " << desc->GetNumberTypeAsString() << std::endl;
 
-            int rank = d2->GetRank();
-            XdmfInt64 dims[rank];
+            //at->Update();
 
-            rank = d2->GetShape(dims);
-            XdmfInt64 npts = 1;
-            for(int i=0; i<rank; i++){
-                npts *= dims[i];
-            }
-
-            fdata = new float[npts];
-
-            std::cout << "test (pre):  " << fdata[1] << std::endl;
-
-            at->Update();
-
-            std::cout << "test (post): " << fdata[1] << std::endl;
+            std::cout << "test val:    " << datavals[nel-1] << std::endl;
+            std::cout << "  should be: " << (dims[0]-1)*100 + (dims[1]-1)*10 + dims[2]-1 << std::endl;
         }
 
     }
 
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
-    topo = grid->GetTopology();
-    topo->DebugOn();
-    std::cout << "Topology: " << topo->GetTopologyTypeAsString() << std::endl;
+//    topo = grid->GetTopology();
+//    topo->DebugOn();
+//    std::cout << "Topology: " << topo->GetTopologyTypeAsString() << std::endl;
 
-    connect = topo->GetConnectivity();
-    std::cout << "Connectivity: " << connect->GetValues() << std::endl;
+//    connect = topo->GetConnectivity();
+//    std::cout << "Connectivity: " << connect->GetValues() << std::endl;
 
-    geo = grid->GetGeometry();
-    geo->UpdateInformation();
-    geo->Update();
-    std::cout << "Geometry type: " << geo->GetGeometryTypeAsString() << std::endl;
+//    geo = grid->GetGeometry();
+//    geo->UpdateInformation();
+//    geo->Update();
+//    std::cout << "Geometry type: " << geo->GetGeometryTypeAsString() << std::endl;
 
-    data = geo->GetPoints();
-    std::cout << "Data" << std::endl;
-    std::cout << "  Name:     " << data->GetMemberName(0) << std::endl;
-    std::cout << "  # Points: " << data->GetNumberOfElements() << std::endl;
-    std::cout << "  Shape:    " << data->GetShapeAsString() << std::endl;
-    std::cout << "  Datatype: " << data->GetNumberTypeAsString() << std::endl;
+//    data = geo->GetPoints();
+//    std::cout << "Data" << std::endl;
+//    std::cout << "  Name:     " << data->GetMemberName(0) << std::endl;
+//    std::cout << "  # Points: " << data->GetNumberOfElements() << std::endl;
+//    std::cout << "  Shape:    " << data->GetShapeAsString() << std::endl;
+//    std::cout << "  Datatype: " << data->GetNumberTypeAsString() << std::endl;
 
 
+    delete d;
+//    delete grid;
+//    delete geo;
+//    delete topo;
 
     std::cout << std::endl;
 

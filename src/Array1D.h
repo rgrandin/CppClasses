@@ -274,6 +274,16 @@ public:
 	double GetMemoryUsage() const;
 
 
+    /**
+     * @brief Manually set the pointer to an existing array.
+     * @param p_data Pointer to start of array.
+     * @param npts Number of points in array.
+     * @param useFree If true, 'free()' will be used to free the memory rather than 'delete'.
+     *  This is set based on how the array pointed-to by 'p_data' was allocated.
+     */
+    void SetArrayPointer(T* p_data, size_t npts, bool useFree);
+
+
 protected:
 
     /**

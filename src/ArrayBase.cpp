@@ -16,6 +16,8 @@
 template <class T>
 void ArrayBase<T>::initialize(size_t dim1, T initvalue)
 {
+    use_free = false;   /* Use 'new' and 'delete' by default. */
+
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
         p_array = (T*)NULL;					// SET POINTER TO NULL
@@ -89,7 +91,13 @@ template <class T>
 ArrayBase<T>::~ArrayBase()
 {
     if(p_array != NULL){
-        delete [] p_array;
+
+        if(use_free){
+            free(p_array);
+        } else {
+            delete [] p_array;
+        }
+
     }
     p_array = NULL;
 }
@@ -358,6 +366,18 @@ template <class T>
 size_t ArrayBase<T>::NPts()
 {
     return npoints;
+}
+
+
+template <class T>
+void ArrayBase<T>::SetArrayPointer(T *p_data, size_t npts, bool useFree)
+{
+    /* Reset size to delete any existing data and free memory. */
+    ResetSize(1, (T)0);
+
+    p_array = p_data;
+    npoints = npts;
+    use_free = useFree;
 }
 
 

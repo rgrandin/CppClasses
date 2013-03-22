@@ -181,3 +181,10 @@ double Array1D<T>::GetMemoryUsage() const
 
 	return retval;
 }
+
+
+template <class T>
+void Array1D<T>::SetArrayPointer(T *p_data, size_t npts, bool useFree)
+{
+    ArrayBase<T>::SetArrayPointer(p_data, npts, useFree);
+}

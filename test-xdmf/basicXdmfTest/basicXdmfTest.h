@@ -11,6 +11,7 @@
 #include <Xdmf.h>
 #include <XdmfH5Driver.h>
 
+#include <Array1D.h>
 #include <Array3D.h>
 #include <StringManip.h>
 #include <UniformVolume.h>
