@@ -4,6 +4,9 @@ void basicXdmfTest::writeXDMFFile()
 {
     /* This function adapted from:
      *   http://www.xdmf.org/index.php/XDMF_API (see Writing XDMF at bottom of page)
+     *
+     * This function is very similar to writeXDMFFile_MultiArray(), and detailed comments will be placed
+     * in writeXDMFFile_MultiArray() since it is the more-complex function.
      */
 
 
@@ -149,17 +152,18 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
 
 
     /* Get extra info. */
-    std::string *arrayname;
-    std::string outputname;
+    std::string *arrayname;     /* Name of array to be used in heavy data file. */
+    std::string outputname;     /* Name of XDMF XML file. */
     int compression;
     int narrays;
-    size_t *s1, *s2, *s3;
+    size_t *s1, *s2, *s3;       /* Array sizes in the 1st, 2nd, and 3rd dimensions. */
 
     std::cout << std::endl;
     std::cout << "Running writeXDMFFile_MultiArray()" << std::endl;
     std::cout << "  Enter number of arrays: ";
     std::cin >> narrays;
 
+    /* Declare arrays for array dimensions and name. */
     s1 = new size_t[narrays];
     s2 = new size_t[narrays];
     s3 = new size_t[narrays];
@@ -184,7 +188,7 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
 
 
     /* Create XdmfArray for each array to be written. */
-    XdmfArray **xarray = new XdmfArray*[narrays];
+    XdmfArray **xarray = new XdmfArray*[narrays];   /* We want an array of pointers to XdmfArray objects. */
 
     std::cout << std::endl;
     std::cout << "  Writing data as XDMF file with heavy data stored as HDF5" << std::endl;
@@ -196,11 +200,12 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
     XdmfDomain *domain = new XdmfDomain;
     XdmfInformation *info = new XdmfInformation;
 
-    XdmfGrid **grid = new XdmfGrid*[narrays];
+    XdmfGrid **grid = new XdmfGrid*[narrays];           /* We want an array of pointers to Xdmf____ objects.  */
     XdmfTopology **topo = new XdmfTopology*[narrays];
     XdmfGeometry **geo = new XdmfGeometry*[narrays];
 
 
+    /* Perform "boiler plate" operations for the output file. */
     root->SetDOM(d);
     root->SetVersion(2.2);
     root->Build();
@@ -211,13 +216,25 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
 
     root->Insert(domain);
 
+
+
+    /* Define a grid which is the sole member of the domain.  When multiple arrays are present, their grids
+     * are children of this "super-grid".  If only one array is to be used, the "super-grid" can be omitted,
+     * and then the data grid is inserted into the domain.  See writeXDMFFile() for a single-arrayexample. */
     XdmfGrid *tree_grid = new XdmfGrid;
     tree_grid->SetName("MultiArrayTest");
     tree_grid->SetGridType(XDMF_GRID_TREE);
 
     domain->Insert(tree_grid);
 
+
+    /* For each data array, create its grid and insert the grid and data into the XML structure. */
     for(int i=0; i<narrays; i++){
+
+        /* Since this function is using cooked-up data, create an array of the specified size and fill
+         * it using a known function (allows checking read-in later).
+         *
+         * Naturally, this part would be omitted if we are attempting to write existing data to the disk. */
 
         std::cout << "  Creating array " << i << std::endl;
 
@@ -240,57 +257,104 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
         std::cout << "      value(i,j,k) = 100*k + 10*i + j" << std::endl;
 
 
-        XdmfInt64 shape[3] = { (XdmfInt64)s3[i], (XdmfInt64)s1[i], (XdmfInt64)s2[i] };
+
+        /* Create an XdmfArray object to represent the data.  No values are actually moved out of the
+         * pre-existing array (in this case the Array3D object populated above).  Deletion of the XdmfArray
+         * will not affect the actual data, either.  The XdmfArray object only facilitates the interface
+         * between the actual data and the data-output. */
+
+        XdmfInt64 shape[3] = { (XdmfInt64)s3[i], (XdmfInt64)s1[i], (XdmfInt64)s2[i] }; /* Array shape is "KIJ", which
+                                                                                        * means that the slowest-varying
+                                                                                        * index comes first, and the
+                                                                                        * fastest-varying (i.e. innermost)
+                                                                                        * index comes last. */
+
         xarray[i] = new XdmfArray;
-        xarray[i]->SetAllowAllocate(false);
-        xarray[i]->SetShape(3, shape);
-        xarray[i]->SetDataPointer(&data[i][0]);
-        xarray[i]->SetNumberType(XDMF_FLOAT32_TYPE);
+        xarray[i]->SetAllowAllocate(false);                 /* Prevent the XdmfArray from allocating any memory. */
+        xarray[i]->SetShape(3, shape);                      /* Set rank and dimension sizes of array. */
+        xarray[i]->SetDataPointer(&data[i][0]);             /* Set pointer to previously-existing data. */
+        xarray[i]->SetNumberType(XDMF_FLOAT32_TYPE);        /* Identify the data as 32-bit float ('float' in C/C++). */
 
 
-        grid[i] = new XdmfGrid;
-        grid[i]->SetName("Structured Grid");
-        grid[i]->SetGridType(XDMF_GRID_UNIFORM);
+        grid[i] = new XdmfGrid;                         /* Create a grid for the data. */
+        grid[i]->SetName("Structured Grid");            /* Name the grid.  This is user-choice. */
+        grid[i]->SetGridType(XDMF_GRID_UNIFORM);        /* Set grid type.  This example is for image data, which is
+                                                         * on a uniform grid.  Grid choice can be other types based
+                                                         * on needs. */
 
-        topo[i] = new XdmfTopology;
-        topo[i] = grid[i]->GetTopology();
-        topo[i]->SetTopologyType(XDMF_3DCORECTMESH);
-        topo[i]->GetShapeDesc()->SetShape(3, shape);
+        topo[i] = new XdmfTopology;                     /* Create a topology object to help define grid. */
+        topo[i] = grid[i]->GetTopology();               /* Set to be grid topology. */
+        topo[i]->SetTopologyType(XDMF_3DCORECTMESH);    /* Set grid type, again this is for image data and other
+                                                         * options are possible for other applications. */
+        topo[i]->GetShapeDesc()->SetShape(3, shape);    /* Set shape to match that of the data array. */
 
-        geo[i] = new XdmfGeometry;
-        geo[i] = grid[i]->GetGeometry();
-        geo[i]->SetGeometryType(XDMF_GEOMETRY_ORIGIN_DXDYDZ);
-        geo[i]->SetOrigin((float)i, (float)i, (float)i);
-        geo[i]->SetDxDyDz((float)i+1, (float)i+1, (float)i+1);
+        geo[i] = new XdmfGeometry;                              /* Create a geometry object to complete grid
+                                                                  * structure definition. */
+        geo[i] = grid[i]->GetGeometry();                        /* Set to be the grid geometry. */
+        geo[i]->SetGeometryType(XDMF_GEOMETRY_ORIGIN_DXDYDZ);   /* Set for image data.  Again, more-complex options exist. */
+        geo[i]->SetOrigin((float)i, (float)i, (float)i);        /* Set origin. */
+        geo[i]->SetDxDyDz((float)i+1, (float)i+1, (float)i+1);  /* Set point spacing. */
 
+        /* NOTE: more-complex grid/topology/geometry definitions are possible and can require additional information
+         *       to be set (e.g., defining an unstructured grid requires specifying grid point coordinates and
+         *       connectivity of nodes). */
+
+        /* Insert this data grid into the super-grid. */
         tree_grid->Insert(grid[i]);
 
-        XdmfAttribute *attrib = new XdmfAttribute;
-        attrib->SetName(arrayname[i].c_str());
-        attrib->SetAttributeCenter(XDMF_ATTRIBUTE_CENTER_NODE);
-        attrib->SetAttributeType(XDMF_ATTRIBUTE_TYPE_SCALAR);
-        attrib->SetValues(xarray[i]);
+        XdmfAttribute *attrib = new XdmfAttribute;              /* Create attribute to describe data. */
+        attrib->SetName(arrayname[i].c_str());                  /* Set descriptive name for data. */
+        attrib->SetAttributeCenter(XDMF_ATTRIBUTE_CENTER_NODE); /* Define data to exist at nodes (rather than within
+                                                                 * cells or on cell faces). */
+        attrib->SetAttributeType(XDMF_ATTRIBUTE_TYPE_SCALAR);   /* Define data to be scalar. */
+        attrib->SetValues(xarray[i]);                           /* Define data values to be those stored in the
+                                                                 * XdmfArray object created above (which in-turn takes
+                                                                 * us to the c-array represented by the XdmfArray object. */
 
+        /* Build name of file/path to be used with HDF5 heavy-data file.  This is set so that the
+         * HDF5 filename matches that of the XML file.  The array name is used to identify the data within the
+         * HDF5 file.  All arrays will be placed in the same HDF5 file. */
         std::string heavydataname(outputname);
         heavydataname = heavydataname + ".h5:/" + arrayname[i];
 
-        xarray[i]->SetHeavyDataSetName(heavydataname.c_str());
-        xarray[i]->SetCompression(compression);
+        xarray[i]->SetHeavyDataSetName(heavydataname.c_str());  /* Set name used for heavy-data.  This will cause the
+                                                                 * actual data values to be written to the specified
+                                                                 * HDF5 file/array.  If the array is small-enough,
+                                                                 * values will be directly-inserted into the XML.  The
+                                                                 * default value for this threshold is 100, but can be
+                                                                 * modified by the user.  If data values are located
+                                                                 * within the XML file, this function call has no
+                                                                 * effect. */
 
+        xarray[i]->SetCompression(compression);                 /* Set compression level to be used by HDF5 file.  This
+                                                                 * is also ignored if data is embedded in the XML file.
+                                                                 * Compression method will be noted in the HDF5 file and
+                                                                 * decompression will happen automatically when the
+                                                                 * HDF5 file is opened in a suitable viewer or these
+                                                                 * Xdmf____ classes. */
+
+        /* Inform user of file name/array for heavy data. */
         std::cout << "      Heavy Data: " << heavydataname << std::endl;
 
+        /* Insert attribute into grid.  Note that this grid is a child of the "super-grid". */
         grid[i]->Insert(attrib);
 
     }
 
+    /* Now that all data has been inserted, build the XML document. */
     root->Build();
 
+    /* Add file extension to user-specified file stem and write data to the disk.  This will cause the XML file
+     * to be written as well as the HDF5 file, if necessary.  If multiple HDF5 files are specified above, each will
+     * be written at this point. */
     outputname = outputname + ".xmf";
     d->Write(outputname.c_str());
 
     double t2 = omp_get_wtime();
 
 
+    /* Let user know that file-writing is complete, state the name of the file written, and calculate the time
+     * required to build and write the output. */
     std::cout << "    Done!" << std::endl;
     std::cout << "    XDMF File: " << outputname << std::endl;
     std::cout << "    Write time: " << t2 - t1 << " [sec]" << std::endl;
@@ -304,7 +368,10 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
     delete d;       /* Deleting XmdfDOM object deletes its children, so other
                      * Xmdf____ objects do not need to be manually deleted here.
                      * This behavior was verified using Valgrind to locate memory
-                     * leaks, and this implementation produced no errors. */
+                     * leaks, and this implementation produced no errors.  Valgrind shows that there
+                     * may still be lost memory, but this appears to be within the Xdmf____ classes
+                     * and thus is not under the programmer's control (without digging deep into source
+                     * code). */
 
 }
 
@@ -314,6 +381,15 @@ void basicXdmfTest::convertVolume()
 {
     /* This function adapted from:
      *   http://www.xdmf.org/index.php/XDMF_API (see Writing XDMF at bottom of page)
+     *
+     * This function is very similar to writeXDMFFile() and writeXDMFFile_MultiArray(), and detailed comments
+     * can be found in writeXDMFFile_MultiArray().
+     *
+     * Functionality contained within this function that is not found within writeXDMFFile_MultiArray() is
+     * the reading of a pre-existing volume file (either VTK or CNDE VOL) to populate a single 3D data array.
+     * This data array is then written to the disk as an XDMF/HDF5 file combo.  Generating and writing the
+     * XDMF file is identical to writeXDMFFile(), which is a simplification of writeXDMFFile_MultiArray(),
+     * and you are referred to those files for detailed commentary regarding the writing of XDMF files.
      */
 
 
@@ -343,11 +419,13 @@ void basicXdmfTest::convertVolume()
 
     std::cout << "  Reading volume file" << std::endl;
 
+    /* If file is VTK, assume it to be Big Endian byte ordering (automatically ignored if specified file is ASCII). */
     bool isBigEndian = false;
     if(StringManip::DetermFileExt(volumename) == "vtk" || StringManip::DetermFileExt(volumename) == "VTK"){
         isBigEndian = true;
     }
 
+    /* Create volume object and read specified file. */
     UniformVolume<float> uv;
     uv.ReadFile(volumename, isBigEndian);
 
@@ -372,6 +450,12 @@ void basicXdmfTest::convertVolume()
     double o2 = (double)uv.SpatialExtent(0, -1);
     double o3 = (double)uv.SpatialExtent(2, -1);
 
+
+
+
+    /* Write data to disk as an XDMF file, with heavy data stored as HDF5.  From here forward the functionality
+     * is very similar to writeXDMFFile() and writeXDMFFile_MultiArray() and you are referred to those functions
+     * for detailed comments. */
 
 
     std::cout << std::endl;
@@ -467,12 +551,15 @@ void basicXdmfTest::readXDMFFile()
 {
     /* This function adapted from:
      *   http://www.xdmf.org/index.php/XDMF_API (see Reading XDMF at bottom of page)
+     *
+     * This function is very basic.  It can handle a collection of uniform grids (or a single uniform grid),
+     * but no checks are made to prevent erros resulting from trying to read other grids.  I expect functionality
+     * for other grids will be similar, and much of the code required to read files should remain the same.
      */
 
 
     /* Get extra info. */
-    //std::string filename("test01.xmf");   /* 800 MiB, good for verifying non-duplication of data. */
-    std::string filename("c.xmf");          /* ~32 kiB, good for quick testing. */
+    std::string filename("c.xmf");
 
     std::cout << std::endl;
     std::cout << "Running readXDMFFile()" << std::endl;
@@ -491,16 +578,21 @@ void basicXdmfTest::readXDMFFile()
 
 
 
-    d->Parse(filename.c_str());
+    d->Parse(filename.c_str());         /* Parse the XML file and allow navigation within it and
+                                         * data extraction. */
 
     XdmfXmlNode node;
-    node = d->FindElementByPath("/Xdmf/Domain/Grid");
+    node = d->FindElementByPath("/Xdmf/Domain/Grid");   /* Find first grid element.  This will either be
+                                                         * a grid with attributed data, or a 'tree' or
+                                                         * 'collection' of other grids. */
 
     grid->SetDOM(d);
     grid->SetElement(node);
-    grid->UpdateInformation();
+    grid->UpdateInformation();                          /* Get information about grid. */
     grid->Update();
     int nchildren = grid->GetNumberOfChildren();
+
+    /* Write top-most grid information. */
     std::cout << "Grid" << std::endl;
     std::cout << "  Name:   " << grid->GetName() << std::endl;
     std::cout << "  Type:   " << grid->GetGridTypeAsString() << std::endl;
@@ -508,25 +600,29 @@ void basicXdmfTest::readXDMFFile()
     std::cout << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
     std::cout << std::endl;
 
-    gridsave = grid;
+    gridsave = grid;    /* Save pointer to top-most grid. */
 
 
-    int nloop = nchildren;
-    if(nloop == 0){
-        nloop = 1;
+    int nloop = nchildren;          /* We want to loop through all the children grids, but if this grid   */
+    if(nloop == 0){                 /* has no children we still want to read its attributes, so force at  */
+        nloop = 1;                  /* least 1 loop iteration. */
     }
     for(int c=0; c<nloop; c++){
 
-        std::string indent("");
-        int nchild = 0;
+        std::string indent("");     /* Used to provide extra indentation, if needed. */
+        int nchild = 0;             /* Number of children for local grid. */
 
         if(nchildren == 0){
-            nchildren = 1;
+            /* Nothing to be done. */
         } else {
-            grid = grid->GetChild(c);
-            nchild = grid->GetNumberOfChildren();
-            indent = "  ";
 
+            /* Set 'grid' to be the child specified by the loop iteration. */
+            grid = grid->GetChild(c);
+            nchild = grid->GetNumberOfChildren();   /* Number of children of the child grid. */
+            indent = "  ";                          /* Provide extra indentation in output. */
+
+
+            /* Write info about child grid. */
             std::cout << indent << "-------------------------------" << std::endl;
             std::cout << indent << "Grid " << c << std::endl;
             std::cout << indent << "  Name:   " << grid->GetName() << std::endl;
@@ -539,22 +635,21 @@ void basicXdmfTest::readXDMFFile()
 
 
 
-
+        /* Loop through attributes within grid.  Read data into C-style array (i.e., get data out of file
+         * and out of XdmfArray structure and into whatever data structure we want it in), and write
+         * information about the attribute to std::cout. */
         for(int a=0; a<grid->GetNumberOfAttributes(); a++){
-            std::cout << std::endl;
-            std::cout << indent << "    Attrib #" << a << std::endl;
-            XdmfAttribute *at = grid->GetAttribute(a);
 
-            std::cout << indent << "      Type: " << at->GetAttributeTypeAsString() << std::endl;
+            XdmfAttribute *at = grid->GetAttribute(a);  /* Get attribute from grid. */
 
-            at->UpdateInformation();    /* Data 'metadata' read.  Heavy data not read yet. */
+            at->UpdateInformation();                    /* Data 'metadata' read.  Heavy data not read yet. */
 
-            XdmfDataDesc *desc = at->GetShapeDesc();
-            int rank = desc->GetRank();
-            XdmfInt64 dims[rank];
+            XdmfDataDesc *desc = at->GetShapeDesc();    /* Get shape description of data. */
+            int rank = desc->GetRank();                 /* Get data rank (i.e., number of dimensions. */
+            XdmfInt64 dims[rank];                       /* Declare array for array size in each dimension. */
 
-            rank = desc->GetShape(dims);
-            XdmfInt64 nel = desc->GetNumberOfElements();
+            rank = desc->GetShape(dims);                /* Get array dimensions. */
+            XdmfInt64 nel = desc->GetNumberOfElements();/* Get number of elements in array. */
 
             datavals.ResetSize(1);                  /* Set to single-element to ensure that a valid pointer
                                                      * is created.  All we want here is availability of the
@@ -589,13 +684,20 @@ void basicXdmfTest::readXDMFFile()
                                                      * operation above, and is placed here so that when I
                                                      * check the data using my Array1D object I can be sure
                                                      * that the data has survived the destruction of its
-                                                     * original array. */
+                                                     * original array.  In normal use, data can be deleted
+                                                     * at any time after 'Reset()'.  Deletion at this specific
+                                                     * point is to verify proper data management behavior. */
 
 
-
+            /* Write attribute information. */
+            std::cout << std::endl;
+            std::cout << indent << "    Attrib #" << a << std::endl;
+            std::cout << indent << "      Type: " << at->GetAttributeTypeAsString() << std::endl;
 
             std::cout << indent << "      Data" << std::endl;
             std::cout << indent << "        # Points: " << nel << std::endl;
+
+            /* Only write extra data information if there are a non-0 number of elements.  */
             if(nel > 0){
                 std::cout << indent << "        Shape:    " << desc->GetShapeAsString() << std::endl;
                 std::cout << indent << "        Datatype: " << desc->GetNumberTypeAsString() << std::endl;
@@ -611,11 +713,14 @@ void basicXdmfTest::readXDMFFile()
 
         std::cout << std::endl;
 
+        /* Get topology information of grid. */
         topo = grid->GetTopology();
         std::cout << indent << "Topology" << std::endl;
         std::cout << indent << "  Type: " << topo->GetTopologyTypeAsString() << std::endl;
         std::cout << std::endl;
 
+
+        /* Get geometry information of grid. */
         geo = grid->GetGeometry();
         geo->UpdateInformation();
         geo->Update();
@@ -628,17 +733,21 @@ void basicXdmfTest::readXDMFFile()
         std::cout << std::endl;
 
 
+        /* Set 'grid' to the head XdmfGrid object so that the GetChild() call at the top of the loop
+         * performs the desired function.  We want to loop over the children of the head node, so
+         * we must reset the pointer to the head grid. */
         grid = gridsave;
 
 
-    } /* Loop through grid child grids. */
+    } /* Loop through child grids. */
 
 
+    delete d;   /* Delete DOM.  As commented in other functions, objects associated with this DOM
+                 * will automatically be deleted. */
 
-
-
-
-    delete d;
+    /* No delete needed for 'gridsave'.  At this point both 'grid' and 'gridsave' point to the same
+     * XdmfGrid object, which is associated with XdmfDOM 'd'.  The actual grid object will be deleted,
+     * which addresses both 'grid' and 'gridsave'. */
 
     std::cout << std::endl;
 
