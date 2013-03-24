@@ -387,6 +387,20 @@ public:
     void SetArrayPointer(T* p_data, size_t npts, bool useFree);
 
 
+    /**
+     * @brief Set descriptive name for data contained in the array.
+     * @param name Name to be used.
+     */
+    void setName(const std::string name);
+
+
+    /**
+     * @brief Get the name which describes the data.
+     * @return Descriptive name.
+     */
+    std::string Name() const;
+
+
 
 protected:
 
@@ -401,6 +415,9 @@ protected:
 
     /** @brief Control if 'free()' is to be used to free allocated memory. */
     bool use_free;
+
+    /** @brief Descriptive name for data contained within array. */
+    std::string array_name;
 
 
 	/**
@@ -423,6 +440,7 @@ protected:
     {
         std::swap(first.npoints, second.npoints);
         std::swap(first.p_array, second.p_array);
+        first.array_name.swap(second.array_name);
     }
 
 

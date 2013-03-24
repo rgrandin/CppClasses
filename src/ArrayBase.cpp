@@ -18,6 +18,8 @@ void ArrayBase<T>::initialize(size_t dim1, T initvalue)
 {
     use_free = false;   /* Use 'new' and 'delete' by default. */
 
+    array_name = "NoName";
+
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
         p_array = (T*)NULL;					// SET POINTER TO NULL
@@ -384,6 +386,20 @@ void ArrayBase<T>::SetArrayPointer(T *p_data, size_t npts, bool useFree)
     p_array = p_data;
     npoints = npts;
     use_free = useFree;
+}
+
+
+template <class T>
+void ArrayBase<T>::setName(const std::string name)
+{
+    array_name = name;
+}
+
+
+template <class T>
+std::string ArrayBase<T>::Name() const
+{
+    return array_name;
 }
 
 
