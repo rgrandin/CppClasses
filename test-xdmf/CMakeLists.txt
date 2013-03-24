@@ -20,16 +20,17 @@ add_executable(${PROJECT_NAME} ${SRC_LIST})
 
 
 # Set file to contain version information
-configure_file (
+configure_file(
   "${PROJECT_SOURCE_DIR}/XdmfDemoConfig.h.in"
   "${PROJECT_BINARY_DIR}/XdmfDemoConfig.h"
   )
 include_directories("${PROJECT_BINARY_DIR}")    # Include req'd to find 'XdmfDemoConfig.h'
 
 
-# Enable C++11 support for GCC compiler
+# Set GCC compiler flags
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")    # Enable C++11 features
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")      # Enable OpenMP
 endif()
 
 
@@ -47,9 +48,8 @@ endif()
 
 
 # Add General-Use C++ Classes
-set(GEN_CXX_CLASSES_DIR "${PROJECT_SOURCE_DIR}/../src")
+set(GEN_CXX_CLASSES_DIR "${PROJECT_SOURCE_DIR}/../src")     # Manually define directory
 include_directories(${GEN_CXX_CLASSES_DIR})
-
 
 
 
