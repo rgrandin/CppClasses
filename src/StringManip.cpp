@@ -1,3 +1,10 @@
+/**
+ * @file StringManip.cpp
+ * @author Robert Grandin
+ * @brief Implementation of non-templated functions in StringManip namespace.
+ */
+
+
 #include <StringManip.h>
 
 
