@@ -4,6 +4,8 @@
 
 #include <basicXdmfTest.h>
 
+#include <XdmfIO.h>
+
 int main()
 {
     int selection = 2;
@@ -37,6 +39,11 @@ int main()
 
     case(3):
         basicXdmfTest::writeXDMFFile_MultiArray();
+        break;
+
+    case(999):
+        /* Include this function call force compilation of this function for testing purposes. */
+        XdmfIO::writeUniformGrid("nofile", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
         break;
 
     default:

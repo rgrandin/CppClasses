@@ -363,8 +363,8 @@ void basicXdmfTest::writeXDMFFile_MultiArray()
 
 
     /* Cleanup pointers. */
-    delete xarray;  /* Deletion of XmdfDOM object does not delete array, so 'xarray'
-                     * must be manually deleted here. */
+    delete [] xarray;  /* Deletion of XmdfDOM object does not delete array, so 'xarray'
+                        * must be manually deleted here. */
     delete d;       /* Deleting XmdfDOM object deletes its children, so other
                      * Xmdf____ objects do not need to be manually deleted here.
                      * This behavior was verified using Valgrind to locate memory
