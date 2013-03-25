@@ -12,9 +12,12 @@
 #include <XdmfH5Driver.h>
 
 #include <Array1D.h>
+#include <Array2D.h>
 #include <Array3D.h>
+#include <Array4D.h>
 #include <StringManip.h>
 #include <UniformVolume.h>
+#include <XdmfIO.h>
 
 #include <omp.h>
 
@@ -54,6 +57,12 @@ void readXDMFFile();
  *  User will be asked for filenames during function execution.
  */
 void convertVolume();
+
+
+/**
+ * @brief Write XDMF/HDF5 file with multiple arrays of multiple dimensionality, size, and datatype.
+ */
+void writeXDMFFile_MultiTest();
 
 
 

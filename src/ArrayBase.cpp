@@ -106,6 +106,8 @@ void ArrayBase<T>::FreeMemory()
         } else {
             delete [] p_array;
         }
+
+        p_array = NULL;
     }
 }
 

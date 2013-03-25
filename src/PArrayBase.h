@@ -218,7 +218,7 @@ protected:
 	 * @return None.
 	 * @post Array created with specified size and initial value.
 	 */
-	void initialize(int dim1);
+	void initialize(size_t dim1);
 
 
 

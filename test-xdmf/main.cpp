@@ -17,6 +17,7 @@ int main()
     std::cout << "   1 - Convert volume file to XDMF" << std::endl;
     std::cout << "   2 - Read XDMF file and write information to std::cout" << std::endl;
     std::cout << "   3 - Write multiple 3D arrays, user specified size, value = 100*k + 10*i + j" << std::endl;
+    std::cout << "   4 - Write multiple arrays of multiple dimensionality, size, and datatype" << std::endl;
     std::cout << std::endl;
 
     std::cout << "Selection: ";
@@ -39,6 +40,10 @@ int main()
 
     case(3):
         basicXdmfTest::writeXDMFFile_MultiArray();
+        break;
+
+    case(4):
+        basicXdmfTest::writeXDMFFile_MultiTest();
         break;
 
     case(999):

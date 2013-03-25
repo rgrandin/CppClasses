@@ -752,3 +752,128 @@ void basicXdmfTest::readXDMFFile()
     std::cout << std::endl;
 
 }
+
+
+void basicXdmfTest::writeXDMFFile_MultiTest()
+{
+    std::string filename("multi-test-file");
+
+    /* Create 1D char array. */
+    Array1D<char> char_array(101, 'b');
+    char_array.setName("char_test");
+
+    /* Create 1D short array. */
+    Array1D<short> short_1d(203, (short)2);
+    short_1d.setName("short_1d_test");
+
+    /* Create 2D short array. */
+    Array2D<short> short_array(203, 31, (short)3112);
+    short_array.setName("short_2d_test");
+
+    /* Create 4D double array. */
+    Array4D<double> double_array(11, 23, 2, 7, (double)2.374e0);
+    double_array.setName("double_4d_test");
+
+
+    XdmfIO::data_info<char> char_data;
+    XdmfIO::data_info<short> short_data;
+    XdmfIO::data_info<double> double_data;
+
+
+
+//    /* Create data-struct for char data. */
+//    PArray1D<char*> char_ptr(1);
+//    PArray1D<Array1D<size_t>*> char_dims(1);
+//    PArray1D<Array1D<float>*> char_origin(1);
+//    PArray1D<Array1D<float>*> char_spacing(1);
+//    PArray1D<std::string*> char_name(1);
+
+
+//    char_dims(0) = new Array1D<size_t>;
+//    char_origin(0) = new Array1D<float>;
+//    char_spacing(0) = new Array1D<float>;
+//    char_name(0) = new std::string;
+
+//    char_ptr(0) = &char_array[0];
+//    char_dims(0)->ResetSize(1);    char_dims(0)->operator ()(0) = 101;
+//    char_origin(0)->ResetSize(1);  char_origin(0)->operator ()(0) = 0.0e0;
+//    char_spacing(0)->ResetSize(1); char_spacing(0)->operator ()(0) = 1.0e0;
+//    //char_name(0)->assign(char_array.Name());
+//    char_name(0)->assign("char_array");
+
+//    char_data.data = &char_ptr;
+//    char_data.dims = &char_dims;
+//    char_data.origin = &char_origin;
+//    char_data.spacing = &char_spacing;
+//    char_data.data_name = &char_name;
+
+
+    /* Create data struct for short data. */
+//    PArray1D<short*> short_ptr(2);
+//    PArray1D<Array1D<size_t>*> short_dims(2);
+//    PArray1D<Array1D<float>*> short_origin(2);
+//    PArray1D<Array1D<float>*> short_spacing(2);
+//    PArray1D<std::string*> short_name(2);
+
+//    short_dims(0) = new Array1D<size_t>;
+//    short_origin(0) = new Array1D<float>;
+//    short_spacing(0) = new Array1D<float>;
+//    short_name(0) = new std::string;
+
+//    short_dims(1) = new Array1D<size_t>;
+//    short_origin(1) = new Array1D<float>;
+//    short_spacing(1) = new Array1D<float>;
+//    short_name(1) = new std::string;
+
+//    short_ptr(0) = &short_array[0];
+//    short_dims(0)->ResetSize(2);    short_dims(0)->operator ()(0) = 203;      short_dims(0)->operator ()(1) = 31;
+//    short_origin(0)->ResetSize(2);  short_origin(0)->operator ()(0) = 0.1e0;  short_origin(0)->operator ()(1) = 0.15e0;
+//    short_spacing(0)->ResetSize(2); short_spacing(0)->operator ()(0) = 0.5e0; short_spacing(0)->operator ()(1) = 0.5e0;
+//    short_name(0)->assign(short_array.Name());
+
+//    short_ptr(1) = &short_1d[0];
+//    short_dims(1)->ResetSize(1);    short_dims(0)->operator ()(0) = 203;
+//    short_origin(1)->ResetSize(1);  short_origin(0)->operator ()(0) = 0.25e0;
+//    short_spacing(1)->ResetSize(1); short_spacing(0)->operator ()(0) = 0.75e0;
+//    short_name(1)->assign(short_1d.Name());
+
+//    short_data.data = &short_ptr;
+//    short_data.dims = &short_dims;
+//    short_data.origin = &short_origin;
+//    short_data.spacing = &short_spacing;
+//    short_data.data_name = &short_name;
+
+
+    /* Create data struct for double data. */
+    PArray1D<double*> double_ptr(1);
+    PArray1D<Array1D<size_t>*> double_dims(1);
+    PArray1D<Array1D<float>*> double_origin(1);
+    PArray1D<Array1D<float>*> double_spacing(1);
+    PArray1D<std::string*> double_name(1);
+
+    double_dims(0) = new Array1D<size_t>;
+    double_origin(0) = new Array1D<float>;
+    double_spacing(0) = new Array1D<float>;
+    double_name(0) = new std::string;
+
+    double_ptr(0) = &double_array[0];
+    double_dims(0)->ResetSize(4);
+    for(int i=0; i<4; i++){
+        double_dims(0)->operator ()(i) = double_array.GetDim(i);
+    }
+    double_origin(0)->ResetSize(1);  double_origin(0)->operator ()(0) = 2.0e0;
+    double_spacing(0)->ResetSize(1); double_spacing(0)->operator ()(0) = 1.7e0;
+    double_name(0)->assign(double_array.Name());
+
+//    double_data.data = &double_ptr;
+//    double_data.dims = &double_dims;
+//    double_data.origin = &double_origin;
+//    double_data.spacing = &double_spacing;
+//    double_data.data_name = &double_name;
+
+
+//    XdmfIO::writeUniformGrid(filename, &char_data, NULL, &short_data, NULL, NULL, NULL, NULL, NULL, &double_data, 0);
+
+
+
+}

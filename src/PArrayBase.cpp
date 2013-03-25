@@ -16,7 +16,7 @@
 
 // ARRAY INITIALIZATION
 template <class T>
-void PArrayBase<T>::initialize(int dim1)
+void PArrayBase<T>::initialize(size_t dim1)
 {
 	npoints = dim1;
 	if(!npoints){							// CHECK npoints VALUE SET
@@ -88,13 +88,15 @@ void PArrayBase<T>::ResetSize(size_t dim1)
 	// THE ARRAY SIZE AS REQUIRED.
 	if(dim1 != npoints){
         for(size_t i=0; i<npoints; i++){
-            if(p_array[i] != NULL){
+            if(p_array[i]){
                 delete p_array[i];
 			}
 		}
 
 		npoints = dim1;
-        delete [] p_array;
+        if(p_array){
+            delete [] p_array;
+        }
         p_array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){

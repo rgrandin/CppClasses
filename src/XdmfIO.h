@@ -74,8 +74,8 @@ namespace XdmfIO
 
 template <typename T>
 struct data_info {
-    /** @brief Array of pointers to Array1D objects containing data. */
-    PArray1D<Array1D<T>*> *data;
+    /** @brief Array of pointers to data arrays. */
+    PArray1D<T*> *data;
 
     /** @brief Array of pointers to Array1D objects containing actual data dimensions in row-major (IJK) order. */
     PArray1D<Array1D<size_t>*> *dims;
@@ -85,6 +85,9 @@ struct data_info {
 
     /** @brief Array of pointers to Array1D objects containing spacing values for each data dimension. */
     PArray1D<Array1D<float>*> *spacing;
+
+    /** @brief Array of names for data arrays. */
+    PArray1D<std::string*> *data_name;
 };
 
 
@@ -104,6 +107,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 {
     int narrays = (int)data_struct->data->GetDim();
 
+
     for(int i=0; i<narrays; i++){
 
         int array_number = i + array_count;
@@ -113,13 +117,19 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
          * will not affect the actual data, either.  The XdmfArray object only facilitates the interface
          * between the actual data and the data-output. */
 
-        int rank = data_struct->dims->operator()(0)->GetDim();
+        XdmfPointer data_pointer = data_struct->data->operator()(i);
+        Array1D<size_t> *data_dims = data_struct->dims->operator()(i);
+        Array1D<float> *data_origin = data_struct->origin->operator()(i);
+        Array1D<float> *data_spacing = data_struct->spacing->operator()(i);
+        std::string arrayname = data_struct->data_name->operator()(i)->substr();
+
+
+        int rank = data_dims->GetDim();
         XdmfInt64 shape[rank];
         for(int r=0; r<rank; r++){
             shape[r] = (XdmfInt64)data_struct->dims->operator()(i)->operator()(i-rank-1);
         }
 
-        XdmfPointer data_pointer = &data_struct->data->operator()(i)->operator[](0);
         XdmfInt32 number_type = XDMF_UNKNOWN_TYPE;
         if(typeid(T) == typeid(char)){
             number_type = XDMF_INT8_TYPE;
@@ -148,12 +158,12 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
         XdmfFloat64 origin[rank];
         for(int i=0; i<rank; i++){
-            origin[i] = data_struct->origin->operator()(i)->operator()(i-rank-1);
+            origin[i] = data_origin->operator()(i-rank-1);
         }
 
         XdmfFloat64 spacing[rank];
         for(int i=0; i<rank; i++){
-            spacing[i] = data_struct->spacing->operator()(i)->operator()(i-rank-1);
+            spacing[i] = data_spacing->operator()(i-rank-1);
         }
 
 
@@ -186,9 +196,6 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
         /* Insert this data grid into the super-grid. */
         tree_grid->Insert(grid[array_number]);
-
-        std::string arrayname;
-        arrayname = data_struct->data->operator()(0)->Name();
 
         XdmfAttribute *attrib = new XdmfAttribute;              /* Create attribute to describe data. */
         attrib->SetName(arrayname.c_str());                     /* Set descriptive name for data. */
