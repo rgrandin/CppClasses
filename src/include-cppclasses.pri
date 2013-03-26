@@ -20,7 +20,8 @@ HEADERS += \
     $$PWD/QSafeApplication.h \
     $$PWD/StringManip.h \
     $$PWD/UniformVolume.h \
-    $$PWD/UnitConvert.h
+    $$PWD/UnitConvert.h \
+    $$PWD/XdmfIO.h
 
 SOURCES += \
     $$PWD/ProgressInfo.cpp \

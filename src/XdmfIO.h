@@ -94,8 +94,14 @@ struct data_info {
 
 /**
  * @brief Define uniform data array and insert into tree grid.
- * @param data Pointer to XdmfIO::data_info structure containing data to be written.
+ * @param data_struct Pointer to XdmfIO::data_info structure containing data to be written.
  * @param tree_grid Pointer to XdmfGrid which is to contain the data.
+ * @param xarray Pointer to array of pointers for XdmfArray arrays to be defined and written.
+ * @param grid Pointer to array of pointers for XdmfGrid objects for each XdmfArray.
+ * @param topo Pointer to array of pointers for XdmfTopology objects for each XdmfGrid object.
+ * @param geo Pointer to array of pointers for XdmfGeometry objects for each XdmfGrid object.
+ * @param array_count Number of arrays already created.  This is used to determine the appropriate offsets to
+ *  use when accessing the arrays of pointers so as to not overwrite previously-defined data.
  * @param filename Name of output file, without extension.
  * @param compression Level of compression to be used.  Value must be in the range [0,9], with 0 being no compression and
  *  9 being maximum compression.
