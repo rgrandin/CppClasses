@@ -1,11 +1,16 @@
 #include <ArrayBase.h>
+#include <Array1D.h>
 #include <Array2D.h>
 #include <Array3D.h>
+#include <Array4D.h>
 #include <DataFilters.h>
+#include <PArray1D.h>
+#include <PArray2D.h>
+#include <PArray3D.h>
+#include <PArray4D.h>
 #include <UniformVolume.h>
 
 #include <vtkxmliotest.h>
-#include <xdmfiotest.h>
 
 #include <omp.h>
 
@@ -546,7 +551,7 @@ int main()
 
 
         /* Test VTK XML. */
-        if(true){
+        if(false){
 //            size_t npts = 2147483648;     /* Max-value of signed integer. */
             size_t size1 = 1500/8;        /* Small test size. */
             size_t size2 = 1500/8;
@@ -554,13 +559,45 @@ int main()
 //            size_t size1 = 1500;            /* Large test size. */
 //            size_t size2 = 1500;
 //            size_t size3 = 1000;
-            //writeVTKFile(size1, size2, size3);
+            writeVTKFile(size1, size2, size3);
 
-            //std::string filename("output.pvti");
-            //readVTKFile(filename);
+            std::string filename("output.pvti");
+            readVTKFile(filename);
+        }
 
 
-            writeXDMFFile(size1, size2, size3);
+
+        /* Test Array classes. */
+        if(true){
+            Array1D<char> a1dc;
+            a1dc.ResetSize(5);
+
+            Array1D<float> a1d;
+            a1d.ResetSize(3);
+
+            Array2D<float> a2d;
+            a2d.ResetSize(4, 5);
+
+            Array3D<float> a3d;
+            a3d.ResetSize(1, 6, 7);
+
+            Array4D<float> a4d;
+            a4d.ResetSize(2, 5, 9, 4);
+
+            PArray1D<float*> pa1d;
+            pa1d.ResetSize(3);
+
+            PArray2D<float*> pa2d;
+            pa2d.ResetSize(4, 5);
+
+            PArray3D<float*> pa3d;
+            pa3d.ResetSize(1, 6, 7);
+
+            PArray4D<float*> pa4d;
+            pa4d.ResetSize(2, 5, 9, 4);
+
+            PArray1D<Array1D<short>*> pa1da;
+            pa1da.ResetSize(9);
         }
 
 

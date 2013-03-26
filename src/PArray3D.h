@@ -212,13 +212,13 @@ public:
 protected:
 	// VARIABLES
 	/** @brief Number of points along the first dimension. */
-	int size1;
+    size_t size1;
 
 	/** @brief Number of points along the second dimension. */
-	int size2;
+    size_t size2;
 
 	/** @brief Number of points along the third dimension. */
-	int size3;
+    size_t size3;
 
 
 

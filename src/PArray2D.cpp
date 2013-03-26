@@ -43,7 +43,7 @@ PArray2D<T>::PArray2D(size_t dim1, size_t dim2)
 
 template <class T>
 PArray2D<T>::PArray2D(const PArray2D<T> &a) : PArrayBase<T>(a),
-    size1(a.size1), size2(a.size2), npoints(a.npoints)
+    size1(a.size1), size2(a.size2)
 {
 }
 
@@ -153,7 +153,7 @@ void PArray2D<T>::ResetSize(size_t dim1, size_t dim2)
 	} else {
 		// IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
 		// NULL
-		for(int i=0; i<PArrayBase<T>::npoints; i++){
+        for(size_t i=0; i<PArrayBase<T>::npoints; i++){
             PArrayBase<T>::p_array[i] = NULL;
 		}
 	}

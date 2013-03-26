@@ -47,7 +47,7 @@ PArray4D<T>::PArray4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 
 template <class T>
 PArray4D<T>::PArray4D(const PArray4D<T> &a) : PArrayBase<T>(a),
-    size1(a.size1), size2(a.size2), size3(a.size3), size4(a.size4), npoints(a.npoints)
+    size1(a.size1), size2(a.size2), size3(a.size3), size4(a.size4)
 {
 }
 
@@ -170,7 +170,7 @@ void PArray4D<T>::ResetSize(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 	} else {
 		// IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
 		// NULL
-		for(int i=0; i<PArrayBase<T>::npoints; i++){
+        for(size_t i=0; i<PArrayBase<T>::npoints; i++){
             PArrayBase<T>::p_array[i] = NULL;
 		}
 	}

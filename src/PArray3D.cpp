@@ -44,13 +44,13 @@ PArray3D<T>::PArray3D(size_t dim1, size_t dim2, size_t dim3)
 
 template <class T>
 PArray3D<T>::PArray3D(const PArray3D<T> &a) : PArrayBase<T>(a),
-    size1(a.size1), size2(a.size2), size3(a.size3), npoints(a.npoints)
+    size1(a.size1), size2(a.size2), size3(a.size3)
 {
 }
 
 
 #ifdef CXX11
-PArray3D <class T>
+template <class T>
 PArray3D<T>::PArray3D(PArray3D<T> &&a) : PArrayBase<T>(std::move(a))
 {
     PArray3DSwap(*this, a);
@@ -159,7 +159,7 @@ void PArray3D<T>::ResetSize(size_t dim1, size_t dim2, size_t dim3)
     } else {
         // IF INPUT BOUNDS MATCH EXISTING BOUNDS, RESET ALL ARRAY POINTS TO
         // 'initvalue'
-        for(int i=0; i<PArrayBase<T>::npoints; i++){
+        for(size_t i=0; i<PArrayBase<T>::npoints; i++){
             PArrayBase<T>::p_array[i] = NULL;
         }
     }
