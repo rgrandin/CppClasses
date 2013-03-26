@@ -103,7 +103,7 @@ public:
      * @return None.
      * @post Array object created and initialized to default value.
      */
-    Array4D(int dim1, int dim2, int dim3, int dim4);
+    Array4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4);
 
 
     /**
@@ -116,7 +116,7 @@ public:
      * @return None.
      * @post Array object created and initialized to default value.
      */
-    Array4D(int dim1, int dim2, int dim3, int dim4, const T initvalue);
+    Array4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4, const T initvalue);
 
 
     /**

@@ -8,7 +8,7 @@
 
 int main()
 {
-    int selection = 2;
+    int selection = 4;
 
     std::cout << "XdmfDemo -- version " << XdmfDemo_VERSION_MAJOR << "." << XdmfDemo_VERSION_MINOR << std::endl;
     std::cout << std::endl;
@@ -21,7 +21,7 @@ int main()
     std::cout << std::endl;
 
     std::cout << "Selection: ";
-    std::cin >> selection;
+    //std::cin >> selection;
     std::cout << std::endl;
     std::cout << std::endl;
 

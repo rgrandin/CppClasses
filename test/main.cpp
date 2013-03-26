@@ -582,7 +582,10 @@ int main()
             a3d.ResetSize(1, 6, 7);
 
             Array4D<float> a4d;
-            a4d.ResetSize(2, 5, 9, 4);
+            a4d.ResetSize(2, 5, 9, 4, 2.75f);
+
+            Array4D<double> double_array(11, 23, 2, 7, (double)2.374e0);
+            double_array.ResetSize(11,22,13,7);
 
             PArray1D<float*> pa1d;
             pa1d.ResetSize(3);
