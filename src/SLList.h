@@ -144,7 +144,7 @@ public:
      * @param a Rvalue to existing SLList object to be copied.
      * @warning This function requires C++11 compiler support.
      */
-    SLList(SLList<T> &&a);
+    SLList(SLList<T,I> &&a);
 #endif
 
     /**
