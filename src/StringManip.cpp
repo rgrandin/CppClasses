@@ -297,7 +297,7 @@ void StringManip::DetermFileStem(const std::string &filename, std::string &stem,
         std::string tmp2;
         size_t index_us = filename.find_last_of("_");
 
-        if(index_ext != filename.npos){
+        if(index_us != filename.npos){
             tmp2 = filename.substr(index_us,(index_ext-index_us));
             if(tmp2 == "_BigEndian"){
                 tmpstem = filename.substr(0, index_us);
