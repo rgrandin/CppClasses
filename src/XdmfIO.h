@@ -133,7 +133,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         int rank = data_dims->GetDim();
         XdmfInt64 shape[rank];
         for(int r=0; r<rank; r++){
-            shape[r] = (XdmfInt64)data_struct->dims->operator()(i)->operator()(i-rank-1);
+            shape[r] = (XdmfInt64)data_dims->operator()(rank-r-1);
         }
 
         XdmfInt32 number_type = XDMF_UNKNOWN_TYPE;
@@ -163,13 +163,13 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         }
 
         XdmfFloat64 origin[rank];
-        for(int i=0; i<rank; i++){
-            origin[i] = data_origin->operator()(i-rank-1);
+        for(int r=0; r<rank; r++){
+            origin[r] = data_origin->operator()(rank-r-1);
         }
 
         XdmfFloat64 spacing[rank];
-        for(int i=0; i<rank; i++){
-            spacing[i] = data_spacing->operator()(i-rank-1);
+        for(int r=0; r<rank; r++){
+            spacing[r] = data_spacing->operator()(rank-r-1);
         }
 
 
@@ -190,7 +190,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         topo[array_number] = grid[array_number]->GetTopology();                  /* Set to be grid topology. */
         topo[array_number]->SetTopologyType(XDMF_3DCORECTMESH);    /* Set grid type, again this is for image data and other
                                                       * options are possible for other applications. */
-        topo[array_number]->GetShapeDesc()->SetShape(3, shape);    /* Set shape to match that of the data array. */
+        topo[array_number]->GetShapeDesc()->SetShape(rank, shape);    /* Set shape to match that of the data array. */
 
         geo[array_number] = new XdmfGeometry;                /* Create a geometry object to complete grid
                                                               * structure definition. */

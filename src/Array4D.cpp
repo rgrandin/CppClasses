@@ -33,32 +33,36 @@ Array4D<T>::Array4D()
 	size2 = 1;
 	size3 = 1;
 	size4 = 1;
-    ArrayBase<T>::npoints = size1*size2*size3*size4;
+    size_t npts = size1*size2*size3*size4;
+
+    ArrayBase<T>::ResetSize(npts, (T)0.0e0);
 }
 
 
 template <class T>
-Array4D<T>::Array4D(int dim1, int dim2, int dim3, int dim4)
+Array4D<T>::Array4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 {
 	size1 = dim1;
 	size2 = dim2;
 	size3 = dim3;
 	size4 = dim4;
-    ArrayBase<T>::npoints = size1*size2*size3*size4;
-    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,(T)0.0e0);
+    size_t npts = size1*size2*size3*size4;
+
+    ArrayBase<T>::ResetSize(npts, (T)0.0e0);
 }
 
 
 template <class T>
-Array4D<T>::Array4D(int dim1, int dim2, int dim3, int dim4,
+Array4D<T>::Array4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4,
 										const T initvalue)
 {
 	size1 = dim1;
 	size2 = dim2;
 	size3 = dim3;
 	size4 = dim4;
-    ArrayBase<T>::npoints = size1*size2*size3*size4;
-    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,initvalue);
+    size_t npts = size1*size2*size3*size4;
+
+    ArrayBase<T>::ResetSize(npts, initvalue);
 }
 
 

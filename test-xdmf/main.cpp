@@ -6,9 +6,15 @@
 
 #include <XdmfIO.h>
 
-int main()
+int main(int argc, char *argv[])
 {
-    int selection = 2;
+    int selection = -1;
+
+    if(argc == 2){
+        std::stringstream tmpss;
+        tmpss << argv[1];
+        tmpss >> selection;
+    }
 
     std::cout << "XdmfDemo -- version " << XdmfDemo_VERSION_MAJOR << "." << XdmfDemo_VERSION_MINOR << std::endl;
     std::cout << std::endl;
@@ -20,10 +26,16 @@ int main()
     std::cout << "   4 - Write multiple arrays of multiple dimensionality, size, and datatype" << std::endl;
     std::cout << std::endl;
 
-    std::cout << "Selection: ";
-    std::cin >> selection;
-    std::cout << std::endl;
-    std::cout << std::endl;
+    if(selection < 0){
+        std::cout << "Selection: ";
+        std::cin >> selection;
+        std::cout << std::endl;
+        std::cout << std::endl;
+    } else {
+        std::cout << "Selection: " << selection << std::endl;
+        std::cout << std::endl;
+        std::cout << std::endl;
+    }
 
     switch(selection){
     case(0):
