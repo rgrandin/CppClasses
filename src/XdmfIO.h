@@ -105,6 +105,7 @@ struct data_info {
  * @param filename Name of output file, without extension.
  * @param compression Level of compression to be used.  Value must be in the range [0,9], with 0 being no compression and
  *  9 being maximum compression.
+ * @warning As each array is added, the pointer-to-data stored in data_struct is set to NULL.
  */
 template <class T>
 void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, XdmfArray **xarray,
@@ -162,16 +163,6 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
             number_type = XDMF_FLOAT64_TYPE;
         }
 
-        XdmfFloat64 origin[rank];
-        for(int r=0; r<rank; r++){
-            origin[r] = data_origin->operator()(rank-r-1);
-        }
-
-        XdmfFloat64 spacing[rank];
-        for(int r=0; r<rank; r++){
-            spacing[r] = data_spacing->operator()(rank-r-1);
-        }
-
 
         xarray[array_number] = new XdmfArray;
         xarray[array_number]->SetAllowAllocate(false);                 /* Prevent the XdmfArray from allocating any memory. */
@@ -180,24 +171,50 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         xarray[array_number]->SetNumberType(number_type);              /* Identify the data type. */
 
 
-        grid[array_number] = new XdmfGrid;               /* Create a grid for the data. */
-        grid[array_number]->SetName("Structured Grid");            /* Name the grid.  This is user-choice. */
-        grid[array_number]->SetGridType(XDMF_GRID_UNIFORM);        /* Set grid type.  This example is for image data, which is
-                                                      * on a uniform grid.  Grid choice can be other types based
-                                                      * on needs. */
+        grid[array_number] = new XdmfGrid;                  /* Create a grid for the data. */
+        grid[array_number]->SetName("Structured Grid");     /* Name the grid.  This is user-choice. */
+        grid[array_number]->SetGridType(XDMF_GRID_UNIFORM); /* Set grid type.  This example is for image data, which is
+                                                             * on a uniform grid.  Grid choice can be other types based
+                                                             * on needs. */
 
-        topo[array_number] = new XdmfTopology;       /* Create a topology object to help define grid. */
-        topo[array_number] = grid[array_number]->GetTopology();                  /* Set to be grid topology. */
-        topo[array_number]->SetTopologyType(XDMF_3DCORECTMESH);    /* Set grid type, again this is for image data and other
-                                                      * options are possible for other applications. */
-        topo[array_number]->GetShapeDesc()->SetShape(rank, shape);    /* Set shape to match that of the data array. */
+        topo[array_number] = new XdmfTopology;                      /* Create a topology object to help define grid. */
+        topo[array_number] = grid[array_number]->GetTopology();     /* Set to be grid topology. */
 
-        geo[array_number] = new XdmfGeometry;                /* Create a geometry object to complete grid
-                                                              * structure definition. */
-        geo[array_number] = grid[array_number]->GetGeometry();                           /* Set to be the grid geometry. */
-        geo[array_number]->SetGeometryType(XDMF_GEOMETRY_ORIGIN_DXDYDZ);   /* Set for image data.  Again, more-complex options exist. */
-        geo[array_number]->SetOrigin(origin);                              /* Set origin. */
-        geo[array_number]->SetDxDyDz(spacing);                             /* Set point spacing. */
+        topo[array_number]->SetTopologyType(XDMF_3DCORECTMESH);     /* Set grid type, again this is for image data and other
+                                                                     * options are possible for other applications. */
+        topo[array_number]->GetShapeDesc()->SetShape(rank, shape);  /* Set shape to match that of the data array. */
+
+
+        geo[array_number] = new XdmfGeometry;                   /* Create a geometry object to complete grid
+                                                                 * structure definition. */
+        geo[array_number] = grid[array_number]->GetGeometry();  /* Set to be the grid geometry. */
+        if(data_origin && data_spacing){
+            /* If both data_origin and data_spacing is defined, use those values when defining the geometry. */
+
+            XdmfFloat64 origin[rank];
+            for(int r=0; r<rank; r++){
+                origin[r] = data_origin->operator()(rank-r-1);
+            }
+
+            XdmfFloat64 spacing[rank];
+            for(int r=0; r<rank; r++){
+                spacing[r] = data_spacing->operator()(rank-r-1);
+            }
+
+            geo[array_number]->SetGeometryType(XDMF_GEOMETRY_ORIGIN_DXDYDZ);   /* Set for image data.  Again, more-complex options exist. */
+            geo[array_number]->SetOrigin(origin);                              /* Set origin. */
+            geo[array_number]->SetDxDyDz(spacing);                             /* Set point spacing. */
+        } else {
+            /* If origin/spacing information is missing, assume values.  Reading the produced file into ParaView
+             * fails if origin/spacing information is not provided. */
+
+            XdmfFloat64 origin[3] = { 0.0, 0.0, 0.0 };
+            XdmfFloat64 spacing[3] = { 1.0, 1.0, 1.0 };
+
+            geo[array_number]->SetGeometryType(XDMF_GEOMETRY_ORIGIN_DXDYDZ);   /* Set for image data.  Again, more-complex options exist. */
+            geo[array_number]->SetOrigin(origin);                              /* Set origin. */
+            geo[array_number]->SetDxDyDz(spacing);                             /* Set point spacing. */
+        }
 
 
         /* Insert this data grid into the super-grid. */
@@ -236,6 +253,10 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
         /* Insert attribute into grid.  Note that this grid is a child of the "super-grid". */
         grid[array_number]->Insert(attrib);
+
+        /* Set pointer to data to NULL.  Actual data is not affected.  This prevents attempted double-deletion of
+         * the data when both the PArray1D object (pointers to data) and Array object (the actual data) are destroyed. */
+        data_struct->data->operator()(i) = NULL;
 
     } /* Loop through arrays to be added. */
 
@@ -410,7 +431,7 @@ void writeUniformGrid(std::string filename,
                      * and thus is not under the programmer's control (without digging deep into source
                      * code). */
 
-}
+} /* XdmfIO::writeUniformGrid() */
 
 
 

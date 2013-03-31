@@ -777,6 +777,7 @@ void basicXdmfTest::writeXDMFFile_MultiTest()
 
     XdmfIO::data_info<char> char_data;
     XdmfIO::data_info<short> short_data;
+    XdmfIO::data_info<float> float_data;
     XdmfIO::data_info<double> double_data;
 
 
@@ -790,15 +791,12 @@ void basicXdmfTest::writeXDMFFile_MultiTest()
 
 
     char_dims(0) = new Array1D<size_t>;
-    char_origin(0) = new Array1D<float>;
-    char_spacing(0) = new Array1D<float>;
     char_name(0) = new std::string;
+    char_origin.ResetVal(NULL);
+    char_spacing.ResetVal(NULL);
 
     char_ptr(0) = &char_array[0];
     char_dims(0)->ResetSize(1);    char_dims(0)->operator ()(0) = 101;
-    char_origin(0)->ResetSize(1);  char_origin(0)->operator ()(0) = 0.0e0;
-    char_spacing(0)->ResetSize(1); char_spacing(0)->operator ()(0) = 1.0e0;
-    //char_name(0)->assign(char_array.Name());
     char_name(0)->assign("char_array");
 
     char_data.data = &char_ptr;
@@ -816,25 +814,19 @@ void basicXdmfTest::writeXDMFFile_MultiTest()
     PArray1D<std::string*> short_name(2);
 
     short_dims(0) = new Array1D<size_t>;
-    short_origin(0) = new Array1D<float>;
-    short_spacing(0) = new Array1D<float>;
     short_name(0) = new std::string;
+    short_origin.ResetVal(NULL);
+    short_spacing.ResetVal(NULL);
 
     short_dims(1) = new Array1D<size_t>;
-    short_origin(1) = new Array1D<float>;
-    short_spacing(1) = new Array1D<float>;
     short_name(1) = new std::string;
 
     short_ptr(0) = &short_array[0];
     short_dims(0)->ResetSize(2);    short_dims(0)->operator ()(0) = 203;      short_dims(0)->operator ()(1) = 31;
-    short_origin(0)->ResetSize(2);  short_origin(0)->operator ()(0) = 0.1e0;  short_origin(0)->operator ()(1) = 0.15e0;
-    short_spacing(0)->ResetSize(2); short_spacing(0)->operator ()(0) = 0.5e0; short_spacing(0)->operator ()(1) = 0.5e0;
     short_name(0)->assign(short_array.Name());
 
     short_ptr(1) = &short_1d[0];
     short_dims(1)->ResetSize(1);    short_dims(1)->operator ()(0) = 203;
-    short_origin(1)->ResetSize(1);  short_origin(1)->operator ()(0) = 0.25e0;
-    short_spacing(1)->ResetSize(1); short_spacing(1)->operator ()(0) = 0.75e0;
     short_name(1)->assign(short_1d.Name());
 
     short_data.data = &short_ptr;
@@ -852,17 +844,15 @@ void basicXdmfTest::writeXDMFFile_MultiTest()
     PArray1D<std::string*> double_name(1);
 
     double_dims(0) = new Array1D<size_t>;
-    double_origin(0) = new Array1D<float>;
-    double_spacing(0) = new Array1D<float>;
     double_name(0) = new std::string;
+    double_origin.ResetVal(NULL);
+    double_spacing.ResetVal(NULL);
 
     double_ptr(0) = &double_array[0];
     double_dims(0)->ResetSize(4);
     for(int i=0; i<4; i++){
         double_dims(0)->operator ()(i) = double_array.GetDim(i+1);
     }
-    double_origin(0)->ResetSize(4);  double_origin(0)->ResetVal(2.0e0);
-    double_spacing(0)->ResetSize(4); double_spacing(0)->ResetVal(1.7e0);
     double_name(0)->assign(double_array.Name());
 
     double_data.data = &double_ptr;
@@ -871,14 +861,40 @@ void basicXdmfTest::writeXDMFFile_MultiTest()
     double_data.spacing = &double_spacing;
     double_data.data_name = &double_name;
 
+    /* Setup struct for float data. */
+    PArray1D<float*> float_ptr(1);
+    PArray1D<Array1D<size_t>*> float_dims(1);
+    PArray1D<Array1D<float>*> float_origin(1);
+    PArray1D<Array1D<float>*> float_spacing(1);
+    PArray1D<std::string*> float_name(1);
 
-    XdmfIO::writeUniformGrid(filename, &char_data, NULL, &short_data, NULL, NULL, NULL, NULL, NULL, &double_data, 0);
+    Array3D<float> fdata(302, 25, 17, (float)2.71e0);
+    fdata.setName("image_data");
+
+    float_ptr(0) = &fdata[0];
+
+    float_dims(0) = new Array1D<size_t>;
+    float_dims(0)->ResetSize(3, 0);
+    float_dims(0)->operator ()(0) = 302;
+    float_dims(0)->operator ()(1) = 25;
+    float_dims(0)->operator ()(2) = 17;
+
+    float_origin(0) = new Array1D<float>;
+    float_origin(0)->ResetSize(3, (float)0.0e0);
+
+    float_spacing(0) = new Array1D<float>;
+    float_spacing(0)->ResetSize(3, (float)1.0e0);
+
+    float_name(0) = new std::string;
+    float_name(0)->assign(fdata.Name());
+
+    float_data.data = &float_ptr;
+    float_data.data_name = &float_name;
+    float_data.dims = &float_dims;
+    float_data.origin = &float_origin;
+    float_data.spacing = &float_spacing;
 
 
-    /* Set pointers to data to be NULL to prevent attemptd double-deletion. */
-    char_ptr(0) = NULL;
-    short_ptr(0) = NULL;
-    short_ptr(1) = NULL;
-    double_ptr(0) = NULL;
+    XdmfIO::writeUniformGrid(filename, &char_data, NULL, &short_data, NULL, NULL, NULL, NULL, &float_data, &double_data, 0);
 
 }
