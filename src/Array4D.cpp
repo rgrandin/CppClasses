@@ -47,10 +47,7 @@ Array4D<T>::Array4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4)
 	size3 = dim3;
 	size4 = dim4;
     size_t npts = size1*size2*size3*size4;
-<<<<<<< HEAD
-=======
 
->>>>>>> master
     ArrayBase<T>::ResetSize(npts, (T)0.0e0);
 }
 
@@ -64,10 +61,7 @@ Array4D<T>::Array4D(size_t dim1, size_t dim2, size_t dim3, size_t dim4,
 	size3 = dim3;
 	size4 = dim4;
     size_t npts = size1*size2*size3*size4;
-<<<<<<< HEAD
-=======
 
->>>>>>> master
     ArrayBase<T>::ResetSize(npts, initvalue);
 }
 

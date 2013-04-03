@@ -150,7 +150,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         int rank = data_dims->GetDim();
         XdmfInt64 shape[rank];
         for(int r=0; r<rank; r++){
-            shape[r] = (XdmfInt64)data_struct->dims->operator()(i)->operator()(rank-r-1);
+            shape[r] = (XdmfInt64)data_dims->operator()(rank-r-1);
         }
 
         XdmfInt32 number_type = XDMF_UNKNOWN_TYPE;
@@ -177,16 +177,6 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         }
         if(typeid(T) == typeid(double)){
             number_type = XDMF_FLOAT64_TYPE;
-        }
-
-        XdmfFloat64 origin[rank];
-        for(int r=0; r<rank; r++){
-            origin[r] = data_origin->operator()(rank-r-1);
-        }
-
-        XdmfFloat64 spacing[rank];
-        for(int r=0; r<rank; r++){
-            spacing[r] = data_spacing->operator()(rank-r-1);
         }
 
 
