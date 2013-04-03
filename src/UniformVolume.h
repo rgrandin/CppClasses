@@ -1100,6 +1100,13 @@ private:
 
 
     /**
+     * @brief Read XDMF file and place data into this object.
+     * @param filename Name of file to be read.
+     */
+    void ReadXDMFFile(std::string filename);
+
+
+    /**
     * @brief Function that writes the actual VOL file.
     *
     * This is not called directly by the user, but rather by VOLWrite().

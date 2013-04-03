@@ -2299,6 +2299,9 @@ void UniformVolume<T>::ReadFile(const std::string filename, const bool isBigEndi
     if(fileext == "vtk" || fileext == "VTK"){
         UniformVolume<T>::ReadVTKFile(filename,isBigEndian);
     }
+    if(fileext == "xmf" || fileext == "XMF" || fileext == "xdmf" || fileext == "XDMF"){
+        UniformVolume<T>::ReadXDMFFile(filename);
+    }
 
 }
 
@@ -3658,3 +3661,229 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 
 
 } /* UniformVolume<T>::WriteXdmf() */
+
+
+template <class T>
+void UniformVolume<T>::ReadXDMFFile(std::string filename)
+{
+    bool debug = true;          /* Enable/disable debugging output to std::cout. */
+    size_t nscalars_local = 0;  /* Number of scalar quantities discovered in XDMF file. */
+    size_t nvectors_local = 0;  /* Number of vector quantities discovered in XDMF file. */
+
+
+    XdmfDOM *d = new XdmfDOM;
+    XdmfGrid *grid = new XdmfGrid;
+    XdmfGrid *gridsave = new XdmfGrid;
+    XdmfTopology *topo = new XdmfTopology;
+    XdmfGeometry *geo = new XdmfGeometry;
+
+
+    Array1D<float> datavals(1, 0.0f);
+
+
+
+    d->Parse(filename.c_str());         /* Parse the XML file and allow navigation within it and
+                                         * data extraction. */
+
+    XdmfXmlNode node;
+    node = d->FindElementByPath("/Xdmf/Domain/Grid");   /* Find first grid element.  This will either be
+                                                         * a grid with attributed data, or a 'tree' or
+                                                         * 'collection' of other grids. */
+
+    grid->SetDOM(d);
+    grid->SetElement(node);
+    grid->UpdateInformation();                          /* Get information about grid. */
+    grid->Update();
+    int nchildren = grid->GetNumberOfChildren();
+
+    /* Write top-most grid information. */
+    if(debug){
+        std::cout << "File: " << filename << std::endl;
+        std::cout << "----------------------------------------------------" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Grid" << std::endl;
+        std::cout << "  Name:   " << grid->GetName() << std::endl;
+        std::cout << "  Type:   " << grid->GetGridTypeAsString() << std::endl;
+        std::cout << "  # Child:  " << nchildren << std::endl;
+        std::cout << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
+        std::cout << std::endl;
+    }
+    gridsave = grid;    /* Save pointer to top-most grid. */
+
+
+    int nloop = nchildren;          /* We want to loop through all the children grids, but if this grid   */
+    if(nloop == 0){                 /* has no children we still want to read its attributes, so force at  */
+        nloop = 1;                  /* least 1 loop iteration. */
+    }
+    for(int c=0; c<nloop; c++){
+
+        std::string indent("");     /* Used to provide extra indentation, if needed. */
+        int nchild = 0;             /* Number of children for local grid. */
+
+        if(nchildren == 0){
+            /* Nothing to be done. */
+        } else {
+
+            /* Set 'grid' to be the child specified by the loop iteration. */
+            grid = grid->GetChild(c);
+            nchild = grid->GetNumberOfChildren();   /* Number of children of the child grid. */
+            indent = "  ";                          /* Provide extra indentation in output. */
+
+
+            /* Write info about child grid. */
+            if(debug){
+                std::cout << indent << "-------------------------------" << std::endl;
+                std::cout << indent << "Grid " << c << std::endl;
+                std::cout << indent << "  Name:   " << grid->GetName() << std::endl;
+                std::cout << indent << "  Type:   " << grid->GetGridTypeAsString() << std::endl;
+                std::cout << indent << "  # Child:  " << nchild << std::endl;
+                std::cout << indent << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
+            }
+        }
+
+
+
+
+        /* Loop through attributes within grid.  Read data into C-style array (i.e., get data out of file
+         * and out of XdmfArray structure and into whatever data structure we want it in), and write
+         * information about the attribute to std::cout. */
+        for(int a=0; a<grid->GetNumberOfAttributes(); a++){
+
+            XdmfAttribute *at = grid->GetAttribute(a);  /* Get attribute from grid. */
+
+            at->UpdateInformation();                    /* Data 'metadata' read.  Heavy data not read yet. */
+
+            XdmfDataDesc *desc = at->GetShapeDesc();    /* Get shape description of data. */
+            int rank = desc->GetRank();                 /* Get data rank (i.e., number of dimensions. */
+            XdmfInt64 dims[rank];                       /* Declare array for array size in each dimension. */
+
+            rank = desc->GetShape(dims);                /* Get array dimensions. */
+            XdmfInt64 nel = desc->GetNumberOfElements();/* Get number of elements in array. */
+
+            if(rank <= 3){
+                nscalars_local++;
+            }
+            if(rank == 4){
+                nvectors_local++;
+            }
+            if(rank > 4){
+                std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: array dimensions greater than 4 not supported!" << std::endl;
+            }
+
+            datavals.ResetSize(1);                  /* Set to single-element to ensure that a valid pointer
+                                                     * is created.  All we want here is availability of the
+                                                     * pointer.  Allocation of the array here will cause duplicate
+                                                     * memory allocations and thus double memory required to
+                                                     * read-in the data. */
+
+            XdmfArray *data = new XdmfArray;        /* Create XdmfArray object to receive the data. */
+
+            data->SetDataPointer(&datavals[0]);     /* Setting the XdmfArray data pointer to an existing array
+                                                     * allows the Xdmf library to control memory (e.g., allocate
+                                                     * as-needed), but it flags the memory as not belonging to
+                                                     * the XdmfArray object, so deletion of the object does not
+                                                     * cause the data to be lost. */
+
+            at->Update();                           /* Memory allocated for data & data read into memory. */
+
+            data = at->GetValues(0);                /* Assign the read-in data to the XdmfArray object. */
+
+
+            /* Reset the pointer for data within my Array1D object to be that of the XdmfArray data.  The
+             * Xdmf library allocates memory using 'malloc()', so it must be free'd with 'free()'.  My
+             * array class uses 'new'/'delete', so the third parameter to this function informs the class
+             * that it will need to use 'free()' when releasing the memory occupied by this data.  If
+             * the data is stored in a "normal" c-array (i.e., not in my Array1D container), 'free()'
+             * must still be used to release the memory. */
+            datavals.SetArrayPointer((float*)data->GetDataPointer(), (size_t)nel, true);
+
+            data->Reset();                          /* Resets XdmfArray object to allow clean deletion. */
+
+            delete data;                            /* Delete XdmfArray.  This is needed because of the 'new'
+                                                     * operation above, and is placed here so that when I
+                                                     * check the data using my Array1D object I can be sure
+                                                     * that the data has survived the destruction of its
+                                                     * original array.  In normal use, data can be deleted
+                                                     * at any time after 'Reset()'.  Deletion at this specific
+                                                     * point is to verify proper data management behavior. */
+
+
+            /* Write attribute information. */
+            if(debug){
+                std::cout << std::endl;
+                std::cout << indent << "    Attrib #" << a << std::endl;
+                std::cout << indent << "      Type: " << at->GetAttributeTypeAsString() << std::endl;
+
+                std::cout << indent << "      Data" << std::endl;
+                std::cout << indent << "        # Points: " << nel << std::endl;
+
+                /* Only write extra data information if there are a non-0 number of elements.  */
+                if(nel > 0){
+                    std::cout << indent << "        Shape:    " << desc->GetShapeAsString() << std::endl;
+                    std::cout << indent << "        Datatype: " << desc->GetNumberTypeAsString() << std::endl;
+                    std::cout << indent << "        test val:  " << datavals[nel/2] << std::endl;
+                }
+            }
+
+        } /* Loop through attributes of grid. */
+
+
+
+        std::cout << std::endl;
+
+        /* Get topology information of grid. */
+        topo = grid->GetTopology();
+
+
+        /* Get geometry information of grid. */
+        geo = grid->GetGeometry();
+        geo->UpdateInformation();
+        geo->Update();
+
+        if(debug){
+            std::cout << indent << "Topology" << std::endl;
+            std::cout << indent << "  Type: " << topo->GetTopologyTypeAsString() << std::endl;
+            std::cout << std::endl;
+            std::cout << indent << "Geometry" << std::endl;
+            std::cout << indent << "  Type:    " << geo->GetGeometryTypeAsString() << std::endl;
+            std::cout << indent << "  Origin:  (" << geo->GetOriginX() << " , " << geo->GetOriginY() << " , "
+                      << geo->GetOriginZ() << " )" << std::endl;
+            std::cout << indent << "  Spacing: (" << geo->GetDx() << " , " << geo->GetDy() << " , "
+                      << geo->GetDz() << " )" << std::endl;
+            std::cout << std::endl;
+        }
+
+
+        /* Set 'grid' to the head XdmfGrid object so that the GetChild() call at the top of the loop
+         * performs the desired function.  We want to loop over the children of the head node, so
+         * we must reset the pointer to the head grid. */
+        grid = gridsave;
+
+
+    } /* Loop through child grids. */
+
+
+    delete d;   /* Delete DOM.  As commented in other functions, objects associated with this DOM
+                 * will automatically be deleted. */
+
+    /* No delete needed for 'gridsave'.  At this point both 'grid' and 'gridsave' point to the same
+     * XdmfGrid object, which is associated with XdmfDOM 'd'.  The actual grid object will be deleted,
+     * which addresses both 'grid' and 'gridsave'. */
+
+    std::cout << std::endl;
+
+
+
+    if(debug){
+        std::cout << "# scalars: " << nscalars_local << std::endl;
+        std::cout << "# vectors: " << nvectors_local << std::endl;
+    }
+
+
+
+
+
+
+
+
+} /* UniformVolume<T>::ReadXDMFFile() */
