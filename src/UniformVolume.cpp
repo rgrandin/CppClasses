@@ -3626,31 +3626,31 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     /* Call appropriate write function.  Typecasting is used to allow compilation.  During program execution,
      * the check of type ID should properly handle the calling of the correct function. */
     if(typeid(T) == typeid(short)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, (XdmfIO::data_info<short>*)&data_info, NULL, NULL,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, (XdmfIO::data_info<short>*)&data_info, NULL, NULL,
                                  NULL, NULL, NULL, NULL, compression);
     }
     if(typeid(T) == typeid(unsigned short)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, (XdmfIO::data_info<unsigned short>*)&data_info, NULL,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, (XdmfIO::data_info<unsigned short>*)&data_info, NULL,
                                  NULL, NULL, NULL, NULL, compression);
     }
     if(typeid(T) == typeid(int)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, (XdmfIO::data_info<int>*)&data_info,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, (XdmfIO::data_info<int>*)&data_info,
                                  NULL, NULL, NULL, NULL, compression);
     }
     if(typeid(T) == typeid(unsigned int)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
                                  (XdmfIO::data_info<unsigned int>*)&data_info, NULL, NULL, NULL, compression);
     }
     if(typeid(T) == typeid(long)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
                                  NULL, (XdmfIO::data_info<long>*)&data_info, NULL, NULL, compression);
     }
     if(typeid(T) == typeid(float)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
                                  NULL, NULL, (XdmfIO::data_info<float>*)&data_info, NULL, compression);
     }
     if(typeid(T) == typeid(double)){
-        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
                                  NULL, NULL, NULL, (XdmfIO::data_info<double>*)&data_info, compression);
     }
 
