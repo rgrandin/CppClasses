@@ -116,6 +116,7 @@
 #include <Array4D.h>
 #include <PArray1D.h>
 #include <StringManip.h>
+#include <XdmfIO.h>
 
 /* Include the base class which serves as an intermediary between this class
   and QObject.  It requires NOQT or USEQT to be defined for the entire application.
@@ -551,6 +552,20 @@ public:
 
 
     /**
+     * @brief Set if XDMF/HDF5 output format is to be used.
+     * @param state True: Use XDMF/HDF5 format.  False: do not use XDMF/HDF5 format.
+     */
+    void setXDMFOutput(const bool state);
+
+
+    /**
+     * @brief Return if XDMF/HDF5 output format is to be used.
+     * @return True: Use XDMF/HDF5 format.  False: do not use XDMF/HDF5 format.
+     */
+    bool XDMFOutput() const;
+
+
+    /**
     @brief Set the stem of the filename to use when volume data is written to
         the disk.
 
@@ -863,6 +878,9 @@ public:
         /** @brief Indicate if data is allowed to be scaled with CNDE VOL output. */
         bool output_CNDEVOL_allowScaling;
 
+        /** @brief Indicate if output should be XDMF/HDF5 format. */
+        bool output_xdmf;
+
         /** @brief Minimum data range to be used if data-scaling is allowed for CNDE VOL output. */
         T output_CNDEVOL_scalingRange;
     };
@@ -880,6 +898,14 @@ public:
      * @param z Z-coordinate of point spatial position.
      */
     void PointCoordinates(const size_t row, const size_t col, const size_t slice, T &y, T &x, T &z) const;
+
+
+    /**
+     * @brief Write data to disk in XDMF/HDF5 format.
+     * @param compression Level of compression to be used.  Value must be in the range 0 - 9, 0 is no
+     *  compression.
+     */
+    void WriteXdmf(const int compression);
 
 
 #ifdef USEQT
@@ -953,6 +979,9 @@ protected:
 
     /** @brief Tracks if VTK output is in Rectilinear Grid format */
     bool rectoutput;
+
+    /** @brief Tracks if XDMF/HDF5 output is to be used. */
+    bool xdmfoutput;
 
     /** @brief Name of the volume.  This is the stem of any output files which
     * 			use this volume */

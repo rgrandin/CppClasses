@@ -110,6 +110,8 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
 
     writebigendian = false;
 
+    xdmfoutput = false;
+
     conversion_options.input_file = "Not_Set";
     conversion_options.isBigEndian = false;
     conversion_options.output_CNDEVOL = false;
@@ -117,6 +119,7 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
     conversion_options.output_VTKRectGrid = false;
     conversion_options.output_CNDEVOL_allowScaling = false;
     conversion_options.output_CNDEVOL_scalingRange = (T)1024.0e0;
+    conversion_options.output_xdmf = false;
 
     scalar_data = NULL;
     scalar_data_size = 0;
@@ -1429,6 +1432,20 @@ bool UniformVolume<T>::VTKRectDataOutput() const
 
 
 template <class T>
+void UniformVolume<T>::setXDMFOutput(const bool state)
+{
+    xdmfoutput = state;
+}
+
+
+template <class T>
+bool UniformVolume<T>::XDMFOutput() const
+{
+    return xdmfoutput;
+}
+
+
+template <class T>
 void UniformVolume<T>::setFilenameStem(const std::string stem)
 {
     filenamestem = stem;
@@ -2516,6 +2533,10 @@ void UniformVolume<T>::PerformCalculations()
         UniformVolume<T>::VOLWrite(0,conversion_options.output_CNDEVOL_allowScaling,conversion_options.output_CNDEVOL_scalingRange);
     }
 
+    if(conversion_options.output_xdmf){
+        UniformVolume<T>::WriteXdmf(0);     /* Hard-code no compression. */
+    }
+
     qtsignals->EmitDone();
     UniformVolume<T>::EmitDone();
 }
@@ -3538,3 +3559,102 @@ size_t UniformVolume<T>::NumberScalarPointsRead()
 {
     return scalar_data_points_read;
 }
+
+
+template <class T>
+void UniformVolume<T>::WriteXdmf(const int compression)
+{
+    size_t narrays = nscalars + nvectors;
+
+    /* Define a single grid for all data, with multiple data arrays defined to on the grid. */
+    PArray1D<T*> data_ptr(narrays);
+    PArray1D<Array1D<size_t>*> data_dims(1);
+    PArray1D<Array1D<float>*> data_origin(1);
+    PArray1D<Array1D<float>*> data_spacing(1);
+    PArray1D<std::string*> data_name(narrays);
+
+
+    data_dims(0) = new Array1D<size_t>;
+    data_dims(0)->ResetSize(3, 0);
+    data_dims(0)->operator ()(0) = vcols;
+    data_dims(0)->operator ()(1) = vrows;
+    data_dims(0)->operator ()(2) = vslices;
+
+    data_origin(0) = new Array1D<float>;
+    data_origin(0)->ResetSize(3, 0.0f);
+    data_origin(0)->operator ()(0) = (float)xmin;
+    data_origin(0)->operator ()(1) = (float)ymin;
+    data_origin(0)->operator ()(2) = (float)zmin;
+
+    data_spacing(0) = new Array1D<float>;
+    data_spacing(0)->ResetSize(3, 0.0f);
+    data_spacing(0)->operator ()(0) = (float)xspacing;
+    data_spacing(0)->operator ()(1) = (float)yspacing;
+    data_spacing(0)->operator ()(2) = (float)zspacing;
+
+    for(size_t i=0; i<narrays; i++){
+
+        if(i < nscalars){
+            /* Add scalar quantity to output structure. */
+            data_ptr(i) = &pscalars(i)->operator [](0);
+
+            data_name(i) = new std::string;
+            data_name(i)->assign(scalar_names(i)->substr());
+
+        } else {
+            /* Add vector quantity to output structure. */
+            data_ptr(i) = &pvectors(i-nscalars)->operator [](0);
+
+            data_name(i) = new std::string;
+            data_name(i)->assign(vector_names(i-nscalars)->substr());
+        }
+    }
+
+    XdmfIO::data_info<T> data_info;
+
+    data_info.data = &data_ptr;
+    data_info.data_name = &data_name;
+    data_info.dims = &data_dims;
+    data_info.origin = &data_origin;
+    data_info.spacing = &data_spacing;
+
+    std::string filename;
+    filename = outputdir + "/" + filenamestem;
+
+    qtsignals->EmitFunctionDesc2("Writing XDMF File");
+
+    /* Call appropriate write function.  Typecasting is used to allow compilation.  During program execution,
+     * the check of type ID should properly handle the calling of the correct function. */
+    if(typeid(T) == typeid(short)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, (XdmfIO::data_info<short>*)&data_info, NULL, NULL,
+                                 NULL, NULL, NULL, NULL, compression);
+    }
+    if(typeid(T) == typeid(unsigned short)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, (XdmfIO::data_info<unsigned short>*)&data_info, NULL,
+                                 NULL, NULL, NULL, NULL, compression);
+    }
+    if(typeid(T) == typeid(int)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, (XdmfIO::data_info<int>*)&data_info,
+                                 NULL, NULL, NULL, NULL, compression);
+    }
+    if(typeid(T) == typeid(unsigned int)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+                                 (XdmfIO::data_info<unsigned int>*)&data_info, NULL, NULL, NULL, compression);
+    }
+    if(typeid(T) == typeid(long)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+                                 NULL, (XdmfIO::data_info<long>*)&data_info, NULL, NULL, compression);
+    }
+    if(typeid(T) == typeid(float)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+                                 NULL, NULL, (XdmfIO::data_info<float>*)&data_info, NULL, compression);
+    }
+    if(typeid(T) == typeid(double)){
+        XdmfIO::writeUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+                                 NULL, NULL, NULL, (XdmfIO::data_info<double>*)&data_info, compression);
+    }
+
+    qtsignals->EmitFunctionDesc2("");
+
+
+} /* UniformVolume<T>::WriteXdmf() */

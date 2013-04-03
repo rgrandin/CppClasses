@@ -125,10 +125,26 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
          * between the actual data and the data-output. */
 
         XdmfPointer data_pointer = data_struct->data->operator()(i);
-        Array1D<size_t> *data_dims = data_struct->dims->operator()(i);
-        Array1D<float> *data_origin = data_struct->origin->operator()(i);
-        Array1D<float> *data_spacing = data_struct->spacing->operator()(i);
         std::string arrayname = data_struct->data_name->operator()(i)->substr();
+
+
+        /* Check number of quantities defined for data dimensions, origin, and spacing.  If only one set of
+         * geometry information is specified, use it for all data arrays.  If multiple sets of geometry info
+         * are specified, use the set corresponding to the data array. */
+        Array1D<size_t> *data_dims;
+        Array1D<float> *data_origin;
+        Array1D<float> *data_spacing;
+        if(data_struct->dims->GetDim() == 1 && data_struct->origin->GetDim() == 1 && data_struct->spacing->GetDim() == 1){
+            data_dims = data_struct->dims->operator()(0);
+            data_origin = data_struct->origin->operator()(0);
+            data_spacing = data_struct->spacing->operator()(0);
+        } else {
+            data_dims = data_struct->dims->operator()(i);
+            data_origin = data_struct->origin->operator()(i);
+            data_spacing = data_struct->spacing->operator()(i);
+        }
+
+
 
 
         int rank = data_dims->GetDim();
@@ -296,6 +312,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
  * @param compression Level of compression to be used.  Value must be in the range [0,9], with 0 being no compression and
  *  9 being maximum compression.
  */
+inline
 void writeUniformGrid(std::string filename,
                       XdmfIO::data_info<char> *char_data,
                       XdmfIO::data_info<unsigned char> *uchar_data,
@@ -372,8 +389,6 @@ void writeUniformGrid(std::string filename,
     tree_grid->SetName("ParentGrid");
     tree_grid->SetGridType(XDMF_GRID_TREE);
 
-    domain->Insert(tree_grid);
-
 
 
     /* For each input data structure, write array data to disk.  If passed-in pointer is NULL, no action is taken
@@ -405,6 +420,19 @@ void writeUniformGrid(std::string filename,
     }
     if(double_data){
         addUniformArrays(double_data, tree_grid, xarray, grid, topo, geo, array_count, filename, compression);
+    }
+
+    /* If there is only one child grid, add it directly to the domain.  This prevents the dataset from looking like
+     * a multi-block set when only one block is present.  If multiple children are present, add the tree grid. */
+    XdmfGrid *singlegrid;       /* Declared here to prevent possible scope issue within if()-block. */
+
+    tree_grid->UpdateInformation();
+    tree_grid->Update();
+    if(tree_grid->GetNumberOfChildren() == 1){
+        singlegrid = tree_grid->GetChild(0);
+        domain->Insert(singlegrid);
+    } else {
+        domain->Insert(tree_grid);
     }
 
     /* Now that all data has been inserted, build the XML document. */
