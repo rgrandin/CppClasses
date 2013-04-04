@@ -613,15 +613,15 @@ void writeSingleUniformGrid(std::string filename,
     grid = new XdmfGrid;                  /* Create a grid for the data. */
     grid->SetName("Structured Grid");     /* Name the grid.  This is user-choice. */
     grid->SetGridType(XDMF_GRID_UNIFORM); /* Set grid type.  This example is for image data, which is
-                                                         * on a uniform grid.  Grid choice can be other types based
-                                                         * on needs. */
+                                           * on a uniform grid.  Grid choice can be other types based
+                                           * on needs. */
 
     XdmfTopology *topo;
     topo = new XdmfTopology;                      /* Create a topology object to help define grid. */
     topo = grid->GetTopology();                   /* Set to be grid topology. */
 
     topo->SetTopologyType(XDMF_3DCORECTMESH);     /* Set grid type, again this is for image data and other
-                                                                 * options are possible for other applications. */
+                                                   * options are possible for other applications. */
     topo->GetShapeDesc()->SetShape(rank, shape);  /* Set shape to match that of the data array. */
 
 

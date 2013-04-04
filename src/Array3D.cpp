@@ -39,8 +39,8 @@ Array3D<T>::Array3D(size_t dim1, size_t dim2, size_t dim3)
     size1 = dim1;
     size2 = dim2;
     size3 = dim3;
-    ArrayBase<T>::npoints = size1*size2*size3;
-    ArrayBase<T>::ResetSize(ArrayBase<T>::npoints,(T)0.0e0);
+    size_t npts = size1*size2*size3;
+    ArrayBase<T>::ResetSize(npts,(T)0.0e0);
 }
 
 
