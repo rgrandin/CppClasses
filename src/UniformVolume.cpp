@@ -492,6 +492,8 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
             UniformVolume<T>::ReadXMLVTKFile(filename);
         }
 
+
+        /* Calls to code written by me.  Deprecated in favor of using VTK libraries. */
         if(false){
             if(format == "legacy"){
                 vtkfile.getline(discard,256);           /* Description line */
@@ -1749,128 +1751,133 @@ size_t UniformVolume<T>::GetResolution(const int dir)
 template <class T>
 void UniformVolume<T>::VTKWrite()
 {
-    std::string filename;
-    std::fstream ssfile;
-    filename = outputdir + "/" + filenamestem + ".vtk";
-    ssfile.open(filename.c_str(),std::ios::out);
 
-    /*
-      Variables needed for tracking progress
-     */
-    float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
-    float chunkscomplete = 0.0e0;
-    float completefrac = chunkscomplete/Tchunks;
-    std::string descriptor("Writing ASCII VTK File");
+    UniformVolume<T>::VTKWriteImageData();
 
-    /*
-      Emit signals for the beginning of the file-writing process
-     */
-    qtsignals->EmitFunctionDesc(descriptor);
-    qtsignals->EmitFunctionProgress(completefrac);
+    if(false){
+        std::string filename;
+        std::fstream ssfile;
+        filename = outputdir + "/" + filenamestem + ".vtk";
+        ssfile.open(filename.c_str(),std::ios::out);
+
+        /*
+          Variables needed for tracking progress
+         */
+        float Tchunks = (float)vslices*((float)nscalars + (float)nvectors);
+        float chunkscomplete = 0.0e0;
+        float completefrac = chunkscomplete/Tchunks;
+        std::string descriptor("Writing ASCII VTK File");
+
+        /*
+          Emit signals for the beginning of the file-writing process
+         */
+        qtsignals->EmitFunctionDesc(descriptor);
+        qtsignals->EmitFunctionProgress(completefrac);
 
 
-    /* Temporary stream to reduce I/O calls. */
-    std::stringstream tmpss;
+        /* Temporary stream to reduce I/O calls. */
+        std::stringstream tmpss;
 
 
-    if(ssfile.is_open() == true){
-        ssfile << "# vtk DataFile Version 2.0" << std::endl;
-        ssfile << filenamestem << std::endl;
-        ssfile << "ASCII" << std::endl;
+        if(ssfile.is_open() == true){
+            ssfile << "# vtk DataFile Version 2.0" << std::endl;
+            ssfile << filenamestem << std::endl;
+            ssfile << "ASCII" << std::endl;
 
-        if(imageoutput == true){
-            ssfile << "DATASET STRUCTURED_POINTS" << std::endl;
-            ssfile << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
-            ssfile << "ORIGIN " << xmin << " " << ymin << " " << zmin << std::endl;
-            ssfile << "SPACING " << xspacing << " " << yspacing << " " << zspacing << std::endl;
-        }
-
-        if(rectoutput == true){
-            ssfile << "DATASET RECTILINEAR_GRID" << std::endl;
-            ssfile << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
-            ssfile << "X_COORDINATES " << vcols << " float" << std::endl;
-            for(int i=0; i<vcols; i++){
-                float x = xmin + float(i)*xspacing;
-                ssfile << x << std::endl;
+            if(imageoutput == true){
+                ssfile << "DATASET STRUCTURED_POINTS" << std::endl;
+                ssfile << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+                ssfile << "ORIGIN " << xmin << " " << ymin << " " << zmin << std::endl;
+                ssfile << "SPACING " << xspacing << " " << yspacing << " " << zspacing << std::endl;
             }
-            ssfile << "Y_COORDINATES " << vrows << " float" << std::endl;
-            for(int i=0; i<vrows; i++){
-                float y = ymin + float(i)*yspacing;
-                ssfile << y << std::endl;
-            }
-            ssfile << "Z_COORDINATES " << vslices << " float" << std::endl;
-            for(int i=0; i<vslices; i++){
-                float z = zmin + float(i)*zspacing;
-                ssfile << z << std::endl;
-            }
-        }
 
-        tmpss.clear();
-        tmpss.str("");
-        ssfile << "POINT_DATA " << vrows*vcols*vslices << std::endl;
-        for(int s=0; s<nscalars; s++){
-
-            descriptor = "Writing ASCII VTK File - scalars '" + ScalarQuantityName(s) + "'";
-            qtsignals->EmitFunctionDesc(descriptor);
-
-            chunkscomplete = 0.0e0;
-            std::string name(scalar_names(s)->substr());
-            ssfile << "SCALARS " << name << " " << dtypename << " 1" << std::endl;
-            ssfile << "LOOKUP_TABLE default" << std::endl;
-            for(int k=0; k<vslices; k++){
-                for(int i=0; i<vrows; i++){
-                    for(int j=0; j<vcols; j++){
-                        tmpss << pscalars(s)->operator ()(i,j,k) << std::endl;
-                    }
+            if(rectoutput == true){
+                ssfile << "DATASET RECTILINEAR_GRID" << std::endl;
+                ssfile << "DIMENSIONS " << vcols << " " << vrows << " " << vslices << std::endl;
+                ssfile << "X_COORDINATES " << vcols << " float" << std::endl;
+                for(int i=0; i<vcols; i++){
+                    float x = xmin + float(i)*xspacing;
+                    ssfile << x << std::endl;
                 }
-                ssfile << tmpss.str();
-                tmpss.clear();
-                tmpss.str("");
-                chunkscomplete += 1.0e0;
-                completefrac = chunkscomplete/Tchunks;
-                qtsignals->EmitFunctionProgress(completefrac, descriptor);
-                qtsignals->EmitFunctionProgress(completefrac);
-            }
-        }
-
-        tmpss.clear();
-        tmpss.str("");
-        for(int v=0; v<nvectors; v++){
-
-            descriptor = "Writing ASCII VTK File - vectors '" + VectorQuantityName(v) + "'";
-            qtsignals->EmitFunctionDesc(descriptor);
-
-            chunkscomplete = 0.0e0;
-            std::string name(vector_names(v)->substr());
-            int n = pvectors(v)->GetDim(4);
-            if(n > 3){
-                std::cerr << "WARNING: VTK file format requires 3-component vectors." << std::endl;
-                std::cerr << "         Vector quantity " << name << " has " << n << " components." << std::endl;
-                std::cerr << "         File will be written with all components, which may cause" << std::endl;
-                std::cerr << "         problems with some file readers." << std::endl;
-            }
-            ssfile << "VECTORS " << name << " " << dtypename << std::endl;
-            for(int k=0; k<vslices; k++){
+                ssfile << "Y_COORDINATES " << vrows << " float" << std::endl;
                 for(int i=0; i<vrows; i++){
-                    for(int j=0; j<vcols; j++){
-                        for(int l=0; l<n; l++){
-                            tmpss << pvectors(v)->operator ()(i,j,k,l) << " ";
+                    float y = ymin + float(i)*yspacing;
+                    ssfile << y << std::endl;
+                }
+                ssfile << "Z_COORDINATES " << vslices << " float" << std::endl;
+                for(int i=0; i<vslices; i++){
+                    float z = zmin + float(i)*zspacing;
+                    ssfile << z << std::endl;
+                }
+            }
+
+            tmpss.clear();
+            tmpss.str("");
+            ssfile << "POINT_DATA " << vrows*vcols*vslices << std::endl;
+            for(int s=0; s<nscalars; s++){
+
+                descriptor = "Writing ASCII VTK File - scalars '" + ScalarQuantityName(s) + "'";
+                qtsignals->EmitFunctionDesc(descriptor);
+
+                chunkscomplete = 0.0e0;
+                std::string name(scalar_names(s)->substr());
+                ssfile << "SCALARS " << name << " " << dtypename << " 1" << std::endl;
+                ssfile << "LOOKUP_TABLE default" << std::endl;
+                for(int k=0; k<vslices; k++){
+                    for(int i=0; i<vrows; i++){
+                        for(int j=0; j<vcols; j++){
+                            tmpss << pscalars(s)->operator ()(i,j,k) << std::endl;
                         }
-                        tmpss << std::endl;
                     }
+                    ssfile << tmpss.str();
+                    tmpss.clear();
+                    tmpss.str("");
+                    chunkscomplete += 1.0e0;
+                    completefrac = chunkscomplete/Tchunks;
+                    qtsignals->EmitFunctionProgress(completefrac, descriptor);
+                    qtsignals->EmitFunctionProgress(completefrac);
                 }
-                ssfile << tmpss.str();
-                tmpss.clear();
-                tmpss.str("");
-                chunkscomplete += 1.0e0;
-                completefrac = chunkscomplete/Tchunks;
-                qtsignals->EmitFunctionProgress(completefrac, descriptor);
-                qtsignals->EmitFunctionProgress(completefrac);
             }
+
+            tmpss.clear();
+            tmpss.str("");
+            for(int v=0; v<nvectors; v++){
+
+                descriptor = "Writing ASCII VTK File - vectors '" + VectorQuantityName(v) + "'";
+                qtsignals->EmitFunctionDesc(descriptor);
+
+                chunkscomplete = 0.0e0;
+                std::string name(vector_names(v)->substr());
+                int n = pvectors(v)->GetDim(4);
+                if(n > 3){
+                    std::cerr << "WARNING: VTK file format requires 3-component vectors." << std::endl;
+                    std::cerr << "         Vector quantity " << name << " has " << n << " components." << std::endl;
+                    std::cerr << "         File will be written with all components, which may cause" << std::endl;
+                    std::cerr << "         problems with some file readers." << std::endl;
+                }
+                ssfile << "VECTORS " << name << " " << dtypename << std::endl;
+                for(int k=0; k<vslices; k++){
+                    for(int i=0; i<vrows; i++){
+                        for(int j=0; j<vcols; j++){
+                            for(int l=0; l<n; l++){
+                                tmpss << pvectors(v)->operator ()(i,j,k,l) << " ";
+                            }
+                            tmpss << std::endl;
+                        }
+                    }
+                    ssfile << tmpss.str();
+                    tmpss.clear();
+                    tmpss.str("");
+                    chunkscomplete += 1.0e0;
+                    completefrac = chunkscomplete/Tchunks;
+                    qtsignals->EmitFunctionProgress(completefrac, descriptor);
+                    qtsignals->EmitFunctionProgress(completefrac);
+                }
+            }
+            ssfile.close();
+        } else {
+            std::cout << "ERROR!  Cannot open file: " << filename << " for data-output!" << std::endl;
         }
-        ssfile.close();
-    } else {
-        std::cout << "ERROR!  Cannot open file: " << filename << " for data-output!" << std::endl;
     }
 }
 
@@ -2379,15 +2386,20 @@ void UniformVolume<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, co
 template <class T>
 void UniformVolume<T>::VTKWriteBinaryBigEndian()
 {
-    writebigendian = true;
 
-    if(UniformVolume<T>::IsBigEndian()){
-        UniformVolume<T>::VTKWriteBinary();
-    } else {
-        UniformVolume<T>::VTKWriteBinaryBitFlip();
+    UniformVolume<T>::VTKWriteImageData();
+
+    if(false){
+        writebigendian = true;
+
+        if(UniformVolume<T>::IsBigEndian()){
+            UniformVolume<T>::VTKWriteBinary();
+        } else {
+            UniformVolume<T>::VTKWriteBinaryBitFlip();
+        }
+
+        writebigendian = false;
     }
-
-    writebigendian = false;
 }
 
 
@@ -4300,3 +4312,69 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     }
 
 } /* UniformVolume<T>::ReadXDMFFile() */
+
+
+template <class T>
+void UniformVolume<T>::VTKWriteImageData()
+{
+    std::string filename;
+    filename = outputdir + "/" + filenamestem;
+
+    qtsignals->EmitFunctionDesc2("Writing VTK File");
+
+    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
+    imageImport->SetDataOrigin((double)xmin, (double)ymin, (double)zmin);
+    imageImport->SetDataExtent(0, vcols-1, 0, vrows-1, 0, vslices-1);
+    imageImport->SetWholeExtent(0, vcols-1, 0, vrows-1, 0, vslices-1);
+    if(typeid(T) == typeid(float)){
+        imageImport->SetDataScalarTypeToFloat();
+    }
+    if(typeid(T) == typeid(double)){
+        imageImport->SetDataScalarTypeToDouble();
+    }
+    imageImport->SetNumberOfScalarComponents(1);
+    imageImport->SetImportVoidPointer(&pscalars(0)->operator [](0), 1);
+    imageImport->Update();
+
+
+    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+    imageData = imageImport->GetOutput();
+
+    int npieces = 1;
+    if(vrows*vcols*vslices >= 2147483647){
+        npieces += (vrows*vcols*vslices)/2147483647;
+        filename = filename + ".pvti";
+
+        vtkSmartPointer<vtkXMLPImageDataWriter> writer = vtkSmartPointer<vtkXMLPImageDataWriter>::New();
+        writer->SetFileName(filename.c_str());
+        writer->SetHeaderTypeToUInt64();
+        writer->SetNumberOfPieces(npieces);
+        writer->SetStartPiece(0);
+        writer->SetEndPiece(npieces-1);
+#if VTK_MAJOR_VERSION <= 5
+        writer->SetInput(imageData);
+#else
+        writer->SetInputData(imageData);
+#endif
+        writer->Write();
+
+
+    } else {
+        filename = filename + ".vti";
+
+        vtkSmartPointer<vtkXMLImageDataWriter> writer = vtkSmartPointer<vtkXMLImageDataWriter>::New();
+        writer->SetFileName(filename.c_str());
+        writer->SetHeaderTypeToUInt64();
+#if VTK_MAJOR_VERSION <= 5
+        writer->SetInput(imageData);
+#else
+        writer->SetInputData(imageData);
+#endif
+        writer->Write();
+    }
+
+
+
+    qtsignals->EmitFunctionDesc2("");
+}

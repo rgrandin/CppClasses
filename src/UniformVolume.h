@@ -711,6 +711,13 @@ public:
 
 
     /**
+     * @brief Write volume data to disk as VTK image data file.  Output file will use
+     *  VTK's XML format and file writing is performed by the VTK libraries.
+     */
+    void VTKWriteImageData();
+
+
+    /**
     @brief Write the volume data to the disk as a binary VTK file.
 
     File type is set by VTKImageDataOutput() and VTKRectDataOutput() functions.
