@@ -118,10 +118,68 @@
 #include <StringManip.h>
 #include <XdmfIO.h>
 
+/* VTK classes for file IO */
+#include <vtkVersion.h>
+#include <vtkSmartPointer.h>
+
+#include <vtkStructuredPoints.h>
+#include <vtkPointData.h>
+#include <vtkDataArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkXMLImageDataWriter.h>
+#include <vtkXMLPImageDataWriter.h>
+#include <vtkImageImport.h>
+#include <vtkXMLImageDataReader.h>
+#include <vtkXMLPImageDataReader.h>
+#include <vtkImageExport.h>
+#include <vtkStructuredPointsReader.h>
+#include <vtkStructuredPointsWriter.h>
+
+
 /* Include the base class which serves as an intermediary between this class
   and QObject.  It requires NOQT or USEQT to be defined for the entire application.
  */
 #include <QtIntermediaryBase.h>
+
+
+
+
+/**
+ * @brief Read VTK file.  Template parameter allows for generalization to handle both
+ *  legacy and XML image data files.
+ * @param fileName Name of file to be read.
+ * @return Pointer to dataset which was read.
+ */
+template<class TReader>
+vtkDataSet *ReadVTKFileXML(const char*fileName)
+{
+    vtkSmartPointer<TReader> reader = vtkSmartPointer<TReader>::New();
+    reader->SetFileName(fileName);
+    reader->UpdateInformation();
+    reader->UpdateWholeExtent();
+    reader->GetOutput()->Register(reader);
+    return vtkDataSet::SafeDownCast(reader->GetOutputAsDataSet());
+}
+
+
+
+/**
+ * @brief Read VTK file.  Template parameter allows for generalization to handle both
+ *  legacy and XML image data files.
+ * @param fileName Name of file to be read.
+ * @return Pointer to dataset which was read.
+ */
+template<class TReader>
+vtkDataSet *ReadVTKFileLegacy(const char*fileName)
+{
+    vtkSmartPointer<TReader> reader = vtkSmartPointer<TReader>::New();
+    reader->SetFileName(fileName);
+    reader->UpdateInformation();
+    reader->UpdateWholeExtent();
+    reader->GetOutput()->Register(reader);
+    return vtkDataSet::SafeDownCast(reader->GetOutput());
+}
+
 
 
 /**
@@ -1104,6 +1162,24 @@ private:
      * @param filename Name of file to be read.
      */
     void ReadXDMFFile(std::string filename);
+
+
+    /**
+     * @brief Read a legacy-format VTK file using the VTK library functions.
+     * @param filename Name of file to be read.
+     * @warning Only structured points data (i.e. image data) is supported.
+     * @warning Only single-quantity (i.e., one scalar) files are supported.
+     */
+    void ReadLegacyVTKFile(std::string filename);
+
+
+    /**
+     * @brief Read a XML-format VTK file using the VTK library functions.
+     * @param filename Name of file to be read.
+     * @warning Only structured points data (i.e. image data) is supported.
+     * @warning Only single-quantity (i.e., one scalar) files are supported.
+     */
+    void ReadXMLVTKFile(std::string filename);
 
 
     /**

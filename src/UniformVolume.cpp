@@ -477,66 +477,72 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 
         vtkfile.getline(discard,256);           /* VTK version line */
 
+        vtkfile.close();
+
         /* Check first character of first line.  If '#', file is legacy VTK format.  If '<'
          * file is XML format.  Call appropriate reader. */
         if(strncmp(&discard[0],"#",1) == 0){
             /* File is legacy format. */
-            format = "legacy";
+//            format = "legacy";
+            UniformVolume<T>::ReadLegacyVTKFile(filename);
         }
         if(strncmp(&discard[0],"<",1) == 0){
             /* File is XML format. */
-            format = "XML";
+//            format = "XML";
+            UniformVolume<T>::ReadXMLVTKFile(filename);
         }
 
+        if(false){
+            if(format == "legacy"){
+                vtkfile.getline(discard,256);           /* Description line */
+                vtkfile.getline(discard,256);           /* ASCII vs. Binary */
 
-        if(format == "legacy"){
-            vtkfile.getline(discard,256);           /* Description line */
-            vtkfile.getline(discard,256);           /* ASCII vs. Binary */
+                sstmp.str(discard);
+                ascii_vs_binary = sstmp.str();
 
-            sstmp.str(discard);
-            ascii_vs_binary = sstmp.str();
+                if(ascii_vs_binary == "ASCII"){
 
-            if(ascii_vs_binary == "ASCII"){
-
-                /* Call ASCII reader. */
-                UniformVolume<T>::VTKReadLegacyASCII(vtkfile);
-                vtkfile.close();
-
-            }
-            if(ascii_vs_binary == "BINARY"){
-
-                /* Close file opened in ASCII mode. */
-                vtkfile.close();
-
-                /* Re-open file in binary mode. */
-                vtkfile.open(filename.c_str(), std::ios::in | std::ios::binary);
-
-                if(vtkfile.is_open() == true){
-
-                    /* Re-read initial header lines. */
-                    vtkfile.getline(discard,256);           /* VTK version line */
-                    vtkfile.getline(discard,256);           /* Description line */
-                    vtkfile.getline(discard,256);           /* ASCII vs. Binary */
-
-
-                    /* Call binary reader for legacy VTK format. */
-                    UniformVolume<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
+                    /* Call ASCII reader. */
+                    UniformVolume<T>::VTKReadLegacyASCII(vtkfile);
                     vtkfile.close();
 
-                } /* End of conditional on successful file open. */
-            } /* End of conditional on binary file. */
-        } /* End of check for legacy format. */
+                }
+                if(ascii_vs_binary == "BINARY"){
 
-        if(format == "XML"){
-            std::cerr << "UniformVolume::ReadVTKFile() - XML format not supported" << std::endl;
+                    /* Close file opened in ASCII mode. */
+                    vtkfile.close();
 
-            vtkfile.close();
-        }
+                    /* Re-open file in binary mode. */
+                    vtkfile.open(filename.c_str(), std::ios::in | std::ios::binary);
+
+                    if(vtkfile.is_open() == true){
+
+                        /* Re-read initial header lines. */
+                        vtkfile.getline(discard,256);           /* VTK version line */
+                        vtkfile.getline(discard,256);           /* Description line */
+                        vtkfile.getline(discard,256);           /* ASCII vs. Binary */
 
 
-        /* Close file if it's still open. */
-        if(vtkfile.is_open()){
-            vtkfile.close();
+                        /* Call binary reader for legacy VTK format. */
+                        UniformVolume<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
+                        vtkfile.close();
+
+                    } /* End of conditional on successful file open. */
+                } /* End of conditional on binary file. */
+            } /* End of check for legacy format. */
+
+            if(format == "XML"){
+                std::cerr << "UniformVolume::ReadVTKFile() - XML format not supported" << std::endl;
+
+                vtkfile.close();
+            }
+
+
+            /* Close file if it's still open. */
+            if(vtkfile.is_open()){
+                vtkfile.close();
+            }
+
         }
 
 
@@ -547,11 +553,223 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 }
 
 
+template <class T>
+void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
+{
+    UniformVolume<T>::RemoveAllData();
+
+
+    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
+    vtkDataSet *dataset;
+
+    dataset = ReadVTKFileLegacy<vtkStructuredPointsReader>(filename.c_str());
+
+    int dims[3] = {0, 0, 0};
+    double *origin;
+    double *spacing;
+    imageExport->SetInputData(dataset);
+    imageExport->GetDataDimensions(dims);
+    origin = imageExport->GetDataOrigin();
+    spacing = imageExport->GetDataSpacing();
+    char *name = dataset->GetPointData()->GetScalars()->GetName();
+    std::string str_name(name);
+
+    int type_this;
+    if(typeid(T) == typeid(char)){
+        type_this = 2;
+    }
+
+    if(typeid(T) == typeid(signed char)){
+        type_this = 15;
+    }
+
+    if(typeid(T) == typeid(unsigned char)){
+        type_this = 3;
+    }
+
+    if(typeid(T) == typeid(short)){
+        type_this = 4;
+    }
+
+    if(typeid(T) == typeid(unsigned short)){
+        type_this = 5;
+    }
+
+    if(typeid(T) == typeid(int)){
+        type_this = 6;
+    }
+
+    if(typeid(T) == typeid(unsigned int)){
+        type_this = 7;
+    }
+
+    if(typeid(T) == typeid(long)){
+        type_this = 8;
+    }
+
+    if(typeid(T) == typeid(unsigned long)){
+        type_this = 9;
+    }
+
+    if(typeid(T) == typeid(float)){
+        type_this = 10;
+    }
+
+    if(typeid(T) == typeid(double)){
+        type_this = 11;
+    }
 
 
 
 
+    int type_file = imageExport->GetDataScalarType();
 
+    if(type_this == type_file){
+        UniformVolume<T>::AddScalarQuantity(str_name);
+        vcols = dims[0];
+        vrows = dims[1];
+        vslices = dims[2];
+
+        /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
+         * does not show any missing deallocation as a result of doing this, so I think this is OK. */
+        pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
+    } else {
+        UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
+        UniformVolume<T>::AddScalarQuantity(str_name);
+
+        size_t numel = vcols*vrows*vslices;
+        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
+        for(size_t i=0; i<numel; i++){
+            pscalars(0)->operator [](i) = (T)data->GetValue(i);
+        }
+    }
+
+    xmin = origin[0];
+    ymin = origin[1];
+    zmin = origin[2];
+
+    xspacing = spacing[0];
+    yspacing = spacing[1];
+    zspacing = spacing[2];
+
+    xmax = xmin + xspacing*(float)vcols;
+    ymax = ymin + yspacing*(float)vrows;
+    zmax = zmin + zspacing*(float)vslices;
+}
+
+
+template <class T>
+void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
+{
+    UniformVolume<T>::RemoveAllData();
+
+
+    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
+    vtkDataSet *dataset;
+
+    std::string extension;
+    extension = StringManip::DetermFileExt(filename);
+
+    if(extension == "pvti" || extension == "PVTI"){
+        dataset = ReadVTKFileXML<vtkXMLPImageDataReader>(filename.c_str());
+    } else {
+        dataset = ReadVTKFileXML<vtkXMLImageDataReader>(filename.c_str());
+    }
+
+    int dims[3] = {0, 0, 0};
+    double *origin;
+    double *spacing;
+    imageExport->SetInputData(dataset);
+    imageExport->GetDataDimensions(dims);
+    origin = imageExport->GetDataOrigin();
+    spacing = imageExport->GetDataSpacing();
+    char *name = dataset->GetPointData()->GetScalars()->GetName();
+    std::string str_name(name);
+
+    int type_this;
+    if(typeid(T) == typeid(char)){
+        type_this = 2;
+    }
+
+    if(typeid(T) == typeid(signed char)){
+        type_this = 15;
+    }
+
+    if(typeid(T) == typeid(unsigned char)){
+        type_this = 3;
+    }
+
+    if(typeid(T) == typeid(short)){
+        type_this = 4;
+    }
+
+    if(typeid(T) == typeid(unsigned short)){
+        type_this = 5;
+    }
+
+    if(typeid(T) == typeid(int)){
+        type_this = 6;
+    }
+
+    if(typeid(T) == typeid(unsigned int)){
+        type_this = 7;
+    }
+
+    if(typeid(T) == typeid(long)){
+        type_this = 8;
+    }
+
+    if(typeid(T) == typeid(unsigned long)){
+        type_this = 9;
+    }
+
+    if(typeid(T) == typeid(float)){
+        type_this = 10;
+    }
+
+    if(typeid(T) == typeid(double)){
+        type_this = 11;
+    }
+
+
+
+
+    int type_file = imageExport->GetDataScalarType();
+
+    if(type_this == type_file){
+        UniformVolume<T>::AddScalarQuantity(str_name);
+        vcols = dims[0];
+        vrows = dims[1];
+        vslices = dims[2];
+
+        /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
+         * does not show any missing deallocation as a result of doing this, so I think this is OK. */
+        pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
+
+    } else {
+        UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
+        UniformVolume<T>::AddScalarQuantity(str_name);
+
+        size_t numel = vcols*vrows*vslices;
+        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
+        for(size_t i=0; i<numel; i++){
+            pscalars(0)->operator [](i) = (T)data->GetValue(i);
+        }
+    }
+
+    xmin = origin[0];
+    ymin = origin[1];
+    zmin = origin[2];
+
+    xspacing = spacing[0];
+    yspacing = spacing[1];
+    zspacing = spacing[2];
+
+    xmax = xmin + xspacing*(float)vcols;
+    ymax = ymin + yspacing*(float)vrows;
+    zmax = zmin + zspacing*(float)vslices;
+
+} /* UniformVolume<T>::ReadXMLVTKFile() */
 
 
 
@@ -2296,7 +2514,7 @@ void UniformVolume<T>::ReadFile(const std::string filename, const bool isBigEndi
     if(fileext == "vol" || fileext == "VOL"){
         UniformVolume<T>::ReadVOLFile(filename);
     }
-    if(fileext == "vtk" || fileext == "VTK"){
+    if(fileext == "vtk" || fileext == "VTK" || fileext == "vti" || fileext == "VTI" || fileext == "pvti" || fileext == "PVTI"){
         UniformVolume<T>::ReadVTKFile(filename,isBigEndian);
     }
     if(fileext == "xmf" || fileext == "XMF" || fileext == "xdmf" || fileext == "XDMF"){
@@ -3666,10 +3884,11 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 template <class T>
 void UniformVolume<T>::ReadXDMFFile(std::string filename)
 {
+#ifdef _DEBUG
     bool debug = true;          /* Enable/disable debugging output to std::cout. */
-//    bool testread = true;       /* Enable/disable reading of data object during file-query. */
-//    size_t nscalars_local = 0;  /* Number of scalar quantities discovered in XDMF file. */
-//    size_t nvectors_local = 0;  /* Number of vector quantities discovered in XDMF file. */
+#else
+    bool debug = false;
+#endif
 
     UniformVolume<T>::RemoveAllData();
 
@@ -3852,8 +4071,6 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
             size_t num_elements = (size_t)desc->GetNumberOfElements();
 
 
-//            UniformVolume<T>::ResetResolution((size_t)yres, (size_t)xres, (size_t)zres, (T)0.0e0);
-
             /* Create scalar/vector array for data.  No memory is meaningfully allocated here since the vrows/vcols/vslices
              * are not set to the true resolution yet.  True resolution will be set later, and arrays will be properly sized
              * when they are read-in. */
@@ -3867,7 +4084,7 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
 
 
-           /* datavals.ResetSize(1); */                 /* Set to single-element to ensure that a valid pointer
+                                                    /* Set to single-element to ensure that a valid pointer
                                                      * is created.  All we want here is availability of the
                                                      * pointer.  Allocation of the array here will cause duplicate
                                                      * memory allocations and thus double memory required to
@@ -3880,12 +4097,6 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
              * as-needed), but it flags the memory as not belonging to
              * the XdmfArray object, so deletion of the object does not
              * cause the data to be lost. */
-//            if(rank == 3){
-//                data->SetDataPointer(&pscalars(nscalars-1)->operator [](0));
-//            }
-//            if(rank == 4){
-//                data->SetDataPointer(&pvectors(nvectors-1)->operator [](0));
-//            }
 
 
             switch(type_file){
@@ -3977,7 +4188,6 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
              * that it will need to use 'free()' when releasing the memory occupied by this data.  If
              * the data is stored in a "normal" c-array (i.e., not in my Array1D container), 'free()'
              * must still be used to release the memory. */
-//            datavals.SetArrayPointer((float*)data->GetDataPointer(), (size_t)nel, true);
 
             data->Reset();                          /* Resets XdmfArray object to allow clean deletion. */
 
@@ -4014,7 +4224,6 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
                     std::cout << indent << "        Datatype: " << desc->GetNumberTypeAsString() << std::endl;
                 }
 
-//                datavals.ResetSize(1, 0.0f);
             }
 
         } /* Loop through attributes of grid. */
