@@ -515,3 +515,13 @@ void Array2D<T>::Transpose()
 
 #endif
 }
+
+
+template <class T>
+void Array2D<T>::SetArrayPointer(T *p_data, size_t npts1, size_t npts2, bool useFree)
+{
+    size1 = npts1;
+    size2 = npts2;
+
+    ArrayBase<T>::SetArrayPointer(p_data, npts1*npts2, useFree);
+}
