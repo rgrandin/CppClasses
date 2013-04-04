@@ -394,6 +394,17 @@ public:
     void Transpose();
 
 
+    /**
+     * @brief Manually set the pointer to an existing array.
+     * @param p_data Pointer to start of array.
+     * @param npts1 Number of points in first dimension of array.
+     * @param npts2 Number of points in second dimension of array.
+     * @param useFree If true, 'free()' will be used to free the memory rather than 'delete'.
+     *  This is set based on how the array pointed-to by 'p_data' was allocated.
+     */
+    void SetArrayPointer(T* p_data, size_t npts1, size_t npts2, bool useFree);
+
+
 protected:
     // VARIABLES
     /** @brief Number of points along the first dimension */

@@ -301,3 +301,15 @@ T Array4D<T>::MaxVal(size_t &loc1, size_t &loc2, size_t &loc3, size_t &loc4) con
 
 	return max;
 }
+
+
+template <class T>
+void Array4D<T>::SetArrayPointer(T *p_data, size_t npts1, size_t npts2, size_t npts3, size_t npts4, bool useFree)
+{
+    size1 = npts1;
+    size2 = npts2;
+    size3 = npts3;
+    size4 = npts4;
+
+    ArrayBase<T>::SetArrayPointer(p_data, npts1*npts2*npts3*npts4, useFree);
+}

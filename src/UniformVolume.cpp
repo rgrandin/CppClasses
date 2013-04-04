@@ -3667,8 +3667,60 @@ template <class T>
 void UniformVolume<T>::ReadXDMFFile(std::string filename)
 {
     bool debug = true;          /* Enable/disable debugging output to std::cout. */
-    size_t nscalars_local = 0;  /* Number of scalar quantities discovered in XDMF file. */
-    size_t nvectors_local = 0;  /* Number of vector quantities discovered in XDMF file. */
+//    bool testread = true;       /* Enable/disable reading of data object during file-query. */
+//    size_t nscalars_local = 0;  /* Number of scalar quantities discovered in XDMF file. */
+//    size_t nvectors_local = 0;  /* Number of vector quantities discovered in XDMF file. */
+
+    UniformVolume<T>::RemoveAllData();
+
+
+    /* Read the data into this object.
+     *
+     * Notes:
+     *      - Only 3D or 4D arrays are read in.  Other dimensionalities don't have meaning with a volume object.
+     *      - If the datatype of the data matches the datatype of this object, data is read directly in.  If the
+     *        datatype does not match, a copy operation is required.  A temporary array is created to store the
+     *        read-in data, and then it is copied and type-casted into this object.
+     */
+
+
+    /* Determine type of this data object, using the Xdmf integer identifiers. */
+    XdmfInt32 type_this;
+    if(typeid(T) == typeid(char)){
+        type_this = XDMF_INT8_TYPE;
+    }
+    if(typeid(T) == typeid(unsigned char)){
+        type_this = XDMF_UINT8_TYPE;
+    }
+    if(typeid(T) == typeid(short)){
+        type_this = XDMF_INT16_TYPE;
+    }
+    if(typeid(T) == typeid(unsigned short)){
+        type_this = XDMF_UINT16_TYPE;
+    }
+    if(typeid(T) == typeid(int)){
+        type_this = XDMF_INT32_TYPE;
+    }
+    if(typeid(T) == typeid(unsigned int)){
+        type_this = XDMF_UINT32_TYPE;
+    }
+    if(typeid(T) == typeid(float)){
+        type_this = XDMF_FLOAT32_TYPE;
+    }
+    if(typeid(T) == typeid(double)){
+        type_this = XDMF_FLOAT64_TYPE;
+    }
+
+
+    /* Create temporary Array1D objects for each datatype which could be used for type-conversion. */
+    Array1D<char> tmp_char(1, 'a');
+    Array1D<unsigned char> tmp_uchar(1, 'a');
+    Array1D<short> tmp_short(1, (short)0);
+    Array1D<unsigned short> tmp_ushort(1, (unsigned short)0);
+    Array1D<int> tmp_int(1, (int)0);
+    Array1D<unsigned int> tmp_uint(1, (unsigned int)0);
+    Array1D<float> tmp_float(1, 0.0f);
+    Array1D<double> tmp_double(1, (double)0.0e0);
 
 
     XdmfDOM *d = new XdmfDOM;
@@ -3676,9 +3728,6 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     XdmfGrid *gridsave = new XdmfGrid;
     XdmfTopology *topo = new XdmfTopology;
     XdmfGeometry *geo = new XdmfGeometry;
-
-
-    Array1D<float> datavals(1, 0.0f);
 
 
 
@@ -3709,6 +3758,14 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
         std::cout << std::endl;
     }
     gridsave = grid;    /* Save pointer to top-most grid. */
+
+
+    /* Require that grid is of type UNIFORM. */
+    if(grid->GetGridType() != XDMF_GRID_UNIFORM){
+        std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: Only UNIFORM grid is supported!";
+        std::cerr << "                                         Aborting!" << std::endl;
+        return;
+    }
 
 
     int nloop = nchildren;          /* We want to loop through all the children grids, but if this grid   */
@@ -3742,6 +3799,13 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
         }
 
 
+        /* Values to store grid size. */
+        XdmfInt64 xres = 0;
+        XdmfInt64 yres = 0;
+        XdmfInt64 zres = 0;
+        XdmfInt64 ncomp = 0;
+
+
 
 
         /* Loop through attributes within grid.  Read data into C-style array (i.e., get data out of file
@@ -3760,17 +3824,50 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
             rank = desc->GetShape(dims);                /* Get array dimensions. */
             XdmfInt64 nel = desc->GetNumberOfElements();/* Get number of elements in array. */
 
-            if(rank <= 3){
-                nscalars_local++;
-            }
-            if(rank == 4){
-                nvectors_local++;
+            if(rank < 3){
+                std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: array dimensions less than 3 not supported!" << std::endl;
             }
             if(rank > 4){
                 std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: array dimensions greater than 4 not supported!" << std::endl;
             }
 
-            datavals.ResetSize(1);                  /* Set to single-element to ensure that a valid pointer
+
+            if(rank == 3){
+                xres = dims[2];
+                yres = dims[1];
+                zres = dims[0];
+            }
+            if(rank == 4){
+                xres = dims[3];
+                yres = dims[2];
+                zres = dims[1];
+                ncomp = dims[0];
+            }
+
+            std::string name;
+            name = at->GetName();
+
+            XdmfInt32 type_file = desc->GetNumberType();
+
+            size_t num_elements = (size_t)desc->GetNumberOfElements();
+
+
+//            UniformVolume<T>::ResetResolution((size_t)yres, (size_t)xres, (size_t)zres, (T)0.0e0);
+
+            /* Create scalar/vector array for data.  No memory is meaningfully allocated here since the vrows/vcols/vslices
+             * are not set to the true resolution yet.  True resolution will be set later, and arrays will be properly sized
+             * when they are read-in. */
+            if(rank == 3){
+                UniformVolume<T>::AddScalarQuantity(name);
+            }
+            if(rank == 4){
+                UniformVolume<T>::AddVectorQuantity(name, ncomp);
+            }
+
+
+
+
+           /* datavals.ResetSize(1); */                 /* Set to single-element to ensure that a valid pointer
                                                      * is created.  All we want here is availability of the
                                                      * pointer.  Allocation of the array here will cause duplicate
                                                      * memory allocations and thus double memory required to
@@ -3778,15 +3875,100 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
             XdmfArray *data = new XdmfArray;        /* Create XdmfArray object to receive the data. */
 
-            data->SetDataPointer(&datavals[0]);     /* Setting the XdmfArray data pointer to an existing array
-                                                     * allows the Xdmf library to control memory (e.g., allocate
-                                                     * as-needed), but it flags the memory as not belonging to
-                                                     * the XdmfArray object, so deletion of the object does not
-                                                     * cause the data to be lost. */
+            /* Setting the XdmfArray data pointer to an existing array
+             * allows the Xdmf library to control memory (e.g., allocate
+             * as-needed), but it flags the memory as not belonging to
+             * the XdmfArray object, so deletion of the object does not
+             * cause the data to be lost. */
+//            if(rank == 3){
+//                data->SetDataPointer(&pscalars(nscalars-1)->operator [](0));
+//            }
+//            if(rank == 4){
+//                data->SetDataPointer(&pvectors(nvectors-1)->operator [](0));
+//            }
+
+
+            switch(type_file){
+
+            case(XDMF_INT8_TYPE):
+                data->SetDataPointer(&tmp_char[0]);
+                break;
+
+            case(XDMF_UINT8_TYPE):
+                data->SetDataPointer(&tmp_uchar[0]);
+                break;
+
+            case(XDMF_INT16_TYPE):
+                data->SetDataPointer(&tmp_short[0]);
+                break;
+
+            case(XDMF_UINT16_TYPE):
+                data->SetDataPointer(&tmp_ushort[0]);
+                break;
+
+            case(XDMF_INT32_TYPE):
+                data->SetDataPointer(&tmp_int[0]);
+                break;
+
+            case(XDMF_UINT32_TYPE):
+                data->SetDataPointer(&tmp_uint[0]);
+                break;
+
+            case(XDMF_FLOAT32_TYPE):
+                data->SetDataPointer(&tmp_float[0]);
+                break;
+
+            case(XDMF_FLOAT64_TYPE):
+                data->SetDataPointer(&tmp_double[0]);
+                break;
+
+            default:
+                std::cerr << "UniformVolume3D<T>::ReadXDMFFile()  ERROR: Datatype not recognized!" << std::endl;
+            }
+
 
             at->Update();                           /* Memory allocated for data & data read into memory. */
 
             data = at->GetValues(0);                /* Assign the read-in data to the XdmfArray object. */
+
+
+
+            /* If datatypes match, simply move the pointer to the newly-created scalar/vector quantity managed
+             * by this object.
+             *
+             * If datatypes differ, manually loop through the data and copy data into quantity managed by
+             * this object.
+             */
+            if(type_file == type_this && rank == 3){
+                if(rank == 3){
+                    pscalars(nscalars-1)->SetArrayPointer((T*)data->GetDataPointer(),
+                                                                      (size_t)yres, (size_t)xres, (size_t)zres, true);
+                }
+                if(rank == 4){
+                    pvectors(nvectors-1)->SetArrayPointer((T*)data->GetDataPointer(),
+                                                                      (size_t)yres, (size_t)xres, (size_t)zres, (size_t)ncomp,
+                                                                      true);
+                }
+            } else {
+                if(rank == 3){
+                    pscalars(nscalars-1)->ResetSize(yres, xres, zres);
+
+                    for(size_t k=0; k<num_elements; k++){
+                        pscalars(nscalars-1)->operator [](k) = (T)data->GetValueAsFloat64(k);
+                    }
+                }
+                if(rank == 4){
+                    pvectors(nvectors-1)->ResetSize(yres, xres, zres, ncomp);
+
+                    for(size_t k=0; k<num_elements; k++){
+                        pvectors(nvectors-1)->operator [](k) = (T)data->GetValueAsFloat64(k);
+                    }
+                }
+            }
+
+
+
+
 
 
             /* Reset the pointer for data within my Array1D object to be that of the XdmfArray data.  The
@@ -3795,7 +3977,7 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
              * that it will need to use 'free()' when releasing the memory occupied by this data.  If
              * the data is stored in a "normal" c-array (i.e., not in my Array1D container), 'free()'
              * must still be used to release the memory. */
-            datavals.SetArrayPointer((float*)data->GetDataPointer(), (size_t)nel, true);
+//            datavals.SetArrayPointer((float*)data->GetDataPointer(), (size_t)nel, true);
 
             data->Reset();                          /* Resets XdmfArray object to allow clean deletion. */
 
@@ -3803,9 +3985,18 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
                                                      * operation above, and is placed here so that when I
                                                      * check the data using my Array1D object I can be sure
                                                      * that the data has survived the destruction of its
-                                                     * original array.  In normal use, data can be deleted
+                                                     * original array.  In normal use, data can be deletedtm
                                                      * at any time after 'Reset()'.  Deletion at this specific
                                                      * point is to verify proper data management behavior. */
+
+            tmp_char.SetArrayPointer(NULL, 1, false);
+            tmp_uchar.SetArrayPointer(NULL, 1, false);
+            tmp_short.SetArrayPointer(NULL, 1, false);
+            tmp_ushort.SetArrayPointer(NULL, 1, false);
+            tmp_int.SetArrayPointer(NULL, 1, false);
+            tmp_uint.SetArrayPointer(NULL, 1, false);
+            tmp_float.SetArrayPointer(NULL, 1, false);
+            tmp_double.SetArrayPointer(NULL, 1, false);
 
 
             /* Write attribute information. */
@@ -3821,8 +4012,9 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
                 if(nel > 0){
                     std::cout << indent << "        Shape:    " << desc->GetShapeAsString() << std::endl;
                     std::cout << indent << "        Datatype: " << desc->GetNumberTypeAsString() << std::endl;
-                    std::cout << indent << "        test val:  " << datavals[nel/2] << std::endl;
                 }
+
+//                datavals.ResetSize(1, 0.0f);
             }
 
         } /* Loop through attributes of grid. */
@@ -3854,6 +4046,25 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
         }
 
 
+
+
+        vrows = yres;
+        vcols = xres;
+        vslices = zres;
+
+        xmin = geo->GetOriginZ();       /* X <--> Z switched due to KIJ ordering in XDMF format. */
+        ymin = geo->GetOriginY();
+        zmin = geo->GetOriginX();
+
+        xspacing = geo->GetDz();        /* X <--> Z switched due to KIJ ordering in XDMF format. */
+        yspacing = geo->GetDy();
+        zspacing = geo->GetDx();
+
+        xmax = xmin + (float)vcols*xspacing;
+        ymax = ymin + (float)vrows*yspacing;
+        zmax = zmin + (float)vslices*zspacing;
+
+
         /* Set 'grid' to the head XdmfGrid object so that the GetChild() call at the top of the loop
          * performs the desired function.  We want to loop over the children of the head node, so
          * we must reset the pointer to the head grid. */
@@ -3875,15 +4086,8 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
 
     if(debug){
-        std::cout << "# scalars: " << nscalars_local << std::endl;
-        std::cout << "# vectors: " << nvectors_local << std::endl;
+        std::cout << "# scalars: " << nscalars << std::endl;
+        std::cout << "# vectors: " << nvectors << std::endl;
     }
-
-
-
-
-
-
-
 
 } /* UniformVolume<T>::ReadXDMFFile() */

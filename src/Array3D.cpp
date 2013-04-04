@@ -453,10 +453,15 @@ void Array3D<T>::Transpose(const int dim1, const int dim2)
         *this = data_copy;
 
     }
+}
 
 
+template <class T>
+void Array3D<T>::SetArrayPointer(T *p_data, size_t npts1, size_t npts2, size_t npts3, bool useFree)
+{
+    size1 = npts1;
+    size2 = npts2;
+    size3 = npts3;
 
-
-
-
+    ArrayBase<T>::SetArrayPointer(p_data, npts1*npts2*npts3, useFree);
 }

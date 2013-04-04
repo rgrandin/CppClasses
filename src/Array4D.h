@@ -323,6 +323,19 @@ public:
     virtual T MaxVal(size_t &loc1, size_t &loc2, size_t &loc3, size_t &loc4) const;
 
 
+    /**
+     * @brief Manually set the pointer to an existing array.
+     * @param p_data Pointer to start of array.
+     * @param npts1 Number of points in first dimension of array.
+     * @param npts2 Number of points in second dimension of array.
+     * @param npts3 Number of points in third dimension of array.
+     * @param npts4 Number of points in fourth dimension of array.
+     * @param useFree If true, 'free()' will be used to free the memory rather than 'delete'.
+     *  This is set based on how the array pointed-to by 'p_data' was allocated.
+     */
+    void SetArrayPointer(T* p_data, size_t npts1, size_t npts2, size_t npts3, size_t npts4, bool useFree);
+
+
 
 protected:
     // VARIABLES
