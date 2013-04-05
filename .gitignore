@@ -9,3 +9,4 @@ CppClasses.includes
 CppClasses.creator.user*
 *.pro.user*
 *~
+doc/doxygen_warnings
