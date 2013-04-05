@@ -1752,9 +1752,9 @@ template <class T>
 void UniformVolume<T>::VTKWrite()
 {
 
-    UniformVolume<T>::VTKWriteImageData();
-
     if(false){
+        UniformVolume<T>::VTKWriteImageData();      /* Currently some sort of bug in here. */
+    } else {
         std::string filename;
         std::fstream ssfile;
         filename = outputdir + "/" + filenamestem + ".vtk";
@@ -2387,9 +2387,10 @@ template <class T>
 void UniformVolume<T>::VTKWriteBinaryBigEndian()
 {
 
-    UniformVolume<T>::VTKWriteImageData();
-
     if(false){
+        UniformVolume<T>::VTKWriteImageData();      /* Currently some sort of bug in here. */
+    } else {
+
         writebigendian = true;
 
         if(UniformVolume<T>::IsBigEndian()){
