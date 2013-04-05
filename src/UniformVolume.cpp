@@ -4051,7 +4051,7 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
             XdmfDataDesc *desc = at->GetShapeDesc();    /* Get shape description of data. */
             int rank = desc->GetRank();                 /* Get data rank (i.e., number of dimensions. */
-            XdmfInt64 dims[rank];                       /* Declare array for array size in each dimension. */
+            XdmfInt64 *dims = new XdmfInt64[rank];      /* Declare array for array size in each dimension. */
 
             rank = desc->GetShape(dims);                /* Get array dimensions. */
             XdmfInt64 nel = desc->GetNumberOfElements();/* Get number of elements in array. */
@@ -4326,8 +4326,8 @@ void UniformVolume<T>::VTKWriteImageData()
     vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
     imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
     imageImport->SetDataOrigin((double)xmin, (double)ymin, (double)zmin);
-    imageImport->SetDataExtent(0, vcols-1, 0, vrows-1, 0, vslices-1);
-    imageImport->SetWholeExtent(0, vcols-1, 0, vrows-1, 0, vslices-1);
+    imageImport->SetDataExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
+    imageImport->SetWholeExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
     if(typeid(T) == typeid(float)){
         imageImport->SetDataScalarTypeToFloat();
     }
@@ -4344,7 +4344,7 @@ void UniformVolume<T>::VTKWriteImageData()
 
     int npieces = 1;
     if(vrows*vcols*vslices >= 2147483647){
-        npieces += (vrows*vcols*vslices)/2147483647;
+        npieces += (int)((vrows*vcols*vslices)/2147483647);
         filename = filename + ".pvti";
 
         vtkSmartPointer<vtkXMLPImageDataWriter> writer = vtkSmartPointer<vtkXMLPImageDataWriter>::New();

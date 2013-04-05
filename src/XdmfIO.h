@@ -147,8 +147,8 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
 
 
-        int rank = data_dims->GetDim();
-        XdmfInt64 shape[rank];
+        size_t rank = data_dims->GetDim();
+        XdmfInt64 *shape = new XdmfInt64[rank];
         for(int r=0; r<rank; r++){
             shape[r] = (XdmfInt64)data_dims->operator()(rank-r-1);
         }
@@ -182,7 +182,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
         xarray[array_number] = new XdmfArray;
         xarray[array_number]->SetAllowAllocate(false);                 /* Prevent the XdmfArray from allocating any memory. */
-        xarray[array_number]->SetShape(rank, shape);                   /* Set rank and dimension sizes of array. */
+        xarray[array_number]->SetShape((XdmfInt32)rank, shape);        /* Set rank and dimension sizes of array. */
         xarray[array_number]->SetDataPointer(data_pointer);            /* Set pointer to previously-existing data. */
         xarray[array_number]->SetNumberType(number_type);              /* Identify the data type. */
 
@@ -198,7 +198,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
         topo[array_number]->SetTopologyType(XDMF_3DCORECTMESH);     /* Set grid type, again this is for image data and other
                                                                      * options are possible for other applications. */
-        topo[array_number]->GetShapeDesc()->SetShape(rank, shape);  /* Set shape to match that of the data array. */
+        topo[array_number]->GetShapeDesc()->SetShape((XdmfInt32)rank, shape);  /* Set shape to match that of the data array. */
 
 
         geo[array_number] = new XdmfGeometry;                   /* Create a geometry object to complete grid
@@ -207,12 +207,12 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
         if(data_origin && data_spacing){
             /* If both data_origin and data_spacing is defined, use those values when defining the geometry. */
 
-            XdmfFloat64 origin[rank];
+            XdmfFloat64 *origin = new XdmfFloat64[rank];
             for(int r=0; r<rank; r++){
                 origin[r] = data_origin->operator()(rank-r-1);
             }
 
-            XdmfFloat64 spacing[rank];
+            XdmfFloat64 *spacing = new XdmfFloat64[rank];
             for(int r=0; r<rank; r++){
                 spacing[r] = data_spacing->operator()(rank-r-1);
             }
@@ -345,15 +345,15 @@ void addUniformArraysExistingGrid(XdmfIO::data_info<T> *data_struct, XdmfGrid *g
         }
 
 
-        int rank = data_struct->dims->operator()(0)->GetDim();
-        XdmfInt64 shape[rank];
+        size_t rank = data_struct->dims->operator()(0)->GetDim();
+        XdmfInt64 *shape = new XdmfInt64[rank];
         for(int r=0; r<rank; r++){
             shape[r] = (XdmfInt64)data_struct->dims->operator()(0)->operator()(rank-r-1);
         }
 
         xarray[array_number] = new XdmfArray;
         xarray[array_number]->SetAllowAllocate(false);                 /* Prevent the XdmfArray from allocating any memory. */
-        xarray[array_number]->SetShape(rank, shape);                   /* Set rank and dimension sizes of array. */
+        xarray[array_number]->SetShape((XdmfInt32)rank, shape);        /* Set rank and dimension sizes of array. */
         xarray[array_number]->SetDataPointer(data_pointer);            /* Set pointer to previously-existing data. */
         xarray[array_number]->SetNumberType(number_type);              /* Identify the data type. */
 
@@ -601,8 +601,8 @@ void writeSingleUniformGrid(std::string filename,
 
 
 
-    int rank = data_dims->GetDim();
-    XdmfInt64 shape[rank];
+    size_t rank = data_dims->GetDim();
+    XdmfInt64 *shape = new XdmfInt64[rank];
     for(int r=0; r<rank; r++){
         shape[r] = (XdmfInt64)data_dims->operator()(rank-r-1);
     }
@@ -622,7 +622,7 @@ void writeSingleUniformGrid(std::string filename,
 
     topo->SetTopologyType(XDMF_3DCORECTMESH);     /* Set grid type, again this is for image data and other
                                                    * options are possible for other applications. */
-    topo->GetShapeDesc()->SetShape(rank, shape);  /* Set shape to match that of the data array. */
+    topo->GetShapeDesc()->SetShape((XdmfInt32)rank, shape);  /* Set shape to match that of the data array. */
 
 
     XdmfGeometry *geo;
@@ -632,12 +632,12 @@ void writeSingleUniformGrid(std::string filename,
     if(data_origin && data_spacing){
         /* If both data_origin and data_spacing is defined, use those values when defining the geometry. */
 
-        XdmfFloat64 origin[rank];
+        XdmfFloat64 *origin = new XdmfFloat64[rank];
         for(int r=0; r<rank; r++){
             origin[r] = data_origin->operator()(rank-r-1);
         }
 
-        XdmfFloat64 spacing[rank];
+        XdmfFloat64 *spacing = new XdmfFloat64[rank];
         for(int r=0; r<rank; r++){
             spacing[r] = data_spacing->operator()(rank-r-1);
         }
