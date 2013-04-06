@@ -572,8 +572,10 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
     reader->SetFileName(filename.c_str());
     reader->UpdateInformation();
     reader->UpdateWholeExtent();
-    reader->GetOutput()->Register(reader);
-    vtkImageData *dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+
+    vtkSmartPointer<vtkImageData> dataset = vtkSmartPointer<vtkImageData>::New();
+    dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+
 
 
     int dims[3] = {0, 0, 0};
@@ -643,17 +645,13 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
 
         size_t npts = dims[0]*dims[1]*dims[2];
 
-        vtkSmartPointer<vtkDoubleArray> data = vtkSmartPointer<vtkDoubleArray>::New();
-
-        dataset->GetPointData()->GetScalars()->GetData(0, npts, 0, 0, data);
-
         if(scalar_data){
 
             /* If data is to be read into pre-existing array, copy values into that array. */
 
             for(size_t ii=0; ii<scalar_data_size; ii++){
 
-                scalar_data[ii] = (T)data->GetValue(ii);
+                scalar_data[ii] = (T)dataset->GetPointData()->GetScalars()->GetComponent(ii, 0);
                 scalar_data_points_read++;
 
                 if(scalar_data_points_read == npts){
@@ -672,23 +670,19 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
             UniformVolume<T>::AddScalarQuantity(str_name);
 
             for(size_t i=0; i<npts; i++){
-                pscalars(0)->operator [](i) = (T)data->GetValue(i);
+                pscalars(0)->operator [](i) = (T)dataset->GetPointData()->GetScalars()->GetComponent(i, 0);
             }
 
         }
-
-//        dataset->GetPointData()->GetScalars()->Delete();
-//        dataset->ReleaseData();
-        data->Initialize();
-        dataset->Initialize();
-        dataset->Delete();
-        data->Delete();
 
     } else {
 
         /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
          * and no duplication of data is required. */
 
+        reader->Register(reader->GetOutput());          /* Prevents loss of data when 'reader' goes out of scope.  This
+                                                         * is desired since we want this object to control the memory
+                                                         * rather than the VTK library functions. */
         imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
                                                          * C-style array. */
 
@@ -715,6 +709,7 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
     xmax = xmin + xspacing*(float)vcols;
     ymax = ymin + yspacing*(float)vrows;
     zmax = zmin + zspacing*(float)vslices;
+
 }
 
 
