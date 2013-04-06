@@ -144,41 +144,6 @@
 
 
 
-/**
- * @brief Read VTK file.  Template parameter allows for generalization to handle both
- *  legacy and XML image data files.
- * @param fileName Name of file to be read.
- * @return Pointer to dataset which was read.
- */
-template<class TReader>
-vtkDataSet *ReadVTKFileXML(const char*fileName)
-{
-    vtkSmartPointer<TReader> reader = vtkSmartPointer<TReader>::New();
-    reader->SetFileName(fileName);
-    reader->UpdateInformation();
-    reader->UpdateWholeExtent();
-    reader->GetOutput()->Register(reader);
-    return vtkDataSet::SafeDownCast(reader->GetOutputAsDataSet());
-}
-
-
-
-/**
- * @brief Read VTK file.  Template parameter allows for generalization to handle both
- *  legacy and XML image data files.
- * @param fileName Name of file to be read.
- * @return Pointer to dataset which was read.
- */
-template<class TReader>
-vtkDataSet *ReadVTKFileLegacy(const char*fileName)
-{
-    vtkSmartPointer<TReader> reader = vtkSmartPointer<TReader>::New();
-    reader->SetFileName(fileName);
-    reader->UpdateInformation();
-    reader->UpdateWholeExtent();
-    reader->GetOutput()->Register(reader);
-    return vtkDataSet::SafeDownCast(reader->GetOutput());
-}
 
 
 

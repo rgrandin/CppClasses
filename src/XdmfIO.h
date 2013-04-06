@@ -149,7 +149,7 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
 
         size_t rank = data_dims->GetDim();
         XdmfInt64 *shape = new XdmfInt64[rank];
-        for(int r=0; r<rank; r++){
+        for(size_t r=0; r<rank; r++){
             shape[r] = (XdmfInt64)data_dims->operator()(rank-r-1);
         }
 
@@ -208,12 +208,12 @@ void addUniformArrays(XdmfIO::data_info<T> *data_struct, XdmfGrid *tree_grid, Xd
             /* If both data_origin and data_spacing is defined, use those values when defining the geometry. */
 
             XdmfFloat64 *origin = new XdmfFloat64[rank];
-            for(int r=0; r<rank; r++){
+            for(size_t r=0; r<rank; r++){
                 origin[r] = data_origin->operator()(rank-r-1);
             }
 
             XdmfFloat64 *spacing = new XdmfFloat64[rank];
-            for(int r=0; r<rank; r++){
+            for(size_t r=0; r<rank; r++){
                 spacing[r] = data_spacing->operator()(rank-r-1);
             }
 
@@ -347,7 +347,7 @@ void addUniformArraysExistingGrid(XdmfIO::data_info<T> *data_struct, XdmfGrid *g
 
         size_t rank = data_struct->dims->operator()(0)->GetDim();
         XdmfInt64 *shape = new XdmfInt64[rank];
-        for(int r=0; r<rank; r++){
+        for(size_t r=0; r<rank; r++){
             shape[r] = (XdmfInt64)data_struct->dims->operator()(0)->operator()(rank-r-1);
         }
 
@@ -603,7 +603,7 @@ void writeSingleUniformGrid(std::string filename,
 
     size_t rank = data_dims->GetDim();
     XdmfInt64 *shape = new XdmfInt64[rank];
-    for(int r=0; r<rank; r++){
+    for(size_t r=0; r<rank; r++){
         shape[r] = (XdmfInt64)data_dims->operator()(rank-r-1);
     }
 
@@ -633,12 +633,12 @@ void writeSingleUniformGrid(std::string filename,
         /* If both data_origin and data_spacing is defined, use those values when defining the geometry. */
 
         XdmfFloat64 *origin = new XdmfFloat64[rank];
-        for(int r=0; r<rank; r++){
+        for(size_t r=0; r<rank; r++){
             origin[r] = data_origin->operator()(rank-r-1);
         }
 
         XdmfFloat64 *spacing = new XdmfFloat64[rank];
-        for(int r=0; r<rank; r++){
+        for(size_t r=0; r<rank; r++){
             spacing[r] = data_spacing->operator()(rank-r-1);
         }
 

@@ -561,20 +561,31 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
     UniformVolume<T>::RemoveAllData();
 
 
+    /* imageExport is used to move read-in data to a C-style array controlled by this object.  If the data cannot
+     * be moved to an array controlled by this object, it will be copied.  If copied, we want the VTK library to
+     * free the memory it allocates.  This means that the dataset which is returned by the file reading function is
+     * not actually assigned to the export object until we know that a move (not a copy) is to be performed. */
     vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-    vtkDataSet *dataset;
 
-    dataset = ReadVTKFileLegacy<vtkStructuredPointsReader>(filename.c_str());
+
+    vtkSmartPointer<vtkStructuredPointsReader> reader = vtkSmartPointer<vtkStructuredPointsReader>::New();
+    reader->SetFileName(filename.c_str());
+    reader->UpdateInformation();
+    reader->UpdateWholeExtent();
+    reader->GetOutput()->Register(reader);
+    vtkImageData *dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+
 
     int dims[3] = {0, 0, 0};
     double *origin;
     double *spacing;
-    imageExport->SetInputData(dataset);
-    imageExport->GetDataDimensions(dims);
-    origin = imageExport->GetDataOrigin();
-    spacing = imageExport->GetDataSpacing();
+
+    dataset->GetDimensions(dims);
+    origin = dataset->GetOrigin();
+    spacing = dataset->GetSpacing();
     char *name = dataset->GetPointData()->GetScalars()->GetName();
     std::string str_name(name);
+
 
     int type_this;
     if(typeid(T) == typeid(char)){
@@ -624,9 +635,63 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
 
 
 
-    int type_file = imageExport->GetDataScalarType();
+    int type_file = dataset->GetScalarType();
 
-    if(type_this == type_file){
+    /* If either data is to be read into a user-supplied array (pointer to which is 'scalar_data'), or the datatypes
+     * do not match, the read-in data will have to be copied to its destination array. */
+    if(scalar_data || type_this != type_file){
+
+        size_t npts = dims[0]*dims[1]*dims[2];
+
+        vtkSmartPointer<vtkDoubleArray> data = vtkSmartPointer<vtkDoubleArray>::New();
+
+        dataset->GetPointData()->GetScalars()->GetData(0, npts, 0, 0, data);
+
+        if(scalar_data){
+
+            /* If data is to be read into pre-existing array, copy values into that array. */
+
+            for(size_t ii=0; ii<scalar_data_size; ii++){
+
+                scalar_data[ii] = (T)data->GetValue(ii);
+                scalar_data_points_read++;
+
+                if(scalar_data_points_read == npts){
+                    std::cerr << "UniformVolume<T>::ReadLegacyVTKFile()  ERROR: Insufficient destination array size." << std::endl;
+                    std::cerr << "                                              Aborting." << std::endl;
+                    return;
+                }
+            }
+
+        } else {
+
+            /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
+             * values to match the template type. */
+
+            UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
+            UniformVolume<T>::AddScalarQuantity(str_name);
+
+            for(size_t i=0; i<npts; i++){
+                pscalars(0)->operator [](i) = (T)data->GetValue(i);
+            }
+
+        }
+
+//        dataset->GetPointData()->GetScalars()->Delete();
+//        dataset->ReleaseData();
+        data->Initialize();
+        dataset->Initialize();
+        dataset->Delete();
+        data->Delete();
+
+    } else {
+
+        /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
+         * and no duplication of data is required. */
+
+        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
+                                                         * C-style array. */
+
         UniformVolume<T>::AddScalarQuantity(str_name);
         vcols = dims[0];
         vrows = dims[1];
@@ -635,16 +700,9 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
         /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
          * does not show any missing deallocation as a result of doing this, so I think this is OK. */
         pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
-    } else {
-        UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
-        UniformVolume<T>::AddScalarQuantity(str_name);
 
-        size_t numel = vcols*vrows*vslices;
-        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
-        for(size_t i=0; i<numel; i++){
-            pscalars(0)->operator [](i) = (T)data->GetValue(i);
-        }
     }
+
 
     xmin = origin[0];
     ymin = origin[1];
@@ -667,24 +725,34 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
 
 
     vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-    vtkDataSet *dataset;
+    vtkImageData *dataset;
 
     std::string extension;
     extension = StringManip::DetermFileExt(filename);
 
     if(extension == "pvti" || extension == "PVTI"){
-        dataset = ReadVTKFileXML<vtkXMLPImageDataReader>(filename.c_str());
+        vtkSmartPointer<vtkXMLPImageDataReader> reader = vtkSmartPointer<vtkXMLPImageDataReader>::New();
+        reader->SetFileName(filename.c_str());
+        reader->UpdateInformation();
+        reader->UpdateWholeExtent();
+        reader->GetOutput()->Register(reader);
+        dataset = vtkImageData::SafeDownCast(reader->GetOutput());
     } else {
-        dataset = ReadVTKFileXML<vtkXMLImageDataReader>(filename.c_str());
+        vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
+        reader->SetFileName(filename.c_str());
+        reader->UpdateInformation();
+        reader->UpdateWholeExtent();
+        reader->GetOutput()->Register(reader);
+        dataset = vtkImageData::SafeDownCast(reader->GetOutput());
     }
 
     int dims[3] = {0, 0, 0};
     double *origin;
     double *spacing;
-    imageExport->SetInputData(dataset);
-    imageExport->GetDataDimensions(dims);
-    origin = imageExport->GetDataOrigin();
-    spacing = imageExport->GetDataSpacing();
+
+    dataset->GetDimensions(dims);
+    origin = dataset->GetOrigin();
+    spacing = dataset->GetSpacing();
     char *name = dataset->GetPointData()->GetScalars()->GetName();
     std::string str_name(name);
 
@@ -738,7 +806,52 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
 
     int type_file = imageExport->GetDataScalarType();
 
-    if(type_this == type_file){
+    /* If either data is to be read into a user-supplied array (pointer to which is 'scalar_data'), or the datatypes
+     * do not match, the read-in data will have to be copied to its destination array. */
+    if(scalar_data || type_this != type_file){
+
+        size_t npts = dims[0]*dims[1]*dims[2];
+
+        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
+
+        if(scalar_data){
+
+            /* If data is to be read into pre-existing array, copy values into that array. */
+
+            for(size_t ii=0; ii<scalar_data_size; ii++){
+
+                scalar_data[ii] = (T)data->GetValue(ii);
+                scalar_data_points_read++;
+
+                if(scalar_data_points_read == npts){
+                    std::cerr << "UniformVolume<T>::ReadLegacyVTKFile()  ERROR: Insufficient destination array size." << std::endl;
+                    std::cerr << "                                              Aborting." << std::endl;
+                    return;
+                }
+            }
+
+        } else {
+
+            /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
+             * values to match the template type. */
+
+            UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
+            UniformVolume<T>::AddScalarQuantity(str_name);
+
+            for(size_t i=0; i<npts; i++){
+                pscalars(0)->operator [](i) = (T)data->GetValue(i);
+            }
+
+        }
+
+    } else {
+
+        /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
+         * and no duplication of data is required. */
+
+        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
+                                                         * C-style array. */
+
         UniformVolume<T>::AddScalarQuantity(str_name);
         vcols = dims[0];
         vrows = dims[1];
@@ -748,16 +861,8 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
          * does not show any missing deallocation as a result of doing this, so I think this is OK. */
         pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
 
-    } else {
-        UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
-        UniformVolume<T>::AddScalarQuantity(str_name);
-
-        size_t numel = vcols*vrows*vslices;
-        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
-        for(size_t i=0; i<numel; i++){
-            pscalars(0)->operator [](i) = (T)data->GetValue(i);
-        }
     }
+
 
     xmin = origin[0];
     ymin = origin[1];
