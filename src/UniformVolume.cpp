@@ -687,7 +687,7 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
         imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
                                                          * C-style array. */
 
-        UniformVolume<T>::ResetResolution(1, 1, 1, (T)0.0e0);
+//        UniformVolume<T>::ResetResolution(1, 1, 1, (T)0.0e0);
         UniformVolume<T>::AddScalarQuantity(str_name);
 
         vrows = dims[1];
