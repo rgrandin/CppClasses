@@ -29,7 +29,9 @@ Array3D<T>::Array3D()
     size1 = 1;
     size2 = 1;
     size3 = 1;
-    ArrayBase<T>::npoints = size1*size2*size3;
+
+    size_t npts = size1*size2*size3;
+    ArrayBase<T>::ResetSize(npts,(T)0.0e0);
 }
 
 
@@ -474,7 +476,7 @@ void Array3D<T>::SetArraySize(size_t npts1, size_t npts2, size_t npts3, bool use
     size2 = npts2;
     size3 = npts3;
 
-    ArrayBase::npoints = size1*size2*size3;
+    ArrayBase<T>::npoints = size1*size2*size3;
 
-    ArrayBase::use_free = useFree;
+    ArrayBase<T>::use_free = useFree;
 }

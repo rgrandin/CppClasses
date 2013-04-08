@@ -154,22 +154,6 @@ public:
 
 
 	/**
-     * @brief Reset array size.
-     *
-     * If input dimension matches the existing array
-     * 	dimension, the array is set to NULL at all points (same behavior as
-     * 	ResetVal member function).
-	 * @pre Array object exists.
-	 * @warning Any data already existing in the volume will be lost.
-	 * @param dim1 New size of the first dimension.
-	 * @return None.
-	 * @post Array size changed to dim1 and new points initialized to
-	 * 			'initvalue'.
-	 */
-    void ResetSize(size_t dim1);
-
-
-	/**
 	 * @brief Reset all array points to a single value.
 	 * @pre Array object exists.
 	 * @param initvalue Value to be placed at all array points.

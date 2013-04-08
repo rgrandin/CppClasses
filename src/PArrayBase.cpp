@@ -86,29 +86,30 @@ void PArrayBase<T>::ResetSize(size_t dim1)
 
 	// CHECK FOR NEW DIMENSIONS MATCHING EXISTING DIMENSIONS.  IF NOT, RESET
 	// THE ARRAY SIZE AS REQUIRED.
-	if(dim1 != npoints){
+//	if(dim1 != npoints){
         for(size_t i=0; i<npoints; i++){
             if(p_array[i]){
                 delete p_array[i];
 			}
 		}
 
-		npoints = dim1;
         if(p_array){
             delete [] p_array;
         }
+
+		npoints = dim1;
         p_array = new T[npoints];
 
         for(size_t i=0; i<npoints; i++){
             p_array[i] = NULL;
 		}
-	} else {
-		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
-		// NULL.
-        for(size_t i=0; i<npoints; i++){
-            p_array[i] = NULL;
-		}
-	}
+//	} else {
+//		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
+//		// NULL.
+//        for(size_t i=0; i<npoints; i++){
+//            p_array[i] = NULL;
+//		}
+//	}
 }
 
 

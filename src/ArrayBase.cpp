@@ -164,7 +164,7 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
 
 	// CHECK FOR NEW DIMENSIONS MATCHING EXISTING DIMENSIONS.  IF NOT, RESET
 	// THE ARRAY SIZE AS REQUIRED.
-	if(dim1 != npoints){
+//	if(dim1 != npoints){
 		npoints = dim1;
         FreeMemory();
         p_array = new T[npoints];
@@ -173,13 +173,13 @@ void ArrayBase<T>::ResetSize(size_t dim1, const T initvalue)
         for(size_t i=0; i<npoints; i++){
             p_array[i] = initvalue;
 		}
-	} else {
-		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
-		// initvalue.
-        for(size_t i=0; i<npoints; i++){
-            p_array[i] = initvalue;
-		}
-	}
+//	} else {
+//		// IF dim1 IS THE CURRENT ARRAY SIZE, SET VALUE AT ALL POINTS TO
+//		// initvalue.
+//        for(size_t i=0; i<npoints; i++){
+//            p_array[i] = initvalue;
+//		}
+//	}
 }
 
 
@@ -387,7 +387,8 @@ template <class T>
 void ArrayBase<T>::SetArrayPointer(T *p_data, size_t npts, bool useFree)
 {
     /* Reset size to delete any existing data and free memory. */
-    ResetSize(1, (T)0);
+//    ResetSize(1, (T)0);
+    FreeMemory();
 
     p_array = p_data;
     npoints = npts;

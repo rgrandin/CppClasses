@@ -117,12 +117,6 @@ void PArray1D<T>::ResetVal(const T initval)
 	PArrayBase<T>::ResetVal(initval);
 }
 
-template <class T>
-void PArray1D<T>::ResetSize(size_t dim1)
-{
-	PArrayBase<T>::ResetSize(dim1);
-}
-
 
 template <class T>
 double PArray1D<T>::GetMemoryUsage() const
