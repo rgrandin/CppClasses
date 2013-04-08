@@ -349,6 +349,17 @@ class Array3D : public ArrayBase<T>{
     void SetArrayPointer(T* p_data, size_t npts1, size_t npts2, size_t npts3, bool useFree);
 
 
+    /**
+     * @brief Manually set array size, using existing pointer to serialized array.
+     * @param npts1 Number of points in first dimension of array.
+     * @param npts2 Number of points in second dimension of array.
+     * @param npts3 Number of points in third dimension of array.
+     * @param useFree If true, 'free()' will be used to free the memory rather than 'delete'.
+     *  This is set based on how the array pointed-to by 'p_data' was allocated.
+     */
+    void SetArraySize(size_t npts1, size_t npts2, size_t npts3, bool useFree);
+
+
 	
 	
 	

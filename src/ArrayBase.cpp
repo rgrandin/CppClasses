@@ -111,6 +111,7 @@ void ArrayBase<T>::FreeMemory()
     }
 }
 
+
 template <class T>
 ArrayBase<T>& ArrayBase<T>::operator=(ArrayBase<T> ab)
 {

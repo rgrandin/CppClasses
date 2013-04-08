@@ -577,7 +577,6 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
     dataset = vtkImageData::SafeDownCast(reader->GetOutput());
 
 
-
     int dims[3] = {0, 0, 0};
     double *origin;
     double *spacing;
@@ -666,6 +665,8 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
             /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
              * values to match the template type. */
 
+            std::string str_name("nothing");
+
             UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
             UniformVolume<T>::AddScalarQuantity(str_name);
 
@@ -686,15 +687,23 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
         imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
                                                          * C-style array. */
 
+        UniformVolume<T>::ResetResolution(1, 1, 1, (T)0.0e0);
         UniformVolume<T>::AddScalarQuantity(str_name);
-        vcols = dims[0];
+
         vrows = dims[1];
+        vcols = dims[0];
         vslices = dims[2];
 
         /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
          * does not show any missing deallocation as a result of doing this, so I think this is OK. */
-        pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
+//        T* dataptr = (T*)imageExport->GetPointerToData();
+//        imageExport->Export(&pscalars(0)->operator [](0));
+//        T* dataptr;
+//        imageExport->Export(dataptr);
+//        pscalars(0)->SetArraySize(vrows, vcols, vslices, true);
 
+        imageExport->Update();
+        pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
     }
 
 
@@ -1191,6 +1200,8 @@ void UniformVolume<T>::RemoveScalarQuantityRef(const size_t qty)
 
     /* Remove quantity from array of pointers. */
     UniformVolume<T>::RemoveScalarQuantity(qty);
+
+    std::cerr << "Removed scalar quantity reference " << qty << std::endl;
 }
 
 
@@ -3997,6 +4008,9 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     qtsignals->EmitFunctionDesc2("Writing XDMF File");
 
     vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
+    imageImport->GlobalWarningDisplayOn();
+
+
     imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
     imageImport->SetDataOrigin((double)xmin, (double)ymin, (double)zmin);
     imageImport->SetDataExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
@@ -4009,6 +4023,7 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     }
     imageImport->SetNumberOfScalarComponents(1);
     imageImport->SetImportVoidPointer(&pscalars(0)->operator [](0), 1);
+//    imageImport->CopyImportVoidPointer(&pscalars(0)->operator [](0), sizeof(T)*vcols*vrows*vslices);
     imageImport->Update();
 
 
@@ -4020,7 +4035,6 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 
     vtkSmartPointer<vtkXdmfWriter> writer = vtkSmartPointer<vtkXdmfWriter>::New();
     writer->SetFileName(filename.c_str());
-    //writer->SetHeaderTypeToUInt64();
 #if VTK_MAJOR_VERSION <= 5
     writer->SetInput(imageData);
 #else
