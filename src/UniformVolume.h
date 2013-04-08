@@ -134,6 +134,8 @@
 #include <vtkImageExport.h>
 #include <vtkStructuredPointsReader.h>
 #include <vtkStructuredPointsWriter.h>
+#include <vtkXdmfWriter.h>
+#include <vtkXdmfReader.h>
 
 
 /* Include the base class which serves as an intermediary between this class

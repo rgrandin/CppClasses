@@ -3898,95 +3898,137 @@ size_t UniformVolume<T>::NumberScalarPointsRead()
 template <class T>
 void UniformVolume<T>::WriteXdmf(const int compression)
 {
-    size_t narrays = nscalars + nvectors;
+//    size_t narrays = nscalars + nvectors;
 
-    /* Define a single grid for all data, with multiple data arrays defined to on the grid. */
-    PArray1D<T*> data_ptr(narrays);
-    PArray1D<Array1D<size_t>*> data_dims(1);
-    PArray1D<Array1D<float>*> data_origin(1);
-    PArray1D<Array1D<float>*> data_spacing(1);
-    PArray1D<std::string*> data_name(narrays);
+//    /* Define a single grid for all data, with multiple data arrays defined to on the grid. */
+//    PArray1D<T*> data_ptr(narrays);
+//    PArray1D<Array1D<size_t>*> data_dims(1);
+//    PArray1D<Array1D<float>*> data_origin(1);
+//    PArray1D<Array1D<float>*> data_spacing(1);
+//    PArray1D<std::string*> data_name(narrays);
 
 
-    data_dims(0) = new Array1D<size_t>;
-    data_dims(0)->ResetSize(3, 0);
-    data_dims(0)->operator ()(0) = vcols;
-    data_dims(0)->operator ()(1) = vrows;
-    data_dims(0)->operator ()(2) = vslices;
+//    data_dims(0) = new Array1D<size_t>;
+//    data_dims(0)->ResetSize(3, 0);
+//    data_dims(0)->operator ()(0) = vcols;
+//    data_dims(0)->operator ()(1) = vrows;
+//    data_dims(0)->operator ()(2) = vslices;
 
-    data_origin(0) = new Array1D<float>;
-    data_origin(0)->ResetSize(3, 0.0f);
-    data_origin(0)->operator ()(0) = (float)xmin;
-    data_origin(0)->operator ()(1) = (float)ymin;
-    data_origin(0)->operator ()(2) = (float)zmin;
+//    data_origin(0) = new Array1D<float>;
+//    data_origin(0)->ResetSize(3, 0.0f);
+//    data_origin(0)->operator ()(0) = (float)xmin;
+//    data_origin(0)->operator ()(1) = (float)ymin;
+//    data_origin(0)->operator ()(2) = (float)zmin;
 
-    data_spacing(0) = new Array1D<float>;
-    data_spacing(0)->ResetSize(3, 0.0f);
-    data_spacing(0)->operator ()(0) = (float)xspacing;
-    data_spacing(0)->operator ()(1) = (float)yspacing;
-    data_spacing(0)->operator ()(2) = (float)zspacing;
+//    data_spacing(0) = new Array1D<float>;
+//    data_spacing(0)->ResetSize(3, 0.0f);
+//    data_spacing(0)->operator ()(0) = (float)xspacing;
+//    data_spacing(0)->operator ()(1) = (float)yspacing;
+//    data_spacing(0)->operator ()(2) = (float)zspacing;
 
-    for(size_t i=0; i<narrays; i++){
+//    for(size_t i=0; i<narrays; i++){
 
-        if(i < nscalars){
-            /* Add scalar quantity to output structure. */
-            data_ptr(i) = &pscalars(i)->operator [](0);
+//        if(i < nscalars){
+//            /* Add scalar quantity to output structure. */
+//            data_ptr(i) = &pscalars(i)->operator [](0);
 
-            data_name(i) = new std::string;
-            data_name(i)->assign(scalar_names(i)->substr());
+//            data_name(i) = new std::string;
+//            data_name(i)->assign(scalar_names(i)->substr());
 
-        } else {
-            /* Add vector quantity to output structure. */
-            data_ptr(i) = &pvectors(i-nscalars)->operator [](0);
+//        } else {
+//            /* Add vector quantity to output structure. */
+//            data_ptr(i) = &pvectors(i-nscalars)->operator [](0);
 
-            data_name(i) = new std::string;
-            data_name(i)->assign(vector_names(i-nscalars)->substr());
-        }
-    }
+//            data_name(i) = new std::string;
+//            data_name(i)->assign(vector_names(i-nscalars)->substr());
+//        }
+//    }
 
-    XdmfIO::data_info<T> data_info;
+//    XdmfIO::data_info<T> data_info;
 
-    data_info.data = &data_ptr;
-    data_info.data_name = &data_name;
-    data_info.dims = &data_dims;
-    data_info.origin = &data_origin;
-    data_info.spacing = &data_spacing;
+//    data_info.data = &data_ptr;
+//    data_info.data_name = &data_name;
+//    data_info.dims = &data_dims;
+//    data_info.origin = &data_origin;
+//    data_info.spacing = &data_spacing;
+
+//    std::string filename;
+//    filename = outputdir + "/" + filenamestem;
+
+//    qtsignals->EmitFunctionDesc2("Writing XDMF File");
+
+//    /* Call appropriate write function.  Typecasting is used to allow compilation.  During program execution,
+//     * the check of type ID should properly handle the calling of the correct function. */
+//    if(typeid(T) == typeid(short)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, (XdmfIO::data_info<short>*)&data_info, NULL, NULL,
+//                                 NULL, NULL, NULL, NULL, compression);
+//    }
+//    if(typeid(T) == typeid(unsigned short)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, (XdmfIO::data_info<unsigned short>*)&data_info, NULL,
+//                                 NULL, NULL, NULL, NULL, compression);
+//    }
+//    if(typeid(T) == typeid(int)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, (XdmfIO::data_info<int>*)&data_info,
+//                                 NULL, NULL, NULL, NULL, compression);
+//    }
+//    if(typeid(T) == typeid(unsigned int)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+//                                 (XdmfIO::data_info<unsigned int>*)&data_info, NULL, NULL, NULL, compression);
+//    }
+//    if(typeid(T) == typeid(long)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+//                                 NULL, (XdmfIO::data_info<long>*)&data_info, NULL, NULL, compression);
+//    }
+//    if(typeid(T) == typeid(float)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+//                                 NULL, NULL, (XdmfIO::data_info<float>*)&data_info, NULL, compression);
+//    }
+//    if(typeid(T) == typeid(double)){
+//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
+//                                 NULL, NULL, NULL, (XdmfIO::data_info<double>*)&data_info, compression);
+//    }
+
+//    qtsignals->EmitFunctionDesc2("");
+
 
     std::string filename;
     filename = outputdir + "/" + filenamestem;
 
     qtsignals->EmitFunctionDesc2("Writing XDMF File");
 
-    /* Call appropriate write function.  Typecasting is used to allow compilation.  During program execution,
-     * the check of type ID should properly handle the calling of the correct function. */
-    if(typeid(T) == typeid(short)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, (XdmfIO::data_info<short>*)&data_info, NULL, NULL,
-                                 NULL, NULL, NULL, NULL, compression);
-    }
-    if(typeid(T) == typeid(unsigned short)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, (XdmfIO::data_info<unsigned short>*)&data_info, NULL,
-                                 NULL, NULL, NULL, NULL, compression);
-    }
-    if(typeid(T) == typeid(int)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, (XdmfIO::data_info<int>*)&data_info,
-                                 NULL, NULL, NULL, NULL, compression);
-    }
-    if(typeid(T) == typeid(unsigned int)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-                                 (XdmfIO::data_info<unsigned int>*)&data_info, NULL, NULL, NULL, compression);
-    }
-    if(typeid(T) == typeid(long)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-                                 NULL, (XdmfIO::data_info<long>*)&data_info, NULL, NULL, compression);
-    }
+    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
+    imageImport->SetDataOrigin((double)xmin, (double)ymin, (double)zmin);
+    imageImport->SetDataExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
+    imageImport->SetWholeExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
     if(typeid(T) == typeid(float)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-                                 NULL, NULL, (XdmfIO::data_info<float>*)&data_info, NULL, compression);
+        imageImport->SetDataScalarTypeToFloat();
     }
     if(typeid(T) == typeid(double)){
-        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-                                 NULL, NULL, NULL, (XdmfIO::data_info<double>*)&data_info, compression);
+        imageImport->SetDataScalarTypeToDouble();
     }
+    imageImport->SetNumberOfScalarComponents(1);
+    imageImport->SetImportVoidPointer(&pscalars(0)->operator [](0), 1);
+    imageImport->Update();
+
+
+    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+    imageData = imageImport->GetOutput();
+    imageData->GetPointData()->GetScalars()->SetName(scalar_names(0)->substr().c_str());
+
+    filename = filename + ".xmf";
+
+    vtkSmartPointer<vtkXdmfWriter> writer = vtkSmartPointer<vtkXdmfWriter>::New();
+    writer->SetFileName(filename.c_str());
+    //writer->SetHeaderTypeToUInt64();
+#if VTK_MAJOR_VERSION <= 5
+    writer->SetInput(imageData);
+#else
+    writer->SetInputData(imageData);
+#endif
+    writer->Write();
+
+
 
     qtsignals->EmitFunctionDesc2("");
 
@@ -4474,8 +4516,6 @@ void UniformVolume<T>::VTKWriteImageData()
 #endif
         writer->Write();
     }
-
-
 
     qtsignals->EmitFunctionDesc2("");
 }

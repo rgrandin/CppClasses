@@ -307,7 +307,10 @@ template <class T>
 T ArrayBase<T>::MaxVal(size_t &loc) const
 {
 	// INITIALIZE TO MAXIMUM VALUE REPRESENTED BY VARIABLE TYPE, T
-    T max = -std::numeric_limits<T>::max();
+    T max = (T)0.0e0;
+    if(std::numeric_limits<T>::is_signed){
+        max = -std::numeric_limits<T>::max();
+    }
 
 	// LOOP THROUGH ARRAY AND CHECK IF ARRAY VALUE IS LESS THAN CURRENT MINIMUM
     for(size_t i=0; i<npoints; i++){
