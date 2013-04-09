@@ -940,6 +940,16 @@ public:
     void WriteXdmf(const int compression);
 
 
+    /**
+     * @brief Free a memory array which was originally allocated by the VTK libraries.
+     * @param data_ptr Pointer to array.
+     * @param npts1 Number of points in first dimension of array.
+     * @param npts2 Number of points in second dimension of array.
+     * @param npts3 Number of points in third dimension of array.
+     */
+    void FreeMemoryVTK(T* data_ptr, size_t npts1, size_t npts2, size_t npts3);
+
+
 #ifdef USEQT
 public slots:
 #endif

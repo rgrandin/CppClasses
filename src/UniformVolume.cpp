@@ -4533,3 +4533,23 @@ void UniformVolume<T>::VTKWriteImageData()
 
     qtsignals->EmitFunctionDesc2("");
 }
+
+
+template <class T>
+void UniformVolume<T>::FreeMemoryVTK(T *data_ptr, size_t npts1, size_t npts2, size_t npts3)
+{
+    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataSpacing(1.0e0, 1.0e0, 1.0e0);
+    imageImport->SetDataOrigin(0.0e0, 0.0e0, 0.0e0);
+    imageImport->SetDataExtent(0, (int)npts1-1, 0, (int)npts2-1, 0, (int)npts3-1);
+    imageImport->SetWholeExtent(0, (int)npts1-1, 0, (int)npts2-1, 0, (int)npts3-1);
+    if(typeid(T) == typeid(float)){
+        imageImport->SetDataScalarTypeToFloat();
+    }
+    if(typeid(T) == typeid(double)){
+        imageImport->SetDataScalarTypeToDouble();
+    }
+    imageImport->SetNumberOfScalarComponents(1);
+    imageImport->SetImportVoidPointer(data_ptr, 0);
+    imageImport->Update();
+}
