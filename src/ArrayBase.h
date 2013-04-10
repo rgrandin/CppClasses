@@ -388,6 +388,13 @@ public:
 
 
     /**
+     * @brief Manually set the array pointer to NULL.
+     * @warning Existing pointer will <b>NOT</b> be deleted.
+     */
+    void SetArrayPointerNULL();
+
+
+    /**
      * @brief Set descriptive name for data contained in the array.
      * @param name Name to be used.
      */

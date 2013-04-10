@@ -387,12 +387,20 @@ template <class T>
 void ArrayBase<T>::SetArrayPointer(T *p_data, size_t npts, bool useFree)
 {
     /* Reset size to delete any existing data and free memory. */
-//    ResetSize(1, (T)0);
     FreeMemory();
 
     p_array = p_data;
     npoints = npts;
     use_free = useFree;
+}
+
+
+template <class T>
+void ArrayBase<T>::SetArrayPointerNULL()
+{
+    npoints = 0;
+    p_array = NULL;
+    use_free = false;
 }
 
 
@@ -505,8 +513,4 @@ void ArrayBase<T>::Test(std::string &result)
         }
         result += "  - Max-value calculation failed \n";
     }
-
-
-
-
 }

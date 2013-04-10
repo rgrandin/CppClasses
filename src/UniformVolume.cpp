@@ -4489,8 +4489,11 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     reader->UpdateInformation();
     reader->UpdateWholeExtent();
 
+    reader->SetFileName(filename.c_str());
+    reader->UpdateInformation();
+    reader->UpdateWholeExtent();
+
     vtkSmartPointer<vtkImageData> dataset = vtkSmartPointer<vtkImageData>::New();
-    //dataset = vtkImageData::SafeDownCast(reader->GetOutput());
     dataset = vtkImageData::SafeDownCast(reader->GetOutputDataObject(0));
 
 
@@ -4561,13 +4564,15 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
         size_t npts = dims[0]*dims[1]*dims[2];
 
+        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
+
         if(scalar_data){
 
             /* If data is to be read into pre-existing array, copy values into that array. */
 
             for(size_t ii=0; ii<scalar_data_size; ii++){
 
-                scalar_data[ii] = (T)dataset->GetPointData()->GetScalars()->GetComponent(ii, 0);
+                scalar_data[ii] = (T)data->GetValue(ii);
                 scalar_data_points_read++;
 
                 if(scalar_data_points_read == npts){
@@ -4582,13 +4587,11 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
             /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
              * values to match the template type. */
 
-            std::string str_name("nothing");
-
             UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
             UniformVolume<T>::AddScalarQuantity(str_name);
 
             for(size_t i=0; i<npts; i++){
-                pscalars(0)->operator [](i) = (T)dataset->GetPointData()->GetScalars()->GetComponent(i, 0);
+                pscalars(0)->operator [](i) = (T)data->GetValue(i);
             }
 
         }
@@ -4598,29 +4601,18 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
         /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
          * and no duplication of data is required. */
 
-        reader->Register(reader->GetOutputDataObject(0));   /* Prevents loss of data when 'reader' goes out of scope.  This
-                                                             * is desired since we want this object to control the memory
-                                                             * rather than the VTK library functions. */
-        imageExport->SetInputData(dataset);                 /* Assign data to export object for movement into separate
-                                                             * C-style array. */
+        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
+                                                         * C-style array. */
 
-//        UniformVolume<T>::ResetResolution(1, 1, 1, (T)0.0e0);
         UniformVolume<T>::AddScalarQuantity(str_name);
-
-        vrows = dims[1];
         vcols = dims[0];
+        vrows = dims[1];
         vslices = dims[2];
 
         /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
          * does not show any missing deallocation as a result of doing this, so I think this is OK. */
-//        T* dataptr = (T*)imageExport->GetPointerToData();
-//        imageExport->Export(&pscalars(0)->operator [](0));
-//        T* dataptr;
-//        imageExport->Export(dataptr);
-//        pscalars(0)->SetArraySize(vrows, vcols, vslices, true);
-
-        imageExport->Update();
         pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
+
     }
 
 
@@ -4635,7 +4627,6 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     xmax = xmin + xspacing*(float)vcols;
     ymax = ymin + yspacing*(float)vrows;
     zmax = zmin + zspacing*(float)vslices;
-
 
 } /* UniformVolume<T>::ReadXDMFFile() */
 

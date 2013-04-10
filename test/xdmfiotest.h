@@ -38,12 +38,12 @@ void writeXDMFFile(size_t size1, size_t size2, size_t size3)
     xarray->SetNumberType(XDMF_FLOAT32_TYPE);
 
 
-    XdmfHDF *xhdf = new XdmfHDF;
-    xhdf->CopyShape(xarray);
-    xhdf->CopyType(xarray);
-    xhdf->Open("h5test.h5:/Sample01", "w");
-    xhdf->Write(xarray);
-    xhdf->Close();
+//    XdmfHDF *xhdf = new XdmfHDF;
+//    xhdf->CopyShape(xarray);
+//    xhdf->CopyType(xarray);
+//    xhdf->Open("h5test.h5:/Sample01", "w");
+//    xhdf->Write(xarray);
+//    xhdf->Close();
 
     XdmfDOM *d = new XdmfDOM;
     XdmfRoot *root = new XdmfRoot;
@@ -101,15 +101,15 @@ void writeXDMFFile(size_t size1, size_t size2, size_t size3)
 
     /* Need to include this cleanup to prevent memory leaks. */
     delete xarray;
-    delete xhdf;
+//    delete xhdf;
     delete d;
-    delete root;
-    delete domain;
-    delete grid;
-    delete topo;
-    delete geo;
-    delete attrib;
-    delete info;
+//    delete root;
+//    delete domain;
+//    delete grid;
+//    delete topo;
+//    delete geo;
+//    delete attrib;
+//    delete info;
 
 
 }
