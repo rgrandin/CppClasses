@@ -124,6 +124,8 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
     scalar_data = NULL;
     scalar_data_size = 0;
     scalar_data_points_read = 0;
+
+    data_from_vtk = false;
 }
 
 
@@ -560,14 +562,6 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
 {
     UniformVolume<T>::RemoveAllData();
 
-
-    /* imageExport is used to move read-in data to a C-style array controlled by this object.  If the data cannot
-     * be moved to an array controlled by this object, it will be copied.  If copied, we want the VTK library to
-     * free the memory it allocates.  This means that the dataset which is returned by the file reading function is
-     * not actually assigned to the export object until we know that a move (not a copy) is to be performed. */
-    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-
-
     vtkSmartPointer<vtkStructuredPointsReader> reader = vtkSmartPointer<vtkStructuredPointsReader>::New();
     reader->SetFileName(filename.c_str());
     reader->UpdateInformation();
@@ -576,149 +570,7 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
     vtkSmartPointer<vtkImageData> dataset = vtkSmartPointer<vtkImageData>::New();
     dataset = vtkImageData::SafeDownCast(reader->GetOutput());
 
-
-    int dims[3] = {0, 0, 0};
-    double *origin;
-    double *spacing;
-
-    dataset->GetDimensions(dims);
-    origin = dataset->GetOrigin();
-    spacing = dataset->GetSpacing();
-    char *name = dataset->GetPointData()->GetScalars()->GetName();
-    std::string str_name(name);
-
-
-    int type_this;
-    if(typeid(T) == typeid(char)){
-        type_this = 2;
-    }
-
-    if(typeid(T) == typeid(signed char)){
-        type_this = 15;
-    }
-
-    if(typeid(T) == typeid(unsigned char)){
-        type_this = 3;
-    }
-
-    if(typeid(T) == typeid(short)){
-        type_this = 4;
-    }
-
-    if(typeid(T) == typeid(unsigned short)){
-        type_this = 5;
-    }
-
-    if(typeid(T) == typeid(int)){
-        type_this = 6;
-    }
-
-    if(typeid(T) == typeid(unsigned int)){
-        type_this = 7;
-    }
-
-    if(typeid(T) == typeid(long)){
-        type_this = 8;
-    }
-
-    if(typeid(T) == typeid(unsigned long)){
-        type_this = 9;
-    }
-
-    if(typeid(T) == typeid(float)){
-        type_this = 10;
-    }
-
-    if(typeid(T) == typeid(double)){
-        type_this = 11;
-    }
-
-
-
-
-    int type_file = dataset->GetScalarType();
-
-    /* If either data is to be read into a user-supplied array (pointer to which is 'scalar_data'), or the datatypes
-     * do not match, the read-in data will have to be copied to its destination array. */
-    if(scalar_data || type_this != type_file){
-
-        size_t npts = dims[0]*dims[1]*dims[2];
-
-        if(scalar_data){
-
-            /* If data is to be read into pre-existing array, copy values into that array. */
-
-            for(size_t ii=0; ii<scalar_data_size; ii++){
-
-                scalar_data[ii] = (T)dataset->GetPointData()->GetScalars()->GetComponent(ii, 0);
-                scalar_data_points_read++;
-
-                if(scalar_data_points_read == npts){
-                    std::cerr << "UniformVolume<T>::ReadLegacyVTKFile()  ERROR: Insufficient destination array size." << std::endl;
-                    std::cerr << "                                              Aborting." << std::endl;
-                    return;
-                }
-            }
-
-        } else {
-
-            /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
-             * values to match the template type. */
-
-            std::string str_name("nothing");
-
-            UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
-            UniformVolume<T>::AddScalarQuantity(str_name);
-
-            for(size_t i=0; i<npts; i++){
-                pscalars(0)->operator [](i) = (T)dataset->GetPointData()->GetScalars()->GetComponent(i, 0);
-            }
-
-        }
-
-    } else {
-
-        /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
-         * and no duplication of data is required. */
-
-        reader->Register(reader->GetOutput());          /* Prevents loss of data when 'reader' goes out of scope.  This
-                                                         * is desired since we want this object to control the memory
-                                                         * rather than the VTK library functions. */
-        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
-                                                         * C-style array. */
-
-//        UniformVolume<T>::ResetResolution(1, 1, 1, (T)0.0e0);
-        UniformVolume<T>::AddScalarQuantity(str_name);
-
-        vrows = dims[1];
-        vcols = dims[0];
-        vslices = dims[2];
-
-        /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
-         * does not show any missing deallocation as a result of doing this, so I think this is OK. */
-//        T* dataptr = (T*)imageExport->GetPointerToData();
-//        imageExport->Export(&pscalars(0)->operator [](0));
-//        T* dataptr;
-//        imageExport->Export(dataptr);
-//        pscalars(0)->SetArraySize(vrows, vcols, vslices, true);
-
-        imageExport->Update();
-        pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
-    }
-
-
-    xmin = origin[0];
-    ymin = origin[1];
-    zmin = origin[2];
-
-    xspacing = spacing[0];
-    yspacing = spacing[1];
-    zspacing = spacing[2];
-
-    xmax = xmin + xspacing*(float)vcols;
-    ymax = ymin + yspacing*(float)vrows;
-    zmax = zmin + zspacing*(float)vslices;
-
+    UniformVolume<T>::LoadVTKDataset(dataset, reader);
 }
 
 
@@ -728,7 +580,12 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
     UniformVolume<T>::RemoveAllData();
 
 
+    /* imageExport is used to move read-in data to a C-style array controlled by this object.  If the data cannot
+     * be moved to an array controlled by this object, it will be copied.  If copied, we want the VTK library to
+     * free the memory it allocates.  This means that the dataset which is returned by the file reading function is
+     * not actually assigned to the export object until we know that a move (not a copy) is to be performed. */
     vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
+
     vtkImageData *dataset;
 
     std::string extension;
@@ -739,146 +596,19 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
         reader->SetFileName(filename.c_str());
         reader->UpdateInformation();
         reader->UpdateWholeExtent();
-        reader->GetOutput()->Register(reader);
         dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+
+        UniformVolume<T>::LoadVTKDataset(dataset, reader);
+
     } else {
         vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
         reader->SetFileName(filename.c_str());
         reader->UpdateInformation();
         reader->UpdateWholeExtent();
-        reader->GetOutput()->Register(reader);
         dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+
+        UniformVolume<T>::LoadVTKDataset(dataset, reader);
     }
-
-    int dims[3] = {0, 0, 0};
-    double *origin;
-    double *spacing;
-
-    dataset->GetDimensions(dims);
-    origin = dataset->GetOrigin();
-    spacing = dataset->GetSpacing();
-    char *name = dataset->GetPointData()->GetScalars()->GetName();
-    std::string str_name(name);
-
-    int type_this;
-    if(typeid(T) == typeid(char)){
-        type_this = 2;
-    }
-
-    if(typeid(T) == typeid(signed char)){
-        type_this = 15;
-    }
-
-    if(typeid(T) == typeid(unsigned char)){
-        type_this = 3;
-    }
-
-    if(typeid(T) == typeid(short)){
-        type_this = 4;
-    }
-
-    if(typeid(T) == typeid(unsigned short)){
-        type_this = 5;
-    }
-
-    if(typeid(T) == typeid(int)){
-        type_this = 6;
-    }
-
-    if(typeid(T) == typeid(unsigned int)){
-        type_this = 7;
-    }
-
-    if(typeid(T) == typeid(long)){
-        type_this = 8;
-    }
-
-    if(typeid(T) == typeid(unsigned long)){
-        type_this = 9;
-    }
-
-    if(typeid(T) == typeid(float)){
-        type_this = 10;
-    }
-
-    if(typeid(T) == typeid(double)){
-        type_this = 11;
-    }
-
-
-
-
-    int type_file = imageExport->GetDataScalarType();
-
-    /* If either data is to be read into a user-supplied array (pointer to which is 'scalar_data'), or the datatypes
-     * do not match, the read-in data will have to be copied to its destination array. */
-    if(scalar_data || type_this != type_file){
-
-        size_t npts = dims[0]*dims[1]*dims[2];
-
-        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
-
-        if(scalar_data){
-
-            /* If data is to be read into pre-existing array, copy values into that array. */
-
-            for(size_t ii=0; ii<scalar_data_size; ii++){
-
-                scalar_data[ii] = (T)data->GetValue(ii);
-                scalar_data_points_read++;
-
-                if(scalar_data_points_read == npts){
-                    std::cerr << "UniformVolume<T>::ReadLegacyVTKFile()  ERROR: Insufficient destination array size." << std::endl;
-                    std::cerr << "                                              Aborting." << std::endl;
-                    return;
-                }
-            }
-
-        } else {
-
-            /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
-             * values to match the template type. */
-
-            UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
-            UniformVolume<T>::AddScalarQuantity(str_name);
-
-            for(size_t i=0; i<npts; i++){
-                pscalars(0)->operator [](i) = (T)data->GetValue(i);
-            }
-
-        }
-
-    } else {
-
-        /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
-         * and no duplication of data is required. */
-
-        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
-                                                         * C-style array. */
-
-        UniformVolume<T>::AddScalarQuantity(str_name);
-        vcols = dims[0];
-        vrows = dims[1];
-        vslices = dims[2];
-
-        /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
-         * does not show any missing deallocation as a result of doing this, so I think this is OK. */
-        pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
-
-    }
-
-
-    xmin = origin[0];
-    ymin = origin[1];
-    zmin = origin[2];
-
-    xspacing = spacing[0];
-    yspacing = spacing[1];
-    zspacing = spacing[2];
-
-    xmax = xmin + xspacing*(float)vcols;
-    ymax = ymin + yspacing*(float)vrows;
-    zmax = zmin + zspacing*(float)vslices;
 
 } /* UniformVolume<T>::ReadXMLVTKFile() */
 
@@ -2498,7 +2228,7 @@ template <class T>
 void UniformVolume<T>::VTKWriteBinaryBigEndian()
 {
 
-    if(false){
+    if(true){
         UniformVolume<T>::VTKWriteImageData();      /* Currently some sort of bug in here. */
     } else {
 
@@ -4057,438 +3787,9 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 template <class T>
 void UniformVolume<T>::ReadXDMFFile(std::string filename)
 {
-//#ifdef _DEBUG
-//    bool debug = true;          /* Enable/disable debugging output to std::cout. */
-//#else
-//    bool debug = false;
-//#endif
-
-//    UniformVolume<T>::RemoveAllData();
-
-
-//    /* Read the data into this object.
-//     *
-//     * Notes:
-//     *      - Only 3D or 4D arrays are read in.  Other dimensionalities don't have meaning with a volume object.
-//     *      - If the datatype of the data matches the datatype of this object, data is read directly in.  If the
-//     *        datatype does not match, a copy operation is required.  A temporary array is created to store the
-//     *        read-in data, and then it is copied and type-casted into this object.
-//     */
-
-
-//    /* Determine type of this data object, using the Xdmf integer identifiers. */
-//    XdmfInt32 type_this;
-//    if(typeid(T) == typeid(char)){
-//        type_this = XDMF_INT8_TYPE;
-//    }
-//    if(typeid(T) == typeid(unsigned char)){
-//        type_this = XDMF_UINT8_TYPE;
-//    }
-//    if(typeid(T) == typeid(short)){
-//        type_this = XDMF_INT16_TYPE;
-//    }
-//    if(typeid(T) == typeid(unsigned short)){
-//        type_this = XDMF_UINT16_TYPE;
-//    }
-//    if(typeid(T) == typeid(int)){
-//        type_this = XDMF_INT32_TYPE;
-//    }
-//    if(typeid(T) == typeid(unsigned int)){
-//        type_this = XDMF_UINT32_TYPE;
-//    }
-//    if(typeid(T) == typeid(float)){
-//        type_this = XDMF_FLOAT32_TYPE;
-//    }
-//    if(typeid(T) == typeid(double)){
-//        type_this = XDMF_FLOAT64_TYPE;
-//    }
-
-
-//    /* Create temporary Array1D objects for each datatype which could be used for type-conversion. */
-//    Array1D<char> tmp_char(1, 'a');
-//    Array1D<unsigned char> tmp_uchar(1, 'a');
-//    Array1D<short> tmp_short(1, (short)0);
-//    Array1D<unsigned short> tmp_ushort(1, (unsigned short)0);
-//    Array1D<int> tmp_int(1, (int)0);
-//    Array1D<unsigned int> tmp_uint(1, (unsigned int)0);
-//    Array1D<float> tmp_float(1, 0.0f);
-//    Array1D<double> tmp_double(1, (double)0.0e0);
-
-
-//    XdmfDOM *d = new XdmfDOM;
-//    XdmfGrid *grid = new XdmfGrid;
-//    XdmfGrid *gridsave = new XdmfGrid;
-//    XdmfTopology *topo = new XdmfTopology;
-//    XdmfGeometry *geo = new XdmfGeometry;
-
-
-
-//    d->Parse(filename.c_str());         /* Parse the XML file and allow navigation within it and
-//                                         * data extraction. */
-
-//    XdmfXmlNode node;
-//    node = d->FindElementByPath("/Xdmf/Domain/Grid");   /* Find first grid element.  This will either be
-//                                                         * a grid with attributed data, or a 'tree' or
-//                                                         * 'collection' of other grids. */
-
-//    grid->SetDOM(d);
-//    grid->SetElement(node);
-//    grid->UpdateInformation();                          /* Get information about grid. */
-//    grid->Update();
-//    int nchildren = grid->GetNumberOfChildren();
-
-//    /* Write top-most grid information. */
-//    if(debug){
-//        std::cout << "File: " << filename << std::endl;
-//        std::cout << "----------------------------------------------------" << std::endl;
-//        std::cout << std::endl;
-//        std::cout << "Grid" << std::endl;
-//        std::cout << "  Name:   " << grid->GetName() << std::endl;
-//        std::cout << "  Type:   " << grid->GetGridTypeAsString() << std::endl;
-//        std::cout << "  # Child:  " << nchildren << std::endl;
-//        std::cout << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
-//        std::cout << std::endl;
-//    }
-//    gridsave = grid;    /* Save pointer to top-most grid. */
-
-
-//    /* Require that grid is of type UNIFORM. */
-//    if(grid->GetGridType() != XDMF_GRID_UNIFORM){
-//        std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: Only UNIFORM grid is supported!";
-//        std::cerr << "                                         Aborting!" << std::endl;
-//        return;
-//    }
-
-
-//    int nloop = nchildren;          /* We want to loop through all the children grids, but if this grid   */
-//    if(nloop == 0){                 /* has no children we still want to read its attributes, so force at  */
-//        nloop = 1;                  /* least 1 loop iteration. */
-//    }
-//    for(int c=0; c<nloop; c++){
-
-//        std::string indent("");     /* Used to provide extra indentation, if needed. */
-//        int nchild = 0;             /* Number of children for local grid. */
-
-//        if(nchildren == 0){
-//            /* Nothing to be done. */
-//        } else {
-
-//            /* Set 'grid' to be the child specified by the loop iteration. */
-//            grid = grid->GetChild(c);
-//            nchild = grid->GetNumberOfChildren();   /* Number of children of the child grid. */
-//            indent = "  ";                          /* Provide extra indentation in output. */
-
-
-//            /* Write info about child grid. */
-//            if(debug){
-//                std::cout << indent << "-------------------------------" << std::endl;
-//                std::cout << indent << "Grid " << c << std::endl;
-//                std::cout << indent << "  Name:   " << grid->GetName() << std::endl;
-//                std::cout << indent << "  Type:   " << grid->GetGridTypeAsString() << std::endl;
-//                std::cout << indent << "  # Child:  " << nchild << std::endl;
-//                std::cout << indent << "  # Attrib: " << grid->GetNumberOfAttributes() << std::endl;
-//            }
-//        }
-
-
-//        /* Values to store grid size. */
-//        XdmfInt64 xres = 0;
-//        XdmfInt64 yres = 0;
-//        XdmfInt64 zres = 0;
-//        XdmfInt64 ncomp = 0;
-
-
-
-
-//        /* Loop through attributes within grid.  Read data into C-style array (i.e., get data out of file
-//         * and out of XdmfArray structure and into whatever data structure we want it in), and write
-//         * information about the attribute to std::cout. */
-//        for(int a=0; a<grid->GetNumberOfAttributes(); a++){
-
-//            XdmfAttribute *at = grid->GetAttribute(a);  /* Get attribute from grid. */
-
-//            at->UpdateInformation();                    /* Data 'metadata' read.  Heavy data not read yet. */
-
-//            XdmfDataDesc *desc = at->GetShapeDesc();    /* Get shape description of data. */
-//            int rank = desc->GetRank();                 /* Get data rank (i.e., number of dimensions. */
-//            XdmfInt64 *dims = new XdmfInt64[rank];      /* Declare array for array size in each dimension. */
-
-//            rank = desc->GetShape(dims);                /* Get array dimensions. */
-//            XdmfInt64 nel = desc->GetNumberOfElements();/* Get number of elements in array. */
-
-//            if(rank < 3){
-//                std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: array dimensions less than 3 not supported!" << std::endl;
-//            }
-//            if(rank > 4){
-//                std::cerr << "UniformVolume<T>::ReadXDMFFile()  ERROR: array dimensions greater than 4 not supported!" << std::endl;
-//            }
-
-
-//            if(rank == 3){
-//                xres = dims[2];
-//                yres = dims[1];
-//                zres = dims[0];
-//            }
-//            if(rank == 4){
-//                xres = dims[3];
-//                yres = dims[2];
-//                zres = dims[1];
-//                ncomp = dims[0];
-//            }
-
-//            std::string name;
-//            name = at->GetName();
-
-//            XdmfInt32 type_file = desc->GetNumberType();
-
-//            size_t num_elements = (size_t)desc->GetNumberOfElements();
-
-
-//            /* Create scalar/vector array for data.  No memory is meaningfully allocated here since the vrows/vcols/vslices
-//             * are not set to the true resolution yet.  True resolution will be set later, and arrays will be properly sized
-//             * when they are read-in. */
-//            if(rank == 3){
-//                UniformVolume<T>::AddScalarQuantity(name);
-//            }
-//            if(rank == 4){
-//                UniformVolume<T>::AddVectorQuantity(name, ncomp);
-//            }
-
-
-
-
-//                                                    /* Set to single-element to ensure that a valid pointer
-//                                                     * is created.  All we want here is availability of the
-//                                                     * pointer.  Allocation of the array here will cause duplicate
-//                                                     * memory allocations and thus double memory required to
-//                                                     * read-in the data. */
-
-//            XdmfArray *data = new XdmfArray;        /* Create XdmfArray object to receive the data. */
-
-//            /* Setting the XdmfArray data pointer to an existing array
-//             * allows the Xdmf library to control memory (e.g., allocate
-//             * as-needed), but it flags the memory as not belonging to
-//             * the XdmfArray object, so deletion of the object does not
-//             * cause the data to be lost. */
-
-
-//            switch(type_file){
-
-//            case(XDMF_INT8_TYPE):
-//                data->SetDataPointer(&tmp_char[0]);
-//                break;
-
-//            case(XDMF_UINT8_TYPE):
-//                data->SetDataPointer(&tmp_uchar[0]);
-//                break;
-
-//            case(XDMF_INT16_TYPE):
-//                data->SetDataPointer(&tmp_short[0]);
-//                break;
-
-//            case(XDMF_UINT16_TYPE):
-//                data->SetDataPointer(&tmp_ushort[0]);
-//                break;
-
-//            case(XDMF_INT32_TYPE):
-//                data->SetDataPointer(&tmp_int[0]);
-//                break;
-
-//            case(XDMF_UINT32_TYPE):
-//                data->SetDataPointer(&tmp_uint[0]);
-//                break;
-
-//            case(XDMF_FLOAT32_TYPE):
-//                data->SetDataPointer(&tmp_float[0]);
-//                break;
-
-//            case(XDMF_FLOAT64_TYPE):
-//                data->SetDataPointer(&tmp_double[0]);
-//                break;
-
-//            default:
-//                std::cerr << "UniformVolume3D<T>::ReadXDMFFile()  ERROR: Datatype not recognized!" << std::endl;
-//            }
-
-
-//            at->Update();                           /* Memory allocated for data & data read into memory. */
-
-//            data = at->GetValues(0);                /* Assign the read-in data to the XdmfArray object. */
-
-
-
-//            /* If datatypes match, simply move the pointer to the newly-created scalar/vector quantity managed
-//             * by this object.
-//             *
-//             * If datatypes differ, manually loop through the data and copy data into quantity managed by
-//             * this object.
-//             */
-//            if(type_file == type_this && rank == 3){
-//                if(rank == 3){
-//                    pscalars(nscalars-1)->SetArrayPointer((T*)data->GetDataPointer(),
-//                                                                      (size_t)yres, (size_t)xres, (size_t)zres, true);
-//                }
-//                if(rank == 4){
-//                    pvectors(nvectors-1)->SetArrayPointer((T*)data->GetDataPointer(),
-//                                                                      (size_t)yres, (size_t)xres, (size_t)zres, (size_t)ncomp,
-//                                                                      true);
-//                }
-//            } else {
-//                if(rank == 3){
-//                    pscalars(nscalars-1)->ResetSize(yres, xres, zres);
-
-//                    for(size_t k=0; k<num_elements; k++){
-//                        pscalars(nscalars-1)->operator [](k) = (T)data->GetValueAsFloat64(k);
-//                    }
-//                }
-//                if(rank == 4){
-//                    pvectors(nvectors-1)->ResetSize(yres, xres, zres, ncomp);
-
-//                    for(size_t k=0; k<num_elements; k++){
-//                        pvectors(nvectors-1)->operator [](k) = (T)data->GetValueAsFloat64(k);
-//                    }
-//                }
-//            }
-
-
-
-
-
-
-//            /* Reset the pointer for data within my Array1D object to be that of the XdmfArray data.  The
-//             * Xdmf library allocates memory using 'malloc()', so it must be free'd with 'free()'.  My
-//             * array class uses 'new'/'delete', so the third parameter to this function informs the class
-//             * that it will need to use 'free()' when releasing the memory occupied by this data.  If
-//             * the data is stored in a "normal" c-array (i.e., not in my Array1D container), 'free()'
-//             * must still be used to release the memory. */
-
-//            data->Reset();                          /* Resets XdmfArray object to allow clean deletion. */
-
-//            delete data;                            /* Delete XdmfArray.  This is needed because of the 'new'
-//                                                     * operation above, and is placed here so that when I
-//                                                     * check the data using my Array1D object I can be sure
-//                                                     * that the data has survived the destruction of its
-//                                                     * original array.  In normal use, data can be deletedtm
-//                                                     * at any time after 'Reset()'.  Deletion at this specific
-//                                                     * point is to verify proper data management behavior. */
-
-//            tmp_char.SetArrayPointer(NULL, 1, false);
-//            tmp_uchar.SetArrayPointer(NULL, 1, false);
-//            tmp_short.SetArrayPointer(NULL, 1, false);
-//            tmp_ushort.SetArrayPointer(NULL, 1, false);
-//            tmp_int.SetArrayPointer(NULL, 1, false);
-//            tmp_uint.SetArrayPointer(NULL, 1, false);
-//            tmp_float.SetArrayPointer(NULL, 1, false);
-//            tmp_double.SetArrayPointer(NULL, 1, false);
-
-
-//            /* Write attribute information. */
-//            if(debug){
-//                std::cout << std::endl;
-//                std::cout << indent << "    Attrib #" << a << std::endl;
-//                std::cout << indent << "      Type: " << at->GetAttributeTypeAsString() << std::endl;
-
-//                std::cout << indent << "      Data" << std::endl;
-//                std::cout << indent << "        # Points: " << nel << std::endl;
-
-//                /* Only write extra data information if there are a non-0 number of elements.  */
-//                if(nel > 0){
-//                    std::cout << indent << "        Shape:    " << desc->GetShapeAsString() << std::endl;
-//                    std::cout << indent << "        Datatype: " << desc->GetNumberTypeAsString() << std::endl;
-//                }
-
-//            }
-
-//        } /* Loop through attributes of grid. */
-
-
-
-//        std::cout << std::endl;
-
-//        /* Get topology information of grid. */
-//        topo = grid->GetTopology();
-
-
-//        /* Get geometry information of grid. */
-//        geo = grid->GetGeometry();
-//        geo->UpdateInformation();
-//        geo->Update();
-
-//        if(debug){
-//            std::cout << indent << "Topology" << std::endl;
-//            std::cout << indent << "  Type: " << topo->GetTopologyTypeAsString() << std::endl;
-//            std::cout << std::endl;
-//            std::cout << indent << "Geometry" << std::endl;
-//            std::cout << indent << "  Type:    " << geo->GetGeometryTypeAsString() << std::endl;
-//            std::cout << indent << "  Origin:  (" << geo->GetOriginX() << " , " << geo->GetOriginY() << " , "
-//                      << geo->GetOriginZ() << " )" << std::endl;
-//            std::cout << indent << "  Spacing: (" << geo->GetDx() << " , " << geo->GetDy() << " , "
-//                      << geo->GetDz() << " )" << std::endl;
-//            std::cout << std::endl;
-//        }
-
-
-
-
-//        vrows = yres;
-//        vcols = xres;
-//        vslices = zres;
-
-//        xmin = geo->GetOriginZ();       /* X <--> Z switched due to KIJ ordering in XDMF format. */
-//        ymin = geo->GetOriginY();
-//        zmin = geo->GetOriginX();
-
-//        xspacing = geo->GetDz();        /* X <--> Z switched due to KIJ ordering in XDMF format. */
-//        yspacing = geo->GetDy();
-//        zspacing = geo->GetDx();
-
-//        xmax = xmin + (float)vcols*xspacing;
-//        ymax = ymin + (float)vrows*yspacing;
-//        zmax = zmin + (float)vslices*zspacing;
-
-
-//        /* Set 'grid' to the head XdmfGrid object so that the GetChild() call at the top of the loop
-//         * performs the desired function.  We want to loop over the children of the head node, so
-//         * we must reset the pointer to the head grid. */
-//        grid = gridsave;
-
-
-//    } /* Loop through child grids. */
-
-
-//    delete d;   /* Delete DOM.  As commented in other functions, objects associated with this DOM
-//                 * will automatically be deleted. */
-
-//    /* No delete needed for 'gridsave'.  At this point both 'grid' and 'gridsave' point to the same
-//     * XdmfGrid object, which is associated with XdmfDOM 'd'.  The actual grid object will be deleted,
-//     * which addresses both 'grid' and 'gridsave'. */
-
-//    std::cout << std::endl;
-
-
-
-//    if(debug){
-//        std::cout << "# scalars: " << nscalars << std::endl;
-//        std::cout << "# vectors: " << nvectors << std::endl;
-//    }
-
-
-
     UniformVolume<T>::RemoveAllData();
 
-
-    /* imageExport is used to move read-in data to a C-style array controlled by this object.  If the data cannot
-     * be moved to an array controlled by this object, it will be copied.  If copied, we want the VTK library to
-     * free the memory it allocates.  This means that the dataset which is returned by the file reading function is
-     * not actually assigned to the export object until we know that a move (not a copy) is to be performed. */
-    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
-
-
     vtkSmartPointer<vtkXdmfReader> reader = vtkSmartPointer<vtkXdmfReader>::New();
-    reader->SetFileName(filename.c_str());
-    reader->UpdateInformation();
-    reader->UpdateWholeExtent();
-
     reader->SetFileName(filename.c_str());
     reader->UpdateInformation();
     reader->UpdateWholeExtent();
@@ -4496,6 +3797,110 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     vtkSmartPointer<vtkImageData> dataset = vtkSmartPointer<vtkImageData>::New();
     dataset = vtkImageData::SafeDownCast(reader->GetOutputDataObject(0));
 
+    UniformVolume<T>::LoadVTKDataset(dataset, reader);
+
+} /* UniformVolume<T>::ReadXDMFFile() */
+
+
+template <class T>
+void UniformVolume<T>::VTKWriteImageData()
+{
+    std::string filename;
+    filename = outputdir + "/" + filenamestem;
+
+    qtsignals->EmitFunctionDesc2("Writing VTK File");
+
+    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
+    imageImport->SetDataOrigin((double)xmin, (double)ymin, (double)zmin);
+    imageImport->SetDataExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
+    imageImport->SetWholeExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
+    if(typeid(T) == typeid(float)){
+        imageImport->SetDataScalarTypeToFloat();
+    }
+    if(typeid(T) == typeid(double)){
+        imageImport->SetDataScalarTypeToDouble();
+    }
+    imageImport->SetNumberOfScalarComponents(1);
+    imageImport->SetImportVoidPointer(&pscalars(0)->operator [](0), 1);
+    imageImport->Update();
+
+
+    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+    imageData = imageImport->GetOutput();
+
+    int npieces = 1;
+    if(vrows*vcols*vslices >= 2147483647){
+        npieces += (int)((vrows*vcols*vslices)/2147483647) + 1;
+        filename = filename + ".pvti";
+
+        vtkSmartPointer<vtkXMLPImageDataWriter> writer = vtkSmartPointer<vtkXMLPImageDataWriter>::New();
+        writer->SetFileName(filename.c_str());
+        writer->SetHeaderTypeToUInt64();
+        writer->SetNumberOfPieces(npieces);
+        writer->SetStartPiece(0);
+        writer->SetEndPiece(npieces-1);
+#if VTK_MAJOR_VERSION <= 5
+        writer->SetInput(imageData);
+#else
+        writer->SetInputData(imageData);
+#endif
+        writer->Write();
+
+
+    } else {
+        filename = filename + ".vti";
+
+        vtkSmartPointer<vtkXMLImageDataWriter> writer = vtkSmartPointer<vtkXMLImageDataWriter>::New();
+        writer->SetFileName(filename.c_str());
+        writer->SetHeaderTypeToUInt64();
+#if VTK_MAJOR_VERSION <= 5
+        writer->SetInput(imageData);
+#else
+        writer->SetInputData(imageData);
+#endif
+        writer->Write();
+    }
+
+    qtsignals->EmitFunctionDesc2("");
+}
+
+
+template <class T>
+void UniformVolume<T>::FreeMemoryVTK(T *data_ptr, size_t npts1, size_t npts2, size_t npts3)
+{
+    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
+    imageImport->SetDataSpacing(1.0e0, 1.0e0, 1.0e0);
+    imageImport->SetDataOrigin(0.0e0, 0.0e0, 0.0e0);
+    imageImport->SetDataExtent(0, (int)npts1-1, 0, (int)npts2-1, 0, (int)npts3-1);
+    imageImport->SetWholeExtent(0, (int)npts1-1, 0, (int)npts2-1, 0, (int)npts3-1);
+    if(typeid(T) == typeid(float)){
+        imageImport->SetDataScalarTypeToFloat();
+    }
+    if(typeid(T) == typeid(double)){
+        imageImport->SetDataScalarTypeToDouble();
+    }
+    imageImport->SetNumberOfScalarComponents(1);
+    imageImport->SetImportVoidPointer(data_ptr, 0);
+    imageImport->Update();
+}
+
+
+template <class T>
+bool UniformVolume<T>::DataFromVTK() const
+{
+    return data_from_vtk;
+}
+
+
+template <class T>
+void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reader)
+{
+    /* imageExport is used to move read-in data to a C-style array controlled by this object.  If the data cannot
+     * be moved to an array controlled by this object, it will be copied.  If copied, we want the VTK library to
+     * free the memory it allocates.  This means that the dataset which is returned by the file reading function is
+     * not actually assigned to the export object until we know that a move (not a copy) is to be performed. */
+    vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
 
     int dims[3] = {0, 0, 0};
     double *origin;
@@ -4560,11 +3965,9 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
     /* If either data is to be read into a user-supplied array (pointer to which is 'scalar_data'), or the datatypes
      * do not match, the read-in data will have to be copied to its destination array. */
-    if(scalar_data || type_this != type_file){
+    if(scalar_data || type_this != type_file || type_this == type_file){
 
         size_t npts = dims[0]*dims[1]*dims[2];
-
-        vtkSmartPointer<vtkDoubleArray> data = vtkDoubleArray::SafeDownCast(dataset->GetPointData()->GetScalars());
 
         if(scalar_data){
 
@@ -4572,7 +3975,7 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 
             for(size_t ii=0; ii<scalar_data_size; ii++){
 
-                scalar_data[ii] = (T)data->GetValue(ii);
+                scalar_data[ii] = (T)dataset->GetPointData()->GetScalars()->GetComponent(ii, 0);
                 scalar_data_points_read++;
 
                 if(scalar_data_points_read == npts){
@@ -4587,32 +3990,44 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
             /* If no pre-existing array is to be used, then we must place data into this object, and typecast the
              * values to match the template type. */
 
+            std::string str_name("nothing");
+
             UniformVolume<T>::ResetResolution((size_t)dims[1], (size_t)dims[0], (size_t)dims[2], (T)0.0e0);
             UniformVolume<T>::AddScalarQuantity(str_name);
 
             for(size_t i=0; i<npts; i++){
-                pscalars(0)->operator [](i) = (T)data->GetValue(i);
+                pscalars(0)->operator [](i) = (T)dataset->GetPointData()->GetScalars()->GetComponent(i, 0);
             }
 
         }
+
+        /* Set flag which indicates if data memory used by this object was allocated by the VTK libraries. */
+        data_from_vtk = false;
 
     } else {
 
         /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
          * and no duplication of data is required. */
 
-        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
-                                                         * C-style array. */
+        reader->Register(reader->GetOutputDataObject(0));   /* Prevents loss of data when 'reader' goes out of scope.  This
+                                                             * is desired since we want this object to control the memory
+                                                             * rather than the VTK library functions. */
+        imageExport->SetInputData(dataset);                 /* Assign data to export object for movement into separate
+                                                             * C-style array. */
 
         UniformVolume<T>::AddScalarQuantity(str_name);
-        vcols = dims[0];
+
         vrows = dims[1];
+        vcols = dims[0];
         vslices = dims[2];
 
         /* Setting the pointer like this appears to "move" the data into my array structure.  Valgrind
          * does not show any missing deallocation as a result of doing this, so I think this is OK. */
+        imageExport->Update();
         pscalars(0)->SetArrayPointer((T*)imageExport->GetPointerToData(), vrows, vcols, vslices, true);
 
+        /* Set flag which indicates if data memory used by this object was allocated by the VTK libraries. */
+        data_from_vtk = true;
     }
 
 
@@ -4628,88 +4043,5 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     ymax = ymin + yspacing*(float)vrows;
     zmax = zmin + zspacing*(float)vslices;
 
-} /* UniformVolume<T>::ReadXDMFFile() */
+} /* UniformVolume<T>::LoadVTKDataset() */
 
-
-template <class T>
-void UniformVolume<T>::VTKWriteImageData()
-{
-    std::string filename;
-    filename = outputdir + "/" + filenamestem;
-
-    qtsignals->EmitFunctionDesc2("Writing VTK File");
-
-    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
-    imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
-    imageImport->SetDataOrigin((double)xmin, (double)ymin, (double)zmin);
-    imageImport->SetDataExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
-    imageImport->SetWholeExtent(0, (int)vcols-1, 0, (int)vrows-1, 0, (int)vslices-1);
-    if(typeid(T) == typeid(float)){
-        imageImport->SetDataScalarTypeToFloat();
-    }
-    if(typeid(T) == typeid(double)){
-        imageImport->SetDataScalarTypeToDouble();
-    }
-    imageImport->SetNumberOfScalarComponents(1);
-    imageImport->SetImportVoidPointer(&pscalars(0)->operator [](0), 1);
-    imageImport->Update();
-
-
-    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
-    imageData = imageImport->GetOutput();
-
-    int npieces = 1;
-    if(vrows*vcols*vslices >= 2147483647){
-        npieces += (int)((vrows*vcols*vslices)/2147483647);
-        filename = filename + ".pvti";
-
-        vtkSmartPointer<vtkXMLPImageDataWriter> writer = vtkSmartPointer<vtkXMLPImageDataWriter>::New();
-        writer->SetFileName(filename.c_str());
-        writer->SetHeaderTypeToUInt64();
-        writer->SetNumberOfPieces(npieces);
-        writer->SetStartPiece(0);
-        writer->SetEndPiece(npieces-1);
-#if VTK_MAJOR_VERSION <= 5
-        writer->SetInput(imageData);
-#else
-        writer->SetInputData(imageData);
-#endif
-        writer->Write();
-
-
-    } else {
-        filename = filename + ".vti";
-
-        vtkSmartPointer<vtkXMLImageDataWriter> writer = vtkSmartPointer<vtkXMLImageDataWriter>::New();
-        writer->SetFileName(filename.c_str());
-        writer->SetHeaderTypeToUInt64();
-#if VTK_MAJOR_VERSION <= 5
-        writer->SetInput(imageData);
-#else
-        writer->SetInputData(imageData);
-#endif
-        writer->Write();
-    }
-
-    qtsignals->EmitFunctionDesc2("");
-}
-
-
-template <class T>
-void UniformVolume<T>::FreeMemoryVTK(T *data_ptr, size_t npts1, size_t npts2, size_t npts3)
-{
-    vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
-    imageImport->SetDataSpacing(1.0e0, 1.0e0, 1.0e0);
-    imageImport->SetDataOrigin(0.0e0, 0.0e0, 0.0e0);
-    imageImport->SetDataExtent(0, (int)npts1-1, 0, (int)npts2-1, 0, (int)npts3-1);
-    imageImport->SetWholeExtent(0, (int)npts1-1, 0, (int)npts2-1, 0, (int)npts3-1);
-    if(typeid(T) == typeid(float)){
-        imageImport->SetDataScalarTypeToFloat();
-    }
-    if(typeid(T) == typeid(double)){
-        imageImport->SetDataScalarTypeToDouble();
-    }
-    imageImport->SetNumberOfScalarComponents(1);
-    imageImport->SetImportVoidPointer(data_ptr, 0);
-    imageImport->Update();
-}

@@ -146,9 +146,6 @@
 
 
 
-
-
-
 /**
  * @brief Representation of 3-dimensional volumetric data.
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
@@ -950,6 +947,17 @@ public:
     void FreeMemoryVTK(T* data_ptr, size_t npts1, size_t npts2, size_t npts3);
 
 
+    /**
+     * @brief Identify if data contained in this object was read-in using the VTK libraries.
+     * @return True if data resides in memory allocated by VTK libraries, False if data resides in memory
+     *  allocated by this object.
+     */
+    bool DataFromVTK() const;
+
+
+
+
+
 #ifdef USEQT
 public slots:
 #endif
@@ -1085,6 +1093,9 @@ protected:
 
     /** @brief Number of points actually read on most-recent scalar data read. */
     size_t scalar_data_points_read;
+
+    /** @brief Flags if data was read-in using VTK library.  */
+    bool data_from_vtk;
 
 
 
@@ -1304,6 +1315,14 @@ private:
         std::swap(first.scalar_data_size, second.scalar_data_size);
         std::swap(first.scalar_data_points_read, second.scalar_data_points_read);
     }
+
+
+    /**
+     * @brief Load data contained within VTK Image Data dataset into this object's data structures.
+     * @param dataset Pointer to vtkImageData object containing data to be loaded.
+     * @param reader Pointer to vtkDataReader used to read the input file.
+     */
+    void LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reader);
 
 };
 
