@@ -3909,6 +3909,10 @@ size_t UniformVolume<T>::NumberScalarPointsRead()
 template <class T>
 void UniformVolume<T>::WriteXdmf(const int compression)
 {
+    /* Dummy code to avoid 'unused variable' warnings. */
+    int comp2 = compression;
+    comp2++;
+
 //    size_t narrays = nscalars + nvectors;
 
 //    /* Define a single grid for all data, with multiple data arrays defined to on the grid. */
@@ -4486,7 +4490,8 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     reader->UpdateWholeExtent();
 
     vtkSmartPointer<vtkImageData> dataset = vtkSmartPointer<vtkImageData>::New();
-    dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+    //dataset = vtkImageData::SafeDownCast(reader->GetOutput());
+    dataset = vtkImageData::SafeDownCast(reader->GetOutputDataObject(0));
 
 
     int dims[3] = {0, 0, 0};
@@ -4593,11 +4598,11 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
         /* Data destination is this object, and datatypes match, so the data pointer can simply be assigned
          * and no duplication of data is required. */
 
-        reader->Register(reader->GetOutput());          /* Prevents loss of data when 'reader' goes out of scope.  This
-                                                         * is desired since we want this object to control the memory
-                                                         * rather than the VTK library functions. */
-        imageExport->SetInputData(dataset);             /* Assign data to export object for movement into separate
-                                                         * C-style array. */
+        reader->Register(reader->GetOutputDataObject(0));   /* Prevents loss of data when 'reader' goes out of scope.  This
+                                                             * is desired since we want this object to control the memory
+                                                             * rather than the VTK library functions. */
+        imageExport->SetInputData(dataset);                 /* Assign data to export object for movement into separate
+                                                             * C-style array. */
 
 //        UniformVolume<T>::ResetResolution(1, 1, 1, (T)0.0e0);
         UniformVolume<T>::AddScalarQuantity(str_name);
