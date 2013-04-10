@@ -3757,7 +3757,6 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     }
     imageImport->SetNumberOfScalarComponents(1);
     imageImport->SetImportVoidPointer(&pscalars(0)->operator [](0), 1);
-//    imageImport->CopyImportVoidPointer(&pscalars(0)->operator [](0), sizeof(T)*vcols*vrows*vslices);
     imageImport->Update();
 
 
@@ -3775,8 +3774,6 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     writer->SetInputData(imageData);
 #endif
     writer->Write();
-
-
 
     qtsignals->EmitFunctionDesc2("");
 
