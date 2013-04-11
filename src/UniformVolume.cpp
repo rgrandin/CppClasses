@@ -3766,12 +3766,8 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 
     filename = filename + ".xmf";
 
-    std::string heavydataname;
-    heavydataname = filenamestem + ".h5";
-
     vtkSmartPointer<vtkXdmfWriter> writer = vtkSmartPointer<vtkXdmfWriter>::New();
     writer->SetFileName(filename.c_str());
-    writer->SetHeavyDataFileName(heavydataname.c_str());
 #if VTK_MAJOR_VERSION <= 5
     writer->SetInput(imageData);
 #else
