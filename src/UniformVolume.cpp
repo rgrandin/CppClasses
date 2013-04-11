@@ -3837,6 +3837,7 @@ void UniformVolume<T>::VTKWriteImageData()
         writer->SetNumberOfPieces(npieces);
         writer->SetStartPiece(0);
         writer->SetEndPiece(npieces-1);
+        writer->EncodeAppendedDataOff();
 #if VTK_MAJOR_VERSION <= 5
         writer->SetInput(imageData);
 #else
@@ -3851,6 +3852,7 @@ void UniformVolume<T>::VTKWriteImageData()
         vtkSmartPointer<vtkXMLImageDataWriter> writer = vtkSmartPointer<vtkXMLImageDataWriter>::New();
         writer->SetFileName(filename.c_str());
         writer->SetHeaderTypeToUInt64();
+        writer->EncodeAppendedDataOff();
 #if VTK_MAJOR_VERSION <= 5
         writer->SetInput(imageData);
 #else
@@ -3965,6 +3967,7 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
     if(scalar_data || type_this != type_file || type_this == type_file){
 
         size_t npts = dims[0]*dims[1]*dims[2];
+        size_t increment = npts/10;     /* INTEGER MATH */
 
         if(scalar_data){
 
@@ -3980,6 +3983,10 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
                     std::cerr << "                                              Aborting." << std::endl;
                     return;
                 }
+
+                if(ii % increment == 0){
+                    qtsignals->EmitFunctionProgress((float)ii/(float)npts);
+                }
             }
 
         } else {
@@ -3994,9 +4001,15 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
 
             for(size_t i=0; i<npts; i++){
                 pscalars(0)->operator [](i) = (T)dataset->GetPointData()->GetScalars()->GetComponent(i, 0);
+
+                if(i % increment == 0){
+                    qtsignals->EmitFunctionProgress((float)i/(float)npts);
+                }
             }
 
         }
+
+        qtsignals->EmitFunctionProgress(0.0f);
 
         /* Set flag which indicates if data memory used by this object was allocated by the VTK libraries. */
         data_from_vtk = false;
