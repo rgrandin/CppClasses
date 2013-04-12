@@ -930,8 +930,6 @@ void UniformVolume<T>::RemoveScalarQuantityRef(const size_t qty)
 
     /* Remove quantity from array of pointers. */
     UniformVolume<T>::RemoveScalarQuantity(qty);
-
-    std::cerr << "Removed scalar quantity reference " << qty << std::endl;
 }
 
 
@@ -3766,8 +3764,16 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 
     filename = filename + ".xmf";
 
+    std::string heavydatafile;
+    heavydatafile = filename + ".h5";
+
+    std::string dataname;
+    dataname = scalar_names(0)->substr();
+
     vtkSmartPointer<vtkXdmfWriter> writer = vtkSmartPointer<vtkXdmfWriter>::New();
     writer->SetFileName(filename.c_str());
+    writer->SetHeavyDataFileName(heavydatafile.c_str());
+    writer->SetHeavyDataGroupName(dataname.c_str());
 #if VTK_MAJOR_VERSION <= 5
     writer->SetInput(imageData);
 #else
