@@ -3762,10 +3762,9 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     imageData = imageImport->GetOutput();
     imageData->GetPointData()->GetScalars()->SetName(scalar_names(0)->substr().c_str());
 
-    filename = filename + ".xmf";
-
     std::string heavydatafile;
     heavydatafile = filename + ".h5";
+    filename = filename + ".xmf";
 
     std::string dataname;
     dataname = scalar_names(0)->substr();
