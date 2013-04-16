@@ -39,9 +39,12 @@
  * These can be disabled by defining RELEASE at compile-time.  Disabling them is
  * recommended for performance reasons once the program has been debugged.
  *
- * Many functions are included to provide 'get' and 'set' functionality for member
- * variables.  These functions share identical names, but their arguments differ depending
- * on if the function is retrieving or setting a value.
+ * Some functionality changes are required when compiling this on Windows with the MSVC
+ * compiler and linking against the VTK libraries.  Any such changes are controlled by
+ * the definition of the symbol 'WIN_MSVC'.
+ *
+ * Reading and writing volume data is handled using the VTK library.  The VTK shared library
+ * files (e.g., *.so and *.dll) must be present when linking an application using this class.
  *
  * All functions contained within this class are intended for use with the GNU
  * C++ compiler (g++).  Use with other compilers may produce unexpected results
@@ -66,6 +69,8 @@
  * @date 19 February 2013
  *  - Rename from "UniformVolume3D" to "UniformVolume".  Inclusion of "3D" seemed redundant
  *    since "volume" implies 3 dimensions.
+ * @date March 2013
+ *  - Implement VTK libraries for reading and writing files.
  *
  *
  *

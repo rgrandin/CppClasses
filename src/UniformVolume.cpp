@@ -3766,6 +3766,10 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     heavydatafile = filename + ".h5";
     filename = filename + ".xmf";
 
+    /* Remove existing files, if present. */
+    std::remove(heavydatafile.c_str());
+    std::remove(filename.c_str());
+
     std::string dataname;
     dataname = scalar_names(0)->substr();
 
@@ -3962,6 +3966,13 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
         type_this = 11;
     }
 
+    /* If this is a MSVC compilation, set the type of this object to be '-1' to ensure a type mismatch and thus
+     * force the copying of data between arrays.  Moving the data, when applicable, from the VTK object to this object
+     * does not cause problems on Linux and can be allowed. */
+#ifdef WIN_MSVC
+    type_this = -1;
+#endif
+
 
 
 
@@ -3969,7 +3980,7 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
 
     /* If either data is to be read into a user-supplied array (pointer to which is 'scalar_data'), or the datatypes
      * do not match, the read-in data will have to be copied to its destination array. */
-    if(scalar_data || type_this != type_file || type_this == type_file){
+    if(scalar_data || type_this != type_file){
 
         size_t npts = dims[0]*dims[1]*dims[2];
         size_t increment = npts/10;     /* INTEGER MATH */
