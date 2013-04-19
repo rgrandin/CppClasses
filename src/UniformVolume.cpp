@@ -3969,9 +3969,9 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
     /* If this is a MSVC compilation, set the type of this object to be '-1' to ensure a type mismatch and thus
      * force the copying of data between arrays.  Moving the data, when applicable, from the VTK object to this object
      * does not cause problems on Linux and can be allowed. */
-#ifdef WIN_MSVC
-    type_this = -1;
-#endif
+//#ifdef WIN_MSVC
+//    type_this = -1;
+//#endif
 
 
 
