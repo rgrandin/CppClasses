@@ -3773,6 +3773,15 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     std::string dataname;
     dataname = scalar_names(0)->substr();
 
+    /* Change any "\" to "/" for heavy data file name. */
+    for(size_t i=0; i<heavydatafile.length(); i++)
+    {
+
+        if(heavydatafile[i] == '\\'){
+            heavydatafile[i] = '/';
+        }
+    }
+
     vtkSmartPointer<vtkXdmfWriter> writer = vtkSmartPointer<vtkXdmfWriter>::New();
     writer->SetFileName(filename.c_str());
     writer->SetHeavyDataFileName(heavydatafile.c_str());
