@@ -188,6 +188,27 @@ public slots:
     void EmitFunctionProgress(const float frac, const std::string desc);
 
 
+    /**
+     * @brief Function to cause the ElapsedTime signal to be emitted.
+     *
+     *  The emitted signal contains a double, which indicates the number of seconds elapsed since
+     *  the function began.
+     * @param time_seconds Number of seconds elapsed.
+     */
+    void EmitFunctionElapsedTime(const double time_seconds);
+
+
+    /**
+     * @brief Function to cause the ElapsedTime signal to be emitted.
+     *
+     *  The emitted signal contains a double, which indicates the number of seconds elapsed since
+     *  the function began.
+     * @param time_seconds Number of seconds elapsed.
+     * @param desc Descriptive text of function.
+     */
+    void EmitFunctionElapsedTime2(const double time_seconds, const std::string &desc);
+
+
 #ifdef USEQT
     /**
       @brief Function to cause FunctionLabel signal to be emitted.
@@ -274,6 +295,20 @@ signals:
       @param proglabel Label describing function.
     */
     void FunctionLabel(std::string);
+
+
+    /**
+     * @brief Signal containing number of seconds elapsed since function began.
+     * @param time_seconds Elapsed time, in seconds.
+     */
+    void ElapsedTime(double time_seconds);
+
+
+    /**
+     * @brief Signal containing number of seconds elapsed since function began.
+     * @param time_seconds Elapsed time, in seconds.
+     */
+    void ElapsedTime2(double time_seconds, QString desc);
 
 
     /**

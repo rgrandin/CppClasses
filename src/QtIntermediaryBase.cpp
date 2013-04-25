@@ -99,6 +99,30 @@ void QtIntermediaryBase::EmitFunctionProgress(const float frac, const std::strin
 }
 
 
+void QtIntermediaryBase::EmitFunctionElapsedTime(const double time_seconds)
+{
+#ifdef USEQT
+    emit ElapsedTime(time_seconds);
+#else
+    /* Dummy code to suppress 'unused parameter' compiler warnings. */
+    double dummyval = time_seconds;
+    dummyval += 1.0e0;
+#endif
+}
+
+
+void QtIntermediaryBase::EmitFunctionElapsedTime2(const double time_seconds, const std::string &desc)
+{
+#ifdef USEQT
+    emit ElapsedTime2(time_seconds, QString::fromStdString(desc));
+#else
+    /* Dummy code to suppress 'unused parameter' compiler warnings. */
+    double dummyval = time_seconds;
+    dummyval += 1.0e0;
+#endif
+}
+
+
 #ifdef USEQT
 void QtIntermediaryBase::EmitFunctionDesc(QString desc)
 {
