@@ -16,6 +16,8 @@ ProgressInfo::ProgressInfo()
 
     function_description2 = "NA";
 
+    elapsed_time = 0.0e0;
+
 }
 
 

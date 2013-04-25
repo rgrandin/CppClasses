@@ -122,6 +122,9 @@ public:
     /** @brief Alternate/additional function description. */
     std::string function_description2;
 
+    /** @brief Elapsed time since function began. */
+    double elapsed_time;
+
 
 
 private:
