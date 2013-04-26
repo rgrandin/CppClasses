@@ -195,7 +195,7 @@ public slots:
      *  the function began.
      * @param time_seconds Number of seconds elapsed.
      */
-    void EmitFunctionElapsedTime(const double time_seconds);
+    void EmitFunctionEstimatedTimeRemaining(const double time_seconds);
 
 
     /**
@@ -206,7 +206,7 @@ public slots:
      * @param time_seconds Number of seconds elapsed.
      * @param desc Descriptive text of function.
      */
-    void EmitFunctionElapsedTime2(const double time_seconds, const std::string &desc);
+    void EmitFunctionEstimatedTimeRemaining2(const double time_seconds, const std::string &desc);
 
 
 #ifdef USEQT
@@ -301,14 +301,14 @@ signals:
      * @brief Signal containing number of seconds elapsed since function began.
      * @param time_seconds Elapsed time, in seconds.
      */
-    void ElapsedTime(double time_seconds);
+    void EstimatedTimeRemaining(double time_seconds);
 
 
     /**
      * @brief Signal containing number of seconds elapsed since function began.
      * @param time_seconds Elapsed time, in seconds.
      */
-    void ElapsedTime2(double time_seconds, QString desc);
+    void EstimatedTimeRemaining2(double time_seconds, QString desc);
 
 
     /**
