@@ -121,7 +121,6 @@
 #include <Array4D.h>
 #include <PArray1D.h>
 #include <StringManip.h>
-//#include <XdmfIO.h>
 
 /* VTK classes for file IO */
 #include <vtkVersion.h>
@@ -147,6 +146,7 @@
   and QObject.  It requires NOQT or USEQT to be defined for the entire application.
  */
 #include <QtIntermediaryBase.h>
+
 
 
 
@@ -958,6 +958,9 @@ public:
      *  allocated by this object.
      */
     bool DataFromVTK() const;
+
+
+
 
 
 
