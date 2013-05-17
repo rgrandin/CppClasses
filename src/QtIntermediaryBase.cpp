@@ -119,6 +119,8 @@ void QtIntermediaryBase::EmitFunctionEstimatedTimeRemaining2(const double time_s
     /* Dummy code to suppress 'unused parameter' compiler warnings. */
     double dummyval = time_seconds;
     dummyval += 1.0e0;
+    std::string dummydesc = "NA";
+    dummydesc = dummydesc + desc;
 #endif
 }
 
