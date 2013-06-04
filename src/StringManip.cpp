@@ -377,3 +377,18 @@ int StringManip::DetermNumElements(std::stringstream &stream)
     /* Return number of elements in stream. */
     return count;
 }
+
+
+int StringManip::str_compare(const char *a, const char *b)
+{
+    int retval = 0;
+
+#ifdef COMPILELINUX
+    retval = strcasecmp(a, b);
+#endif
+#ifdef WIN_MSVC
+    retval = _strcmpi(a, b);
+#endif
+
+    return retval;
+}

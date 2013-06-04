@@ -301,6 +301,17 @@ std::string& trim(std::string &s);
 int DetermNumElements(std::stringstream &stream);
 
 
+/**
+ * @brief Compare two strings for equality.  Case insensitive.  This is a wrapper
+ *  to allow cleaner cross-platform code.
+ * @param a String 1.
+ * @param b String 2.
+ * @return Comparison result.  '0' indicates strings are equal.  Any other value
+ *  indicates strings were not equal.
+ */
+int str_compare(const char *a, const char *b);
+
+
 
 } /* StringManip Namespace */
 
