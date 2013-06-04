@@ -237,6 +237,10 @@ std::string FormattedNumber(const T val, const int width, const int precision, c
     }
     tmpss << val;
 
+    if(width == 0){
+        tmpss.str("");
+    }
+
     return tmpss.str();
 }
 
