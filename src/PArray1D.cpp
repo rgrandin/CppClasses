@@ -84,7 +84,7 @@ const T& PArray1D<T>::operator()(size_t ind1) const
 		/*
 		 * "RELEASE" NOT DEFINED, SO DEFAULT TO BOUNDS-CHECKING ON ARRAY ACCESS
 		 */
-		assert(ind1 >= 0 && ind1 < PArrayBase<T>::npoints);
+        assert(ind1 < PArrayBase<T>::npoints);
         return PArrayBase<T>::p_array[ind1];
 	#else
 		/*

@@ -378,7 +378,7 @@ void Array2D<T>::ReadCSVFile(const std::string filename, const int nheader, cons
 template <class T>
 void Array2D<T>::WriteCSVFile(const std::string filename, const PArray1D<std::string*> &labels, const int ndec) const
 {
-    int ncols = GetDim(2);
+    size_t ncols = GetDim(2);
 
     if(labels.GetDim() != ncols){
         std::cerr << "ERROR: Incorrect number of labels supplied" << std::endl;
@@ -395,14 +395,14 @@ void Array2D<T>::WriteCSVFile(const std::string filename, const PArray1D<std::st
     }
 
     /* Write labels to file */
-    for(int i=0; i<ncols-1; i++){
+    for(size_t i=0; i<ncols-1; i++){
         file << labels(i)->substr() << ", ";
     }
     file << labels(ncols-1)->substr() << std::endl;
 
     /* Write array data */
-    int ind1 = 0;
-    int ind2 = 0;
+    size_t ind1 = 0;
+    size_t ind2 = 0;
     for(ind1=0; ind1<GetDim(1); ind1++){
         for(ind2=0; ind2<ncols-1; ind2++){
             file << ArrayBase<T>::p_array[IND1_IND2] << ", ";
