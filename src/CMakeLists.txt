@@ -8,8 +8,8 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
     "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
 
-SET(GEN_CLASSES_CXX_11 ON CACHE BOOL "Enable C++-11 Support" FORCE)
-SET(GEN_CLASSES_OPENMP ON CACHE BOOL "Enable OpenMP Support" FORCE)
+SET(GEN_CLASSES_CXX_11 ON CACHE BOOL "Enable C++-11 Support")
+SET(GEN_CLASSES_OPENMP ON CACHE BOOL "Enable OpenMP Support")
 
 
 # Set GCC compiler flags
