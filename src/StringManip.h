@@ -316,6 +316,15 @@ int DetermNumElements(std::stringstream &stream);
 int str_compare(const char *a, const char *b);
 
 
+/**
+ * @brief Sanitize a string by replacing "\" with "/" and enclosing the entire string
+ *  in quotes to allow spaces.
+ * @param input String to be sanitized.
+ * @return Sanitized string.
+ */
+std::string SanitizeString(std::string &input);
+
+
 
 } /* StringManip Namespace */
 

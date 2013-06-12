@@ -490,7 +490,7 @@ public:
 
 
     /**
-      @brief Calculate histogram of Array3D object and place result into 2D array.
+      @brief Calculate histogram of Array2D object and place result into 2D array.
 
       First column
         of result array contains the center-value of each bin.  Second column contains the

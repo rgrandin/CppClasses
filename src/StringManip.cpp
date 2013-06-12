@@ -333,8 +333,7 @@ void StringManip::DetermFileStem(const std::string &filename, std::string &stem,
 
 void StringManip::uppercaseString(std::string &s)
 {
-    for(int i=0; s[i]!='\0'; i++)
-    {
+    for(int i=0; s[i]!='\0'; i++){
         s[i] = toupper(s[i]);
     }
 }
@@ -389,6 +388,22 @@ int StringManip::str_compare(const char *a, const char *b)
 #ifdef WIN_MSVC
     retval = _strcmpi(a, b);
 #endif
+
+    return retval;
+}
+
+
+std::string StringManip::SanitizeString(std::string &input)
+{
+    std::string retval(input);
+
+    for(int i=0; retval[i]!='\0'; i++){
+        if(retval[i] == '\\'){
+            retval[i] = '/';
+        }
+    }
+
+    //retval = "\"" + retval + "\"";
 
     return retval;
 }

@@ -18,6 +18,7 @@ HEADERS += \
     $$PWD/DLList.h \
     $$PWD/SLList.h \
     $$PWD/QSafeApplication.h \
+    $$PWD/Stats.h \
     $$PWD/StringManip.h \
     $$PWD/UniformVolume.h \
     $$PWD/UnitConvert.h \
@@ -53,6 +54,7 @@ SOURCES += \
     $$PWD/DataFilters.cpp \
     $$PWD/DLList.cpp \
     $$PWD/SLList.cpp \
+    $$PWD/Stats.cpp \
     $$PWD/UniformVolume.cpp \
     $$PWD/UnitConvert.cpp
 
@@ -70,5 +72,6 @@ SOURCES -= \
     $$PWD/DataFilters.cpp \
     $$PWD/DLList.cpp \
     $$PWD/SLList.cpp \
+    $$PWD/Stats.cpp \
     $$PWD/UniformVolume.cpp \
     $$PWD/UnitConvert.cpp
