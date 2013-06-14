@@ -25,10 +25,10 @@ HEADERS += \
     $$PWD/XdmfIO.h
 
 SOURCES += \
-    $$PWD/ProgressInfo.cpp \
-    $$PWD/QtIntermediary.cpp \
-    $$PWD/QtIntermediaryBase.cpp \
-    $$PWD/StringManip.cpp
+    $$PWD/ProgressInfo.cxx \
+    $$PWD/QtIntermediary.cxx \
+    $$PWD/QtIntermediaryBase.cxx \
+    $$PWD/StringManip.cxx
 
 
 
