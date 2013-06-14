@@ -122,6 +122,8 @@
 #include <PArray1D.h>
 #include <StringManip.h>
 
+
+#ifdef USE_VTK
 /* VTK classes for file IO */
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
@@ -141,6 +143,7 @@
 #include <vtkXdmfWriter.h>
 #include <vtkXdmfReader.h>
 
+#endif
 
 /* Include the base class which serves as an intermediary between this class
   and QObject.  It requires NOQT or USEQT to be defined for the entire application.

@@ -469,9 +469,6 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
     /* Define temporary variables */
     std::fstream vtkfile;
     char discard[256];
-    std::string ascii_vs_binary("neither");
-    std::stringstream sstmp;
-    std::string format("unknown");
 
 
     vtkfile.open(filename.c_str(), std::ios::in);
@@ -486,69 +483,81 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
          * file is XML format.  Call appropriate reader. */
         if(strncmp(&discard[0],"#",1) == 0){
             /* File is legacy format. */
-//            format = "legacy";
+#ifdef USE_VTK
             UniformVolume<T>::ReadLegacyVTKFile(filename);
+#else
+            format = "legacy";
+#endif
         }
         if(strncmp(&discard[0],"<",1) == 0){
             /* File is XML format. */
-//            format = "XML";
+#ifdef USE_VTK
             UniformVolume<T>::ReadXMLVTKFile(filename);
+#else
+            format = "XML";
+#endif
         }
 
 
-        /* Calls to code written by me.  Deprecated in favor of using VTK libraries. */
-        if(false){
-            if(format == "legacy"){
-                vtkfile.getline(discard,256);           /* Description line */
-                vtkfile.getline(discard,256);           /* ASCII vs. Binary */
+#ifdef USE_VTK
+     bool isBigEndian2 = !isBigEndian;    /* Avoid 'unused parameter' warning. */
+     isBigEndian2 = !isBigEndian2;
+#else
+        std::string ascii_vs_binary("neither");
+        std::stringstream sstmp;
+        std::string format("unknown");
 
-                sstmp.str(discard);
-                ascii_vs_binary = sstmp.str();
+        /* Calls to code written by me.  */
+        if(format == "legacy"){
+            vtkfile.getline(discard,256);           /* Description line */
+            vtkfile.getline(discard,256);           /* ASCII vs. Binary */
 
-                if(ascii_vs_binary == "ASCII"){
+            sstmp.str(discard);
+            ascii_vs_binary = sstmp.str();
 
-                    /* Call ASCII reader. */
-                    UniformVolume<T>::VTKReadLegacyASCII(vtkfile);
+            if(ascii_vs_binary == "ASCII"){
+
+                /* Call ASCII reader. */
+                UniformVolume<T>::VTKReadLegacyASCII(vtkfile);
+                vtkfile.close();
+
+            }
+            if(ascii_vs_binary == "BINARY"){
+
+                /* Close file opened in ASCII mode. */
+                vtkfile.close();
+
+                /* Re-open file in binary mode. */
+                vtkfile.open(filename.c_str(), std::ios::in | std::ios::binary);
+
+                if(vtkfile.is_open() == true){
+
+                    /* Re-read initial header lines. */
+                    vtkfile.getline(discard,256);           /* VTK version line */
+                    vtkfile.getline(discard,256);           /* Description line */
+                    vtkfile.getline(discard,256);           /* ASCII vs. Binary */
+
+
+                    /* Call binary reader for legacy VTK format. */
+                    UniformVolume<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
                     vtkfile.close();
 
-                }
-                if(ascii_vs_binary == "BINARY"){
+                } /* End of conditional on successful file open. */
+            } /* End of conditional on binary file. */
+        } /* End of check for legacy format. */
 
-                    /* Close file opened in ASCII mode. */
-                    vtkfile.close();
+        if(format == "XML"){
+            std::cerr << "UniformVolume::ReadVTKFile() - XML format not supported" << std::endl;
 
-                    /* Re-open file in binary mode. */
-                    vtkfile.open(filename.c_str(), std::ios::in | std::ios::binary);
-
-                    if(vtkfile.is_open() == true){
-
-                        /* Re-read initial header lines. */
-                        vtkfile.getline(discard,256);           /* VTK version line */
-                        vtkfile.getline(discard,256);           /* Description line */
-                        vtkfile.getline(discard,256);           /* ASCII vs. Binary */
-
-
-                        /* Call binary reader for legacy VTK format. */
-                        UniformVolume<T>::VTKReadLegacyBinary(vtkfile,isBigEndian);
-                        vtkfile.close();
-
-                    } /* End of conditional on successful file open. */
-                } /* End of conditional on binary file. */
-            } /* End of check for legacy format. */
-
-            if(format == "XML"){
-                std::cerr << "UniformVolume::ReadVTKFile() - XML format not supported" << std::endl;
-
-                vtkfile.close();
-            }
-
-
-            /* Close file if it's still open. */
-            if(vtkfile.is_open()){
-                vtkfile.close();
-            }
-
+            vtkfile.close();
         }
+
+
+        /* Close file if it's still open. */
+        if(vtkfile.is_open()){
+            vtkfile.close();
+        }
+#endif
 
 
 
@@ -561,6 +570,7 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 template <class T>
 void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
 {
+#ifdef USE_VTK
     UniformVolume<T>::RemoveAllData();
 
     vtkSmartPointer<vtkStructuredPointsReader> reader = vtkSmartPointer<vtkStructuredPointsReader>::New();
@@ -572,6 +582,10 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
     dataset = vtkImageData::SafeDownCast(reader->GetOutput());
 
     UniformVolume<T>::LoadVTKDataset(dataset, reader);
+#else
+    std::string dummy_string(filename);
+    dummy_string = dummy_string + ".discard";
+#endif
 }
 
 
@@ -2226,10 +2240,9 @@ void UniformVolume<T>::VTKWriteBinaryBitFlipPartial(const size_t first_slice, co
 template <class T>
 void UniformVolume<T>::VTKWriteBinaryBigEndian()
 {
-
-    if(true){
-        UniformVolume<T>::VTKWriteImageData();      /* Currently some sort of bug in here. */
-    } else {
+#ifdef USE_VTK
+        UniformVolume<T>::VTKWriteImageData();
+#else
 
         writebigendian = true;
 
@@ -2240,7 +2253,7 @@ void UniformVolume<T>::VTKWriteBinaryBigEndian()
         }
 
         writebigendian = false;
-    }
+#endif
 }
 
 
@@ -3638,101 +3651,11 @@ size_t UniformVolume<T>::NumberScalarPointsRead()
 template <class T>
 void UniformVolume<T>::WriteXdmf(const int compression)
 {
+#ifdef USE_VTK
     /* Dummy code to avoid 'unused variable' warnings. */
     int comp2 = compression;
     comp2++;
 
-//    size_t narrays = nscalars + nvectors;
-
-//    /* Define a single grid for all data, with multiple data arrays defined to on the grid. */
-//    PArray1D<T*> data_ptr(narrays);
-//    PArray1D<Array1D<size_t>*> data_dims(1);
-//    PArray1D<Array1D<float>*> data_origin(1);
-//    PArray1D<Array1D<float>*> data_spacing(1);
-//    PArray1D<std::string*> data_name(narrays);
-
-
-//    data_dims(0) = new Array1D<size_t>;
-//    data_dims(0)->ResetSize(3, 0);
-//    data_dims(0)->operator ()(0) = vcols;
-//    data_dims(0)->operator ()(1) = vrows;
-//    data_dims(0)->operator ()(2) = vslices;
-
-//    data_origin(0) = new Array1D<float>;
-//    data_origin(0)->ResetSize(3, 0.0f);
-//    data_origin(0)->operator ()(0) = (float)xmin;
-//    data_origin(0)->operator ()(1) = (float)ymin;
-//    data_origin(0)->operator ()(2) = (float)zmin;
-
-//    data_spacing(0) = new Array1D<float>;
-//    data_spacing(0)->ResetSize(3, 0.0f);
-//    data_spacing(0)->operator ()(0) = (float)xspacing;
-//    data_spacing(0)->operator ()(1) = (float)yspacing;
-//    data_spacing(0)->operator ()(2) = (float)zspacing;
-
-//    for(size_t i=0; i<narrays; i++){
-
-//        if(i < nscalars){
-//            /* Add scalar quantity to output structure. */
-//            data_ptr(i) = &pscalars(i)->operator [](0);
-
-//            data_name(i) = new std::string;
-//            data_name(i)->assign(scalar_names(i)->substr());
-
-//        } else {
-//            /* Add vector quantity to output structure. */
-//            data_ptr(i) = &pvectors(i-nscalars)->operator [](0);
-
-//            data_name(i) = new std::string;
-//            data_name(i)->assign(vector_names(i-nscalars)->substr());
-//        }
-//    }
-
-//    XdmfIO::data_info<T> data_info;
-
-//    data_info.data = &data_ptr;
-//    data_info.data_name = &data_name;
-//    data_info.dims = &data_dims;
-//    data_info.origin = &data_origin;
-//    data_info.spacing = &data_spacing;
-
-//    std::string filename;
-//    filename = outputdir + "/" + filenamestem;
-
-//    qtsignals->EmitFunctionDesc2("Writing XDMF File");
-
-//    /* Call appropriate write function.  Typecasting is used to allow compilation.  During program execution,
-//     * the check of type ID should properly handle the calling of the correct function. */
-//    if(typeid(T) == typeid(short)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, (XdmfIO::data_info<short>*)&data_info, NULL, NULL,
-//                                 NULL, NULL, NULL, NULL, compression);
-//    }
-//    if(typeid(T) == typeid(unsigned short)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, (XdmfIO::data_info<unsigned short>*)&data_info, NULL,
-//                                 NULL, NULL, NULL, NULL, compression);
-//    }
-//    if(typeid(T) == typeid(int)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, (XdmfIO::data_info<int>*)&data_info,
-//                                 NULL, NULL, NULL, NULL, compression);
-//    }
-//    if(typeid(T) == typeid(unsigned int)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-//                                 (XdmfIO::data_info<unsigned int>*)&data_info, NULL, NULL, NULL, compression);
-//    }
-//    if(typeid(T) == typeid(long)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-//                                 NULL, (XdmfIO::data_info<long>*)&data_info, NULL, NULL, compression);
-//    }
-//    if(typeid(T) == typeid(float)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-//                                 NULL, NULL, (XdmfIO::data_info<float>*)&data_info, NULL, compression);
-//    }
-//    if(typeid(T) == typeid(double)){
-//        XdmfIO::writeSingleUniformGrid(filename, NULL, NULL, NULL, NULL, NULL,
-//                                 NULL, NULL, NULL, (XdmfIO::data_info<double>*)&data_info, compression);
-//    }
-
-//    qtsignals->EmitFunctionDesc2("");
 
 
     std::string filename;
@@ -3795,6 +3718,10 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     writer->Write();
 
     qtsignals->EmitFunctionDesc2("");
+#else
+    std::cerr << "ERROR  UniformVolume::WriteXDMF():  Writing XDMF file " <<
+                 "requires compilation with VTK-library support." << std::endl;
+#endif
 
 
 } /* UniformVolume<T>::WriteXdmf() */
@@ -3803,6 +3730,7 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 template <class T>
 void UniformVolume<T>::ReadXDMFFile(std::string filename)
 {
+#ifdef USE_VTK
     UniformVolume<T>::RemoveAllData();
 
     vtkSmartPointer<vtkXdmfReader> reader = vtkSmartPointer<vtkXdmfReader>::New();
@@ -3814,6 +3742,10 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
     dataset = vtkImageData::SafeDownCast(reader->GetOutputDataObject(0));
 
     UniformVolume<T>::LoadVTKDataset(dataset, reader);
+#else
+    std::cerr << "ERROR  UniformVolume::ReadXDMFFile():  Reading " << filename <<
+                 " requires compilation with VTK-library support." << std::endl;
+#endif
 
 } /* UniformVolume<T>::ReadXDMFFile() */
 
@@ -3821,6 +3753,7 @@ void UniformVolume<T>::ReadXDMFFile(std::string filename)
 template <class T>
 void UniformVolume<T>::VTKWriteImageData()
 {
+#ifdef USE_VTK
     std::string filename;
     filename = outputdir + "/" + filenamestem;
 
@@ -3881,12 +3814,16 @@ void UniformVolume<T>::VTKWriteImageData()
     }
 
     qtsignals->EmitFunctionDesc2("");
+#else
+    std::cerr << "ERROR  UniformVolume::VTKWriteImageData() requires compilation with VTK-library support." << std::endl;
+#endif
 }
 
 
 template <class T>
 void UniformVolume<T>::FreeMemoryVTK(T *data_ptr, size_t npts1, size_t npts2, size_t npts3)
 {
+#ifdef USE_VTK
     vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
     imageImport->SetDataSpacing(1.0e0, 1.0e0, 1.0e0);
     imageImport->SetDataOrigin(0.0e0, 0.0e0, 0.0e0);
@@ -3901,6 +3838,14 @@ void UniformVolume<T>::FreeMemoryVTK(T *data_ptr, size_t npts1, size_t npts2, si
     imageImport->SetNumberOfScalarComponents(1);
     imageImport->SetImportVoidPointer(data_ptr, 0);
     imageImport->Update();
+#else
+    /* Dummy code to avoid 'unused variable' warnings. */
+    size_t npts = npts1*npts2*npts3;
+    npts += 1;
+
+    delete [] data_ptr;
+
+#endif
 }
 
 
@@ -3911,6 +3856,7 @@ bool UniformVolume<T>::DataFromVTK() const
 }
 
 
+#ifdef USE_VTK
 template <class T>
 void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reader)
 {
@@ -4080,5 +4026,5 @@ void UniformVolume<T>::LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reade
     zmax = zmin + zspacing*(float)vslices;
 
 } /* UniformVolume<T>::LoadVTKDataset() */
-
+#endif
 

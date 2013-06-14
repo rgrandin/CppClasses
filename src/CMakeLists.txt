@@ -1,3 +1,28 @@
+
+# ==============================================================================
+#
+#   NOTES
+#
+# ==============================================================================
+#
+#	1.) These files are intended to be compiled into other projects and
+#	    not as a stand-alone library.  Attempting to compile as a stand-alone
+#	    library will cause errors due to "PARENT_SCOPE" variable options.
+#	
+#	    To incorporate this code into a project, copy the 'src' directory
+#	    to the source directory of the project, and configure the project
+#	    using CMake.
+#
+#
+#	2.) This setup does not actually compile a library.  Instead, the appropriate
+#	    files are added to PARENT_SCOPE variables so that an upper-level
+#	    CMakeLists.txt file may properly build.
+#
+
+
+
+
+
 # ==============================================================================
 #
 #   Set basic options
@@ -8,19 +33,24 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Set name ofproject
-set(GEN_CLASSES_NAME "genCppClasses")
-
-# Set default build type
-set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
-    "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+set(GEN_CLASSES_NAME "genCppClasses" PARENT_SCOPE)
 
 
-# Control build options and feature support
-SET(GEN_CLASSES_CXX_11 ON CACHE BOOL "Enable C++-11 Support")
-SET(GEN_CLASSES_OPENMP ON CACHE BOOL "Enable OpenMP Support")
-SET(GEN_CLASSES_USE_QT ON CACHE BOOL "Enable Qt Functionality")
-SET(GEN_CLASSES_USE_VTK ON CACHE BOOL "Enable VTK Libraries")
+# Control build options and feature support.  Initial values are inherited from
+# parent directory.
+SET(GEN_CLASSES_CXX_11 ${USE_CXX_11} CACHE BOOL "Enable C++-11 Support within General-Use C++ classes" FORCE)
+SET(GEN_CLASSES_OPENMP ${USE_OPENMP} CACHE BOOL "Enable OpenMP Support within General-Use C++ classes" FORCE)
+SET(GEN_CLASSES_USE_QT ${USE_QT} CACHE BOOL "Enable Qt Functionality within General-Use C++ classes" FORCE)
+SET(GEN_CLASSES_USE_VTK ${USE_VTK} CACHE BOOL "Enable VTK Libraries within General-Use C++ classes" FORCE)
 
+# Mark these variables as advanced since they likely won't need to be adjusted
+MARK_AS_ADVANCED(GEN_CLASSES_CXX_11 GEN_CLASSES_OPENMP GEN_CLASSES_USE_QT GEN_CLASSES_USE_VTK)
+
+if(GEN_CLASSES_USE_VTK)
+    MARK_AS_ADVANCED(CLEAR VTK_DIR)
+else()
+    MARK_AS_ADVANCED(VTK_DIR)
+endif()    
 
 
 
@@ -71,12 +101,11 @@ endif()
 # ==============================================================================
 
 
-# Define source files to be compiled into object files.  Most of the *.cpp files are not
-# listed here because they are templated and thus directly included in their headers.
-set(GEN_CLASSES_LIB_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ProgressInfo.cpp
-                           ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediaryBase.cpp
-                           ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediary.cpp
-                           ${CMAKE_CURRENT_SOURCE_DIR}/StringManip.cpp
+# Define source files to be compiled into object files.  
+set(GEN_CLASSES_LIB_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ProgressInfo.cxx
+                           ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediaryBase.cxx
+                           ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediary.cxx
+                           ${CMAKE_CURRENT_SOURCE_DIR}/StringManip.cxx
     )
 
 
@@ -87,19 +116,14 @@ file(GLOB_RECURSE GEN_CLASSES_HEADERS "*.h")        # Add all *.h files to "GEN_
 file(GLOB_RECURSE GEN_CLASSES_CPP "*.cpp")          # Add all *.cpp files to "GEN_CLASSES_CPP"
 
 
+# Add header and source files to project-wide variables.
+set(HEADERS ${HEADERS} ${GEN_CLASSES_HEADERS} PARENT_SCOPE)
+set(SOURCES ${SOURCES} ${GEN_CLASSES_LIB_SOURCE} PARENT_SCOPE)
+
+# NOTE: Files added to 'SOURCES' are 'compileable' sources, not templated sources which are
+#	included in their header files.
 
 
-
-# ==============================================================================
-#
-#   Specify library to be compiled & related source files
-#
-# ==============================================================================
-
-add_library(${GEN_CLASSES_NAME} SHARED
-                    ${GEN_CLASSES_LIB_SOURCE} ${GEN_CLASSES_HEADERS}
-                    ${QT_HEADERS}
-           )
 
 
 
@@ -118,50 +142,22 @@ if(GEN_CLASSES_USE_QT)
     INCLUDE(${QT_USE_FILE})
     ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-    SET(QT_HEADERS
+    SET(QT_HEADERS ${QT_HEADERS}
             QSafeApplication.h
             QtIntermediary.h
             QtIntermediaryBase.h
+            PARENT_SCOPE
        )
-    QT4_WRAP_CPP(QT_HEADERS_MOC ${QT_HEADERS})
+    # These headers are not actually processed yet.  This CMakeLists.txt file only
+    # adds them to 'QT_HEADERS' so that they can be processed at a later time
 
-    if(QT_LIBRARIES)
-      target_link_libraries(${GEN_CLASSES_NAME} ${QT_LIBRARIES})
-    endif()
 endif()
 
 # Use VTK
 if(GEN_CLASSES_USE_VTK)
     FIND_PACKAGE(VTK REQUIRED)
     INCLUDE(${VTK_USE_FILE})
+    
+    add_definitions(-DUSE_VTK)
 
-    if(VTK_LIBRARIES)
-      target_link_libraries(${GEN_CLASSES_NAME} ${VTK_LIBRARIES})
-    else()
-      target_link_libraries(${GEN_CLASSES_NAME} vtkHybrid)
-    endif()
 endif()
-
-
-
-
-
-# ==============================================================================
-#
-#   Set install rules
-#
-# ==============================================================================
-
-# Move header files to "include" within install directory.  The *.cpp files
-# are also included here since most of them are included in the header files.
-# Strictly speaking, only those included in headers need to be copied.  The
-# *.cpp files which are compiled do not need to be moved.
-INSTALL(FILES ${GEN_CLASSES_HEADERS} ${GEN_CLASSES_CPP} DESTINATION include)
-
-# Move runtime objects to "bin", and library/archive objects to "lib" within
-# the install directory.
-INSTALL(TARGETS ${GEN_CLASSES_NAME}
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)
