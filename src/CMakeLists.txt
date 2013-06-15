@@ -33,20 +33,20 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Set name ofproject
-set(GEN_CLASSES_NAME "genCppClasses" PARENT_SCOPE)
+set(GENCLASSES_NAME "genCppClasses" PARENT_SCOPE)
 
 
 # Control build options and feature support.  Initial values are inherited from
 # parent directory.
-SET(GEN_CLASSES_CXX_11 ${USE_CXX_11} CACHE BOOL "Enable C++-11 Support within General-Use C++ classes" FORCE)
-SET(GEN_CLASSES_OPENMP ${USE_OPENMP} CACHE BOOL "Enable OpenMP Support within General-Use C++ classes" FORCE)
-SET(GEN_CLASSES_USE_QT ${USE_QT} CACHE BOOL "Enable Qt Functionality within General-Use C++ classes" FORCE)
-SET(GEN_CLASSES_USE_VTK ${USE_VTK} CACHE BOOL "Enable VTK Libraries within General-Use C++ classes" FORCE)
+SET(GENCLASSES_CXX_11 ${USE_CXX_11} CACHE BOOL "Enable C++-11 Support within General-Use C++ classes" FORCE)
+SET(GENCLASSES_OPENMP ${USE_OPENMP} CACHE BOOL "Enable OpenMP Support within General-Use C++ classes" FORCE)
+SET(GENCLASSES_USE_QT ${USE_QT} CACHE BOOL "Enable Qt Functionality within General-Use C++ classes" FORCE)
+SET(GENCLASSES_USE_VTK ${USE_VTK} CACHE BOOL "Enable VTK Libraries within General-Use C++ classes" FORCE)
 
 # Mark these variables as advanced since they likely won't need to be adjusted
-MARK_AS_ADVANCED(GEN_CLASSES_CXX_11 GEN_CLASSES_OPENMP GEN_CLASSES_USE_QT GEN_CLASSES_USE_VTK)
+MARK_AS_ADVANCED(GENCLASSES_CXX_11 GENCLASSES_OPENMP GENCLASSES_USE_QT GENCLASSES_USE_VTK)
 
-if(GEN_CLASSES_USE_VTK)
+if(GENCLASSES_USE_VTK)
     MARK_AS_ADVANCED(CLEAR VTK_DIR)
 else()
     MARK_AS_ADVANCED(VTK_DIR)
@@ -67,12 +67,12 @@ endif()
 
 # GCC
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if(GEN_CLASSES_CXX_11)
+    if(GENCLASSES_CXX_11)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")    # Enable C++11 features
         add_definitions(-DCXX11)
     endif()
 
-    if(GEN_CLASSES_OPENMP)
+    if(GENCLASSES_OPENMP)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")      # Enable OpenMP
     endif()
 endif()
@@ -80,11 +80,11 @@ endif()
 
 # MSVC
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    if(GEN_CLASSES_CXX_11)
+    if(GENCLASSES_CXX_11)
         add_definitions(-DCXX11)
     endif()
 
-    if(GEN_CLASSES_OPENMP)
+    if(GENCLASSES_OPENMP)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")      # Enable OpenMP
     endif()
 endif()
@@ -102,23 +102,23 @@ endif()
 
 
 # Define source files to be compiled into object files.  
-set(GEN_CLASSES_LIB_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ProgressInfo.cxx
-                           ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediaryBase.cxx
-                           ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediary.cxx
-                           ${CMAKE_CURRENT_SOURCE_DIR}/StringManip.cxx
+set(GENCLASSES_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ProgressInfo.cxx
+                      ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediaryBase.cxx
+                      ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediary.cxx
+                      ${CMAKE_CURRENT_SOURCE_DIR}/StringManip.cxx
     )
 
 
 
 # Define header files
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})    # Include source directory during compilation
-file(GLOB_RECURSE GEN_CLASSES_HEADERS "*.h")        # Add all *.h files to "GEN_CLASSES_HEADERS"
-file(GLOB_RECURSE GEN_CLASSES_CPP "*.cpp")          # Add all *.cpp files to "GEN_CLASSES_CPP"
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})   # Include source directory during compilation
+file(GLOB_RECURSE GENCLASSES_HEADERS "*.h")        # Add all *.h files to "GEN_CLASSES_HEADERS"
+file(GLOB_RECURSE GENCLASSES_CPP "*.cpp")          # Add all *.cpp files to "GEN_CLASSES_CPP"
 
 
 # Add header and source files to project-wide variables.
-set(HEADERS ${HEADERS} ${GEN_CLASSES_HEADERS} PARENT_SCOPE)
-set(SOURCES ${SOURCES} ${GEN_CLASSES_LIB_SOURCE} PARENT_SCOPE)
+set(HEADERS ${HEADERS} ${GENCLASSES_HEADERS} PARENT_SCOPE)
+set(SOURCES ${SOURCES} ${GENCLASSES_SOURCE} PARENT_SCOPE)
 
 # NOTE: Files added to 'SOURCES' are 'compileable' sources, not templated sources which are
 #	included in their header files.
@@ -136,7 +136,7 @@ set(SOURCES ${SOURCES} ${GEN_CLASSES_LIB_SOURCE} PARENT_SCOPE)
 # ==============================================================================
 
 # Use Qt
-if(GEN_CLASSES_USE_QT)
+if(GENCLASSES_USE_QT)
     # Require Qt4
     FIND_PACKAGE(Qt4 REQUIRED)
     INCLUDE(${QT_USE_FILE})
@@ -154,7 +154,7 @@ if(GEN_CLASSES_USE_QT)
 endif()
 
 # Use VTK
-if(GEN_CLASSES_USE_VTK)
+if(GENCLASSES_USE_VTK)
     FIND_PACKAGE(VTK REQUIRED)
     INCLUDE(${VTK_USE_FILE})
     
