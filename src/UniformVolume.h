@@ -1328,12 +1328,14 @@ private:
     }
 
 
+#ifdef USE_VTK
     /**
      * @brief Load data contained within VTK Image Data dataset into this object's data structures.
      * @param dataset Pointer to vtkImageData object containing data to be loaded.
      * @param reader Pointer to vtkDataReader used to read the input file.
      */
     void LoadVTKDataset(vtkImageData *dataset, vtkAlgorithm *reader);
+#endif
 
 };
 

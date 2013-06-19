@@ -479,6 +479,8 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 
         vtkfile.close();
 
+        std::string format;
+
         /* Check first character of first line.  If '#', file is legacy VTK format.  If '<'
          * file is XML format.  Call appropriate reader. */
         if(strncmp(&discard[0],"#",1) == 0){
@@ -505,7 +507,6 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 #else
         std::string ascii_vs_binary("neither");
         std::stringstream sstmp;
-        std::string format("unknown");
 
         /* Calls to code written by me.  */
         if(format == "legacy"){
@@ -592,6 +593,7 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
 template <class T>
 void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
 {
+#ifdef USE_VTK
     UniformVolume<T>::RemoveAllData();
 
 
@@ -624,6 +626,10 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
 
         UniformVolume<T>::LoadVTKDataset(dataset, reader);
     }
+#else
+    std::string dummy_string(filename);
+    dummy_string = dummy_string + ".discard";
+#endif
 
 } /* UniformVolume<T>::ReadXMLVTKFile() */
 
