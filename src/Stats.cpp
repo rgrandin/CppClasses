@@ -1002,6 +1002,11 @@ void Stats<T>::Histogram(const Array2D<T> &input, const int nbins, Array2D<float
     float binsize = (fmax - fmin)/((float)nbins - 1.0e0);   /* Range of values to be stored in each bin */
     float firstbin = fmin + binsize/2.0e0;                  /* Centered-value of first bin */
 
+
+    if(binsize < 1.0e-8){
+        binsize = 1.0f;
+    }
+
     /* Fill first column of 'result' with center values of each bin */
     result(0,0) = firstbin;
     for(int i=1; i<nbins; i++){
