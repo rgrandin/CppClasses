@@ -112,6 +112,7 @@ set(GENCLASSES_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ProgressInfo.cxx
 
 # Define header files
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})   # Include source directory during compilation
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 file(GLOB_RECURSE GENCLASSES_HEADERS "*.h")        # Add all *.h files to "GEN_CLASSES_HEADERS"
 file(GLOB_RECURSE GENCLASSES_CPP "*.cpp")          # Add all *.cpp files to "GEN_CLASSES_CPP"
 
