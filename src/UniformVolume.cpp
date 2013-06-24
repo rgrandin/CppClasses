@@ -39,17 +39,17 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
     zminset = false;
     zmaxset = false;
     if(vcols > 1){
-        xspacing = (xmax - xmin)/((T)vcols - 1.0e0+1);
+        xspacing = (xmax - xmin)/((T)vcols - (T)1.0e0+1);
     } else {
         xspacing = 0.0e0;
     }
     if(vrows > 1){
-        yspacing = (ymax - ymin)/((T)vrows - 1.0e0+1);
+        yspacing = (ymax - ymin)/((T)vrows - (T)1.0e0+1);
     } else {
         yspacing = 0.0e0;
     }
     if(vslices > 1){
-        zspacing = (zmax - zmin)/((T)vslices - 1.0e0+1);
+        zspacing = (zmax - zmin)/((T)vslices - (T)1.0e0+1);
     } else {
         zspacing = 0.0e0;
     }
@@ -479,6 +479,8 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 
         vtkfile.close();
 
+        std::string format;
+
         /* Check first character of first line.  If '#', file is legacy VTK format.  If '<'
          * file is XML format.  Call appropriate reader. */
         if(strncmp(&discard[0],"#",1) == 0){
@@ -505,7 +507,6 @@ void UniformVolume<T>::ReadVTKFile(std::string filename, const bool isBigEndian)
 #else
         std::string ascii_vs_binary("neither");
         std::stringstream sstmp;
-        std::string format("unknown");
 
         /* Calls to code written by me.  */
         if(format == "legacy"){
@@ -592,6 +593,7 @@ void UniformVolume<T>::ReadLegacyVTKFile(std::string filename)
 template <class T>
 void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
 {
+#ifdef USE_VTK
     UniformVolume<T>::RemoveAllData();
 
 
@@ -624,6 +626,10 @@ void UniformVolume<T>::ReadXMLVTKFile(std::string filename)
 
         UniformVolume<T>::LoadVTKDataset(dataset, reader);
     }
+#else
+    std::string dummy_string(filename);
+    dummy_string = dummy_string + ".discard";
+#endif
 
 } /* UniformVolume<T>::ReadXMLVTKFile() */
 
@@ -1377,7 +1383,7 @@ void UniformVolume<T>::setSpatialExtent(const int dir, const int maxmin, const T
         }
         if(xminset == true && xmaxset == true){
             if(vcols > 1){
-                xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
+                xspacing = (xmax - xmin)/((T)vcols - (T)1.0e0);
             } else {
                 xspacing = 0.0e0;
             }
@@ -1394,7 +1400,7 @@ void UniformVolume<T>::setSpatialExtent(const int dir, const int maxmin, const T
         }
         if(yminset == true && ymaxset == true){
             if(vrows > 1){
-                yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
+                yspacing = (ymax - ymin)/((T)vrows - (T)1.0e0);
             } else {
                 yspacing = 0.0e0;
             }
@@ -1411,7 +1417,7 @@ void UniformVolume<T>::setSpatialExtent(const int dir, const int maxmin, const T
         }
         if(zminset == true && zmaxset == true){
             if(vslices > 1){
-                zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
+                zspacing = (zmax - zmin)/((T)vslices - (T)1.0e0);
             } else {
                 zspacing = 0.0e0;
             }
@@ -1566,19 +1572,19 @@ void UniformVolume<T>::ResetResolution(const size_t ny, const size_t nx, const s
     vslices = nz;
 
     if(vcols > 1){
-        xspacing = (xmax - xmin)/((T)vcols - 1.0e0);
+        xspacing = (xmax - xmin)/((T)vcols - (T)1.0e0);
     } else {
         xspacing = 0.0e0;
     }
 
     if(vrows > 1){
-        yspacing = (ymax - ymin)/((T)vrows - 1.0e0);
+        yspacing = (ymax - ymin)/((T)vrows - (T)1.0e0);
     } else {
         yspacing = 0.0e0;
     }
 
     if(vslices > 1){
-        zspacing = (zmax - zmin)/((T)vslices - 1.0e0);
+        zspacing = (zmax - zmin)/((T)vslices - (T)1.0e0);
     } else {
         zspacing = 0.0e0;
     }
@@ -1702,7 +1708,7 @@ void UniformVolume<T>::VTKWrite()
 
                 chunkscomplete = 0.0e0;
                 std::string name(vector_names(v)->substr());
-                int n = pvectors(v)->GetDim(4);
+                int n = (int)pvectors(v)->GetDim(4);
                 if(n > 3){
                     std::cerr << "WARNING: VTK file format requires 3-component vectors." << std::endl;
                     std::cerr << "         Vector quantity " << name << " has " << n << " components." << std::endl;
@@ -3360,9 +3366,9 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
         file >> discard1 >> d1 >> d2 >> d3;	/* Voxel spacing */
 
         /* Determine starting and ending points from origin and spacing info */
-        xmin = o1; xmax = xmin + d1*((T)vcols - 1.0e0);
-        ymin = o2; ymax = ymin + d2*((T)vrows - 1.0e0);
-        zmin = o3; zmax = zmin + d3*((T)vslices - 1.0e0);
+        xmin = o1; xmax = xmin + d1*((T)vcols - (T)1.0e0);
+        ymin = o2; ymax = ymin + d2*((T)vrows - (T)1.0e0);
+        zmin = o3; zmax = zmin + d3*((T)vslices - (T)1.0e0);
         xspacing = d1;
         yspacing = d2;
         zspacing = d3;
@@ -3447,7 +3453,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
                             pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
                         }
                     }
-                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    frac = ((T)s + (T)1.0e0)/(T)vslices;
                     qtsignals->EmitFunctionProgress(frac);
                     qtsignals->EmitFunctionProgress(frac,progressstr);
                 }
@@ -3469,7 +3475,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
                         }
                     }
 
-                    frac = ((T)s + 1.0e0)/(T)vslices;
+                    frac = ((T)s + (T)1.0e0)/(T)vslices;
                     qtsignals->EmitFunctionProgress(frac);
                     qtsignals->EmitFunctionProgress(frac,progressstr);
                 }
@@ -3534,7 +3540,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
                         }
                     }
                 }
-                frac = ((T)s + 1.0e0)/(T)vslices;
+                frac = ((T)s + (T)1.0e0)/(T)vslices;
                 qtsignals->EmitFunctionProgress(frac);
                 qtsignals->EmitFunctionProgress(frac,progressstr);
             }
@@ -3582,7 +3588,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
                                 pscalars(nscalars-1)->operator ()(r,c,s) = (T)Tval;
                             }
                         }
-                        frac = ((T)s + 1.0e0)/(T)vslices;
+                        frac = ((T)s + (T)1.0e0)/(T)vslices;
                         qtsignals->EmitFunctionProgress(frac);
                         qtsignals->EmitFunctionProgress(frac,progressstr);
                     }
@@ -3604,7 +3610,7 @@ void UniformVolume<T>::VTKReadLegacyASCII(std::fstream &file)
                             }
                         }
 
-                        frac = ((T)s + 1.0e0)/(T)vslices;
+                        frac = ((T)s + (T)1.0e0)/(T)vslices;
                         qtsignals->EmitFunctionProgress(frac);
                         qtsignals->EmitFunctionProgress(frac,progressstr);
                     }

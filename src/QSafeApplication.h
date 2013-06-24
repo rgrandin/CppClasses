@@ -55,7 +55,7 @@
 #ifndef QSAFEAPPLICATION_H
 #define QSAFEAPPLICATION_H
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include <iostream>
 #include <stdio.h>
 

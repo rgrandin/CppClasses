@@ -158,6 +158,11 @@ endif()
 if(GENCLASSES_USE_VTK)
     FIND_PACKAGE(VTK REQUIRED)
     INCLUDE(${VTK_USE_FILE})
+
+	#SET(GENCLASSES_VTK_INCLUDE_DIR "VTK_INCLUDE_DIR-NOTFOUND" CACHE STRING "Path to include directory for VTK installation.")
+    
+	#include_directories(${GENCLASSES_VTK_INCLUDE_DIR})
+	include_directories(${VTK_INCLUDE_DIRS})
     
     add_definitions(-DUSE_VTK)
 

@@ -968,7 +968,7 @@ void Stats<T>::Histogram(const Array1D<T> &input, const int nbins, Array2D<float
     result.ResetSize(nbins,2,(float)0.0e0);
 
     /* Calculate the value range for each bin, assuming uniform bin size */
-    int di;                                                 /* Dummy variables */
+    size_t di;                                                 /* Dummy variables */
     float fmin = (float)input.MinVal(di);                   /* Minimum value in array */
     float fmax = (float)input.MaxVal(di);                   /* Maximum value in array */
     float binsize = (fmax - fmin)/((float)nbins - 1.0e0);   /* Range of values to be stored in each bin */
@@ -996,11 +996,16 @@ void Stats<T>::Histogram(const Array2D<T> &input, const int nbins, Array2D<float
     result.ResetSize(nbins,2,(float)0.0e0);
 
     /* Calculate the value range for each bin, assuming uniform bin size */
-    int di,dj;                                              /* Dummy variables */
+    size_t di,dj;                                              /* Dummy variables */
     float fmin = (float)input.MinVal(di,dj);                /* Minimum value in array */
     float fmax = (float)input.MaxVal(di,dj);                /* Maximum value in array */
     float binsize = (fmax - fmin)/((float)nbins - 1.0e0);   /* Range of values to be stored in each bin */
     float firstbin = fmin + binsize/2.0e0;                  /* Centered-value of first bin */
+
+
+    if(binsize < 1.0e-8){
+        binsize = 1.0f;
+    }
 
     /* Fill first column of 'result' with center values of each bin */
     result(0,0) = firstbin;
@@ -1026,7 +1031,7 @@ void Stats<T>::Histogram(const Array3D<T> &input, const int nbins, Array2D<float
     result.ResetSize(nbins,2,(float)0.0e0);
 
     /* Calculate the value range for each bin, assuming uniform bin size */
-    int di,dj,dk;                                           /* Dummy variables */
+    size_t di,dj,dk;                                           /* Dummy variables */
     float fmin = (float)input.MinVal(di,dj,dk);             /* Minimum value in array */
     float fmax = (float)input.MaxVal(di,dj,dk);             /* Maximum value in array */
     float binsize = (fmax - fmin)/((float)nbins - 1.0e0);   /* Range of values to be stored in each bin */
@@ -1058,7 +1063,7 @@ void Stats<T>::Histogram(const Array4D<T> &input, const int nbins, Array2D<float
     result.ResetSize(nbins,2,(float)0.0e0);
 
     /* Calculate the value range for each bin, assuming uniform bin size */
-    int di,dj,dk,dl;                                        /* Dummy variables */
+    size_t di,dj,dk,dl;                                     /* Dummy variables */
     float fmin = (float)input.MinVal(di,dj,dk,dl);          /* Minimum value in array */
     float fmax = (float)input.MaxVal(di,dj,dk,dl);          /* Maximum value in array */
     float binsize = (fmax - fmin)/((float)nbins - 1.0e0);   /* Range of values to be stored in each bin */
