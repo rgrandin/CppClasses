@@ -98,9 +98,13 @@ const T& PArray1D<T>::operator()(size_t ind1) const
 template <class T>
 PArray1D<T>& PArray1D<T>::operator=(PArray1D<T> a)
 {
+#ifdef CXX11
     PArrayBase<T>::operator=(static_cast<PArrayBase<T>>(a));
     PArray1DSwap(*this, a);
     return *this;
+#else
+    std::cerr << "PArray1D<T>::operator= ERROR: Not implemented without C++11 support!" << std::endl;
+#endif
 }
 
 
