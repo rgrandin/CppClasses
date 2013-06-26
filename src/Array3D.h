@@ -78,7 +78,7 @@
 #include <memory>
 #include <cmath>
 
-#ifdef FFTW_TRANSPOSE
+#ifdef GENCLASSES_FFTW_TRANSPOSE
 #include <fftw3.h>
 #endif
 

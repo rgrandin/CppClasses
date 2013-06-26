@@ -1,0 +1,14 @@
+/**
+ * @file GenClassesConfig.h
+ * @author Robert Grandin
+ * @brief Contains CMake-based defines to configure General-Use C++ classes.
+ */
+
+
+#ifndef GENCLASSESCONFIG_H
+#define GENCLASSESCONFIG_H
+
+/** @brief Control if FFTW can be used to transpose arrays. */
+#cmakedefine GENCLASSES_FFTW_TRANSPOSE @GENCLASSES_USE_FFTW@
+
+#endif // GENCLASSESCONFIG_H

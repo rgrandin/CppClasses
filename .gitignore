@@ -7,6 +7,11 @@ CppClasses.creator
 CppClasses.files
 CppClasses.includes
 CppClasses.creator.user*
+GenClasses.config
+GenClasses.creator
+GenClasses.files
+GenClasses.includes
+GenClasses.creator.user*
 *.pro.user*
 *~
 doc/doxygen_warnings

@@ -295,7 +295,7 @@ void Array3D<T>::Transpose(const int dim1, const int dim2)
 
     if((dim1 == 0 && dim2 == 1) || (dim1 == 1 && dim2 == 0)){
 
-#ifdef FFTW_TRANSPOSE
+#ifdef GENCLASSES_FFTW_TRANSPOSE
         /* Use FFTW to transpose array. */
 
         size_t loopsize  = size3;

@@ -42,15 +42,25 @@ SET(GENCLASSES_CXX_11 ${USE_CXX_11} CACHE BOOL "Enable C++-11 Support within Gen
 SET(GENCLASSES_OPENMP ${USE_OPENMP} CACHE BOOL "Enable OpenMP Support within General-Use C++ classes" FORCE)
 SET(GENCLASSES_USE_QT ${USE_QT} CACHE BOOL "Enable Qt Functionality within General-Use C++ classes" FORCE)
 SET(GENCLASSES_USE_VTK ${USE_VTK} CACHE BOOL "Enable VTK Libraries within General-Use C++ classes" FORCE)
+SET(GENCLASSES_USE_FFTW ${USE_FFTW} CACHE BOOL "Enable FFTW support within General-Use C++ classes")
 
 # Mark these variables as advanced since they likely won't need to be adjusted
-MARK_AS_ADVANCED(GENCLASSES_CXX_11 GENCLASSES_OPENMP GENCLASSES_USE_QT GENCLASSES_USE_VTK)
+MARK_AS_ADVANCED(GENCLASSES_CXX_11 GENCLASSES_OPENMP GENCLASSES_USE_QT GENCLASSES_USE_VTK GENCLASSES_USE_FFTW)
 
 if(GENCLASSES_USE_VTK)
     MARK_AS_ADVANCED(CLEAR VTK_DIR)
 else()
     MARK_AS_ADVANCED(VTK_DIR)
 endif()    
+
+# Disable FFTW in General-Use classes if disabled globally
+if(GENCLASSES_USE_FFTW)
+    # Add current directory to CMAKE_MODULE_PATH to find FindFFTW.cmake
+    #SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR} PARENT_SCOPE)
+    #MESSAGE("CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
+else()
+    SET(GENCLASSES_USE_FFTW FALSE)
+endif()
 
 
 
