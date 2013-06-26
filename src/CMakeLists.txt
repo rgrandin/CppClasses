@@ -51,19 +51,24 @@ if(GENCLASSES_USE_VTK)
     MARK_AS_ADVANCED(CLEAR VTK_DIR)
 else()
     MARK_AS_ADVANCED(VTK_DIR)
-endif()    
+endif()  
+
+
+# Add 'cmake-modules' to module search path
+#SET(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};../cmake-modules" PARENT_SCOPE)
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake-modules") 
+
 
 # Disable FFTW in General-Use classes if disabled globally
-if(GENCLASSES_USE_FFTW)
+if(GENCLASSES_USE_FFTW AND WIN32)
     # Add current directory to CMAKE_MODULE_PATH to find FindFFTW.cmake
     #SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR} PARENT_SCOPE)
     #MESSAGE("CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
+    FIND_PACKAGE(FFTW REQUIRED)
 else()
     SET(GENCLASSES_USE_FFTW FALSE)
 endif()
 
-# Add 'cmake-modules' to module search path
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ../cmake-modules)
 
 
 
