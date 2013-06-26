@@ -62,7 +62,8 @@ else()
     SET(GENCLASSES_USE_FFTW FALSE)
 endif()
 
-
+# Add 'cmake-modules' to module search path
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ../cmake-modules)
 
 
 
