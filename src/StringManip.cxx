@@ -378,6 +378,28 @@ int StringManip::DetermNumElements(std::stringstream &stream)
 }
 
 
+int StringManip::DetermNumElements(std::stringstream &stream, const char delim)
+{
+    /* Save current state of stream into string. */
+    std::string originalstream;
+    originalstream = stream.str();
+
+    /* Count elements in stream. */
+    std::string word;
+    int count = 0;
+
+    while(getline(stream,word,delim)){
+        count++;
+    }
+
+    /* Set stream to original value using saved string. */
+    stream.str(originalstream);
+
+    /* Return number of elements in stream. */
+    return count;
+}
+
+
 int StringManip::str_compare(const char *a, const char *b)
 {
     int retval = 0;
