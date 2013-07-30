@@ -1,5 +1,5 @@
 /**
- * @file QtIntermediary.cpp
+ * @file QtIntermediary.cxx
  * @author Robert Grandin
  * @brief Implementation of QtIntermediary class.
  */

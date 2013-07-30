@@ -72,7 +72,9 @@ template <class T>
 PArrayBase<T>::~PArrayBase()
 {
     for(size_t i=0; i<npoints; i++){
-        delete p_array[i];
+        if(p_array && p_array[i]){
+            delete p_array[i];
+        }
 	}
     delete [] p_array;
 }

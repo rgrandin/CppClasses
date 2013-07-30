@@ -885,6 +885,25 @@ void UniformVolume<T>::AddScalarQuantity(const std::string name, Array3D<T> *dat
     // Increase count of number of scalar quantities
     nscalars++;
 
+
+    /* If the new quantity is the only quantity, set dataset size from the array size.  Otherwise,
+     * require that the dataset size matches the array size. */
+    if(nscalars == 1){
+        vrows = data->GetDim(1);
+        vcols = data->GetDim(2);
+        vslices = data->GetDim(3);
+    } else {
+        size_t rows = data->GetDim(1);
+        size_t cols = data->GetDim(2);
+        size_t slices = data->GetDim(3);
+
+        assert(rows == vrows);
+        assert(cols == vcols);
+        assert(slices == vslices);
+    }
+
+
+
     /*
       Increase the size of the PArray1D object containing pointers to
       Array3D objects containing data.  Pointers to existing arrays are
@@ -940,6 +959,7 @@ void UniformVolume<T>::AddScalarQuantity(const std::string name, Array3D<T> *dat
     scalar_names(nscalars-1) = new std::string;
     scalar_names(nscalars-1)->reserve(qtysize);
     scalar_names(nscalars-1)->assign(name);
+
 }
 
 

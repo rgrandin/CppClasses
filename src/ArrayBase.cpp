@@ -93,7 +93,7 @@ template <class T>
 ArrayBase<T>::~ArrayBase()
 {
     FreeMemory();
-    p_array = NULL;
+    //p_array = NULL;
 }
 
 

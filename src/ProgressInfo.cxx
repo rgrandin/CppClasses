@@ -1,5 +1,5 @@
 /**
- * @file ProgressInfo.cpp
+ * @file ProgressInfo.cxx
  * @author Robert Grandin
  * @brief Implementation of ProgressInfo class.
  */

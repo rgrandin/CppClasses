@@ -1,5 +1,5 @@
 /**
- * @file StringManip.cpp
+ * @file StringManip.cxx
  * @author Robert Grandin
  * @brief Implementation of non-templated functions in StringManip namespace.
  */

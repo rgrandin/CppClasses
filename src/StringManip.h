@@ -309,7 +309,7 @@ int DetermNumElements(std::stringstream &stream);
 /**
  * @brief DetermNumElements counts the number of elements in a std::stringstream.
  * @param stream std::stringstream for which the number of elements is to be determined.
- * @param Delimiting character to be used.
+ * @param delim Delimiting character to be used.
  * @return Number of elements in stream.
  */
 int DetermNumElements(std::stringstream &stream, const char delim);
