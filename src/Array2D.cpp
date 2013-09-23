@@ -153,9 +153,11 @@ const T& Array2D<T>::operator()(int ind1i, int ind2i) const
 template <class T>
 Array2D<T>& Array2D<T>::operator=(Array2D<T> a)
 {
+#ifdef CXX11
     ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array2DSwap(*this, a);
     return *this;
+#endif
 }
 
 
