@@ -151,7 +151,7 @@ public:
      * @param ab ArrayBase object being assigned.
      * @return Reference to instance of ArrayBase.
      */
-    ArrayBase& operator=(ArrayBase<T> ab);
+    virtual ArrayBase& operator=(ArrayBase<T> ab);
 
 
     /**
@@ -159,7 +159,7 @@ public:
      * @param idx Index to be accessed.
      * @return Value stored at array index.
      */
-    T& operator [](const size_t idx);
+    virtual T& operator [](const size_t idx);
 
 
     /**
@@ -167,7 +167,7 @@ public:
      * @param idx Index to be accessed.
      * @return Value stored at array index.
      */
-    const T& operator [](const size_t idx) const;
+    virtual const T& operator [](const size_t idx) const;
 
 
 	/**
@@ -186,7 +186,7 @@ public:
 	 * 		'assert' statement and as such the check will not be performed when
 	 * 		compiled with NDEBUG defined.
 	 */
-    void ResetSize(size_t dim1);
+    virtual void ResetSize(size_t dim1);
 
 
 	/**
@@ -203,7 +203,7 @@ public:
 	 * @post Array size changed to dim1 and new points initialized to
 	 * 			'initvalue'.
 	 */
-	void ResetSize(size_t dim1, const T initvalue);
+    virtual void ResetSize(size_t dim1, const T initvalue);
 
 
 	/**
@@ -213,7 +213,7 @@ public:
 	 * @return None.
 	 * @post All array points set to 'initvalue'.
 	 */
-	void ResetVal(const T initvalue);
+    virtual void ResetVal(const T initvalue);
 
 
 	/**
@@ -229,7 +229,7 @@ public:
 	 * @warning This function has no meaning for non-numeric data (e.g., strings or
 	 * 		chars).  Results may be erratic on such data.
 	 */
-    T Mean() const;
+    virtual T Mean() const;
 
 
 	/**
@@ -242,7 +242,7 @@ public:
 	 * @warning This function has no meaning for non-numeric data (e.g., strings or
 	 * 		chars).  Results may be erratic on such data.
 	 */
-    float MeanFloat() const;
+    virtual float MeanFloat() const;
 
 
     /**
@@ -250,7 +250,7 @@ public:
      *  @f$ x_{rms} = \sqrt{\frac{1}{n} \left(x_1^2 + x_2^2 + \ldots + x_n^2 \right)} @f$
      * @return RMS value of array, in the same datatype as the member data.
      */
-    T RMS() const;
+    virtual T RMS() const;
 
 
 	/**
@@ -266,7 +266,7 @@ public:
 	 * @warning This function has no meaning for non-numeric data (e.g., strings or
 	 * 		chars).  Results may be erratic on such data.
 	 */
-    T Variance() const;
+    virtual T Variance() const;
 
 
 	/**
@@ -279,7 +279,7 @@ public:
 	 * @warning This function has no meaning for non-numeric data (e.g., strings or
 	 * 		chars).  Results may be erratic on such data.
 	 */
-    float VarianceFloat() const;
+    virtual float VarianceFloat() const;
 
 
 	/**
@@ -358,14 +358,14 @@ public:
      *      different size the value returned by this function will need to be adjusted
      *      accordingly.
      */
-    size_t MemoryRequired() const;
+    virtual size_t MemoryRequired() const;
 
 
     /**
      * @brief NPts reports the number of points in the array.
      * @return Number of points in the array.
      */
-    size_t NPts();
+    virtual size_t NPts();
 
 
     /**
@@ -384,28 +384,36 @@ public:
      * @param useFree If true, 'free()' will be used to free the memory rather than 'delete'.
      *  This is set based on how the array pointed-to by 'p_data' was allocated.
      */
-    void SetArrayPointer(T* p_data, size_t npts, bool useFree);
+    virtual void SetArrayPointer(T* p_data, size_t npts, bool useFree);
 
 
     /**
      * @brief Manually set the array pointer to NULL.
      * @warning Existing pointer will <b>NOT</b> be deleted.
      */
-    void SetArrayPointerNULL();
+    virtual void SetArrayPointerNULL();
 
 
     /**
      * @brief Set descriptive name for data contained in the array.
      * @param name Name to be used.
      */
-    void setName(const std::string name);
+    virtual void setName(const std::string name);
 
 
     /**
      * @brief Get the name which describes the data.
      * @return Descriptive name.
      */
-    std::string Name() const;
+    virtual std::string Name() const;
+
+
+    /**
+     * @brief Get the size of the specified dimension.
+     * @return Size of the specified dimension.
+     * @warning This is a pure-virtual function.  It must be re-implemented in the inheriting class.
+     */
+    virtual size_t GetDim();
 
 
 

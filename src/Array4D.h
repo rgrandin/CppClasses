@@ -152,6 +152,11 @@ public:
      * @brief Retrieve the array extent in the specified dimension.
      * @pre Array object exists.
      * @param dim Dimension for which extent is desired.
+     *      - dim = 1: number of rows
+     *      - dim = 2: number of columns
+     *      - dim = 3: number of slices
+     *      - dim = 4: size of 4th dimension
+     *      - other value: error
      * @return Array extent in the specified dimension.
      * @post Array extents remain unchanged.
      */
