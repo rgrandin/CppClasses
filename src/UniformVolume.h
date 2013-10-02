@@ -45,6 +45,16 @@
  *
  * Reading and writing volume data is handled using the VTK library.  The VTK shared library
  * files (e.g., *.so and *.dll) must be present when linking an application using this class.
+ * Note that legacy VTK files and CNDE VOL formats are supported without requiring use of
+ * the VTK libraries.
+ *
+ * When reading/writing CNDE VOL files a coordinate transformation is performed.  This is
+ * due to differing coordinate systems between the legacy data acquisition systems at CNDE
+ * and my reconstruction code.  This class was developed to support my reconstruction code,
+ * and thus its (x, y, z) axes are by-default in that orientation.  The coordinate transformation
+ * is provided as a matter of convenience to provide compatibility with existing data viewers
+ * expecting the legacy orientation.  The coordinate transformation can be disabled
+ * by defining the symbol VOL_NO_TRANSPOSE in your application.
  *
  * All functions contained within this class are intended for use with the GNU
  * C++ compiler (g++).  Use with other compilers may produce unexpected results

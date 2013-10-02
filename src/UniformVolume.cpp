@@ -157,11 +157,17 @@ int UniformVolume<T>::WriteVOLFile(
     size_t			len;
     size_t			headerLength;
 
+#ifndef VOL_NO_TRANSPOSE
     /* Get integer representation of resolution.  Convert between coordinate systems here. */
     int x = (int)zz;
     int y = (int)xx;
     int z = (int)yy;
-
+#else
+    /* Get integer representation of resolution.  Convert between coordinate systems here. */
+    int x = (int)xx;
+    int y = (int)yy;
+    int z = (int)zz;
+#endif
     char		endSliceStr[100], countStr[30],startSliceStr[100];
     char		extraInfoStr[10];
     char		stateValidFlg;
@@ -239,6 +245,7 @@ int UniformVolume<T>::WriteVOLFile(
     qtsignals->EmitFunctionProgress(0.0e0);
 
     float ftmp = (float)0.0e0;
+#ifndef VOL_NO_TRANSPOSE
     for(size_t i=0; i<yy; i++){
         for(size_t j=0; j<xx; j++){
             for(size_t k=0; k<zz; k++){
@@ -248,6 +255,17 @@ int UniformVolume<T>::WriteVOLFile(
         }
         qtsignals->EmitFunctionProgress((float)i/(float)yy);
     }
+#else
+    for(size_t k=0; k<zz; k++){
+        for(size_t i=0; i<yy; i++){
+            for(size_t j=0; j<xx; j++){
+                ftmp = (float)pscalars(0)->operator ()(i,j,k);
+                ffp.write(reinterpret_cast<char*>(&ftmp), sizeof(float));
+            }
+        }
+        qtsignals->EmitFunctionProgress((float)k/(float)zz);
+    }
+#endif
 
     desc = "";
     qtsignals->EmitFunctionDesc(desc);
@@ -352,11 +370,17 @@ void UniformVolume<T>::ReadVOLFile(std::string filename)
     fp.read((char *)&y,sizeof(int)*1);
     fp.read((char *)&z,sizeof(int)*1);
 
+#ifndef VOL_NO_TRANSPOSE
     /* Get resolution values in my (X,Y,Z) coordinate system. */
     size_t XX = (size_t)y;
     size_t YY = (size_t)z;
     size_t ZZ = (size_t)x;
-
+#else
+    /* Use resolution values in the file's coordinate system. */
+    size_t YY = (size_t)y;
+    size_t ZZ = (size_t)z;
+    size_t XX = (size_t)x;
+#endif
     pixelsPerVolume = (unsigned long)(XX*YY*ZZ);
 
     /* Set volume resolution */
@@ -403,6 +427,7 @@ void UniformVolume<T>::ReadVOLFile(std::string filename)
 
     if(scalar_data == NULL){
         float ftmp = (float)0.0e0;
+#ifndef VOL_NO_TRANSPOSE
         for(size_t i=0; i<YY; i++){
             for(size_t j=0; j<XX; j++){
                 for(size_t k=0; k<ZZ; k++){
@@ -412,11 +437,23 @@ void UniformVolume<T>::ReadVOLFile(std::string filename)
             }
             qtsignals->EmitFunctionProgress((float)i/(float)YY);
         }
+#else
+        for(size_t k=0; k<ZZ; k++){
+            for(size_t i=0; i<YY; i++){
+                for(size_t j=0; j<XX; j++){
+                    fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                    pscalars(0)->operator ()(i,j,k) = (T)ftmp;
+                }
+            }
+            qtsignals->EmitFunctionProgress((float)k/(float)ZZ);
+        }
+#endif
     } else {
 
         scalar_data_points_read = 0;
 
         float ftmp = (float)0.0e0;
+#ifndef VOL_NO_TRANSPOSE
         for(size_t i=0; i<YY; i++){
             for(size_t j=0; j<XX; j++){
                 for(size_t k=0; k<ZZ; k++){
@@ -434,6 +471,25 @@ void UniformVolume<T>::ReadVOLFile(std::string filename)
             }
             qtsignals->EmitFunctionProgress((float)i/(float)YY);
         }
+#else
+        for(size_t k=0; k<ZZ; k++){
+            for(size_t i=0; i<YY; i++){
+                for(size_t j=0; j<XX; j++){
+                    fp.read(reinterpret_cast<char*>(&ftmp),sizeof(float));
+                    scalar_data[scalar_data_points_read] = (T)ftmp;
+
+                    /* Update number of points read.  If this value is greater than the size of the
+                     * array, inform the user of the error and return. */
+                    scalar_data_points_read++;
+                    if(scalar_data_points_read > scalar_data_size){
+                        std::cerr << "UniformVolume::ReadVOLFile() ERROR: Insufficient array size provided." << std::endl;
+                        return;
+                    }
+                }
+            }
+            qtsignals->EmitFunctionProgress((float)k/(float)ZZ);
+        }
+#endif
     }
 
     desc = "";
