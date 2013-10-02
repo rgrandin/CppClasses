@@ -413,7 +413,7 @@ public:
      * @return Size of the specified dimension.
      * @warning This is a pure-virtual function.  It must be re-implemented in the inheriting class.
      */
-    virtual size_t GetDim() {}
+    virtual size_t GetDim() { return 0; }
 
 
 
