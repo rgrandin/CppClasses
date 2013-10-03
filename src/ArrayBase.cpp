@@ -359,7 +359,7 @@ T ArrayBase<T>::MedianVal() const
 template <class T>
 size_t ArrayBase<T>::MemoryRequired() const
 {
-    return ArrayBase<T>::GetMemoryUsage();
+    return (size_t)ArrayBase<T>::GetMemoryUsage();
 }
 
 
