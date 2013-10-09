@@ -191,8 +191,8 @@ int UniformVolume<T>::WriteVOLFile(
 
     pixelsPerVolume = z*x*y;
 
-    //stateValidFlg='Y';
-    stateValidFlg='N';  /* Do not write extra state array at end of data to avoid increasing file size by 25%. */
+    stateValidFlg='Y';
+    //stateValidFlg='N';  /* Do not write extra state array at end of data to avoid increasing file size by 25%. */
     sprintf(countStr,"%dx%dx%d",x, y, z);
     sprintf(endSliceStr, "Volume Size: %s\n", countStr);
     sprintf(extraInfoStr, " ");
