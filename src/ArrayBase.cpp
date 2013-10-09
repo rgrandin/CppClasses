@@ -214,7 +214,7 @@ float ArrayBase<T>::MeanFloat() const
 	float retval = (T)0.0e0;
 	float sum = 0.0e0;
 
-	for(int i=0; i<npoints; i++){
+    for(size_t i=0; i<npoints; i++){
         sum += (float)p_array[i];
 	}
 
@@ -246,7 +246,7 @@ float ArrayBase<T>::VarianceFloat() const
 	float retval = (T)0.0e0;
 	float mean = ArrayBase<T>::Mean();
 	float diffsq = 0.0e0;
-	for(int i=0; i<npoints; i++){
+    for(size_t i=0; i<npoints; i++){
         diffsq += ((float)p_array[i] - mean)*((float)p_array[i] - mean);
 	}
 	retval = diffsq/(float)npoints;

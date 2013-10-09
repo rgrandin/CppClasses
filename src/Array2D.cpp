@@ -219,7 +219,7 @@ void Array2D<T>::SetValue(size_t ind1, size_t ind2, T value)
 template <class T>
 void Array2D<T>::ResetVal(const T initval)
 {
-    for(int i=0; i<ArrayBase<T>::npoints; i++){
+    for(size_t i=0; i<ArrayBase<T>::npoints; i++){
         ArrayBase<T>::p_array[i] = initval;
 	}
 }
