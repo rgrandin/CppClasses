@@ -1,24 +1,68 @@
-
 # ==============================================================================
 #
 #   NOTES
 #
 # ==============================================================================
 #
-#	1.) These files are intended to be compiled into other projects and
-#	    not as a stand-alone library.  Attempting to compile as a stand-alone
-#	    library will cause errors due to "PARENT_SCOPE" variable options.
-#	
-#	    To incorporate this code into a project, copy the 'src' directory
-#	    to the source directory of the project, and configure the project
-#	    using CMake.
+#   - The purpose of this file is to configure CMake to properly handle the
+#     code within this directory.  It is expected that this code is being
+#     used as part of a larger project and is not the project itself.
+#
+#   - To incorporate the code in this directory into a project, there are two
+#     options:
+#       1.) Copy this source directory to be a subdirectory of the project
+#           source and use the 1-argument version of 'ADD_SUBDIRECTORY()'.
+#           This approach will make integration with version control either
+#           difficult or duplicative due to the copying of this code.
+#       2.) Add this directory to the project using the 2-argument version
+#           of 'ADD_SUBDIRECTORY()'.  This approach is preferred since it
+#           requires no copying of source code and does not complicate
+#           the management of the source code repository.
+#
+#   - Several configuration options are inherited from the project itself,
+#     such as the use of C++11, VTK support, OpenMP support, etc.  Enabling
+#     support for such features within this directory's code requires *first*
+#     enabling the desired features at the project-level.  For example, if
+#     OpenMP is disabled project-wide, it will not be supported by the code
+#     in this directory and that cannot be overridden.  However, if OpenMP
+#     is enabled in the project, it does not necessarily have to be enabled
+#     here.
+#
+#   - Several variables are exported to the parent directory using 'PARENT_SCOPE'.
+#     These variables are then accessible within the parent directory:
+#
+#           HEADERS             Standard C/C++ header files
+#
+#           HEADERS_QT          Qt-derived header files which require MOC
+#
+#           RESOURCES_QT        Qt-based resource files which require MOC
+#
+#           SOURCES             Standard C/C++ source files which require compilation
+#
+#           SOURCES_CUDA        CUDA source files (e.g., *.cu) which are to be
+#                               included into a single project-wide *.cu file
+#                               for NVCC to compile
+#
+#           SOURCES_QT          Qt-based C++ source files.  These do not require
+#                               MOC and are ready for normal compilation along
+#                               with 'SOURCES'
+#
+#           SOURCES_TEMPLATE    Standard C/C++ source files which are *NOT* to be
+#                               compiled due to their containing of templated
+#                               functions.  These files are expected to be
+#                               #include'd at the end of their respective headers
+#
+#           UI_QT               Qt-based interface-definition files (e.g., *.ui)
+#                               which require MOC
+#
+#   - To configure this CMakeLists.txt template for a source directory, do the following:
+#       1.) Rename this file to "CMakeLists.txt"
+#       2.) Set variables in the first two sections (basic options & file lists)
+#           - If no files are present for a given category, simply comment-out
+#             the lines used for the SET() command.  Comment symbol is hash: "#".
 #
 #
-#	2.) This setup does not actually compile a library.  Instead, the appropriate
-#	    files are added to PARENT_SCOPE variables so that an upper-level
-#	    CMakeLists.txt file may properly build.
 #
-
 
 
 
@@ -29,45 +73,161 @@
 #
 # ==============================================================================
 
+# Set name of code in this directory.  NO SPACES!
+SET(CODE_NAME "GenClasses")
+
+# Do a Find/Replace in this entire file:
+#   Find: GenClasses
+#   Replace: CodeName (Replace with the code name above)
+# Also update names in the generated header input file.
+
+
+# Set human-readable name of code in this directory.  Spaces are OK.
+SET(CODE_NAME_HUMAN "General C++ Classes")
+
+# Do a Find/Replace in this entire file:
+#   Find: General C++ Classes
+#   Replace: CodeName (Replace with the human-readable code name above)
+
+
+# Set name of developer for code in this directory.
+SET(CODE_DEVELOPER "RobertGrandin")
+
+
+# Set name of input/output for generated header file
+SET(GENERATED_HEADER_INPUT "GenClassesConfig.h.in")
+SET(GENERATED_HEADER_OUTPUT "GenClassesConfig.h")
+
+
+
+
+# ==============================================================================
+#
+#   Define header/source files for PARENT_SCOPE variables
+#
+# ==============================================================================
+
+
+# Standard headers -- These require no extra processing.  Includes headers for
+#                     templated classes.
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}) # Include source directory during compilation.
+set(HEADERS ${HEADERS}
+            PARENT_SCOPE)
+
+
+# Qt headers -- These require MOC pre-processing before compilation.
+set(HEADERS_QT ${HEADERS_QT}
+               "${CMAKE_CURRENT_LIST_DIR}/QSafeApplication.h"
+               "${CMAKE_CURRENT_LIST_DIR}/QtIntermediary.h"
+               "${CMAKE_CURRENT_LIST_DIR}/QtIntermediaryBase.h"
+               PARENT_SCOPE)
+
+
+# Qt resources --  These require MOC pre-processing before compilation.
+set(RESOURCES_QT ${RESOURCES_QT}
+                 PARENT_SCOPE)
+
+
+# Standard sources --  These require no extra processing.
+set(SOURCES ${SOURCES}
+            "${CMAKE_CURRENT_LIST_DIR}/ProgressInfo.cxx"
+            "${CMAKE_CURRENT_LIST_DIR}/StringManip.cxx"
+            PARENT_SCOPE)
+
+
+# CUDA sources -- These require the NVCC compiler.
+set(SOURCES_CUDA ${SOURCES_CUDA}
+                 PARENT_SCOPE)
+
+
+# Qt sources --  These require no extra processing.
+set(SOURCES_QT ${SOURCES_QT}
+               "${CMAKE_CURRENT_LIST_DIR}/QtIntermediary.cxx"
+               "${CMAKE_CURRENT_LIST_DIR}/QtIntermediaryBase.cxx"
+               PARENT_SCOPE)
+
+
+# Templated sources -- These are NOT to be compiled.  They should be #include'd at the
+#                      end of their respective header files.  This variable exists to
+#                      provide a convenient list/reference.
+set(SOURCES_TEMPLATE ${SOURCES_TEMPLATE}
+                     PARENT_SCOPE)
+
+
+# Qt user-interface definition files --  These require MOC pre-processing before compilation.
+set(UI_QT ${UI_QT}
+          PARENT_SCOPE)
+
+
+
+
+
+
+
+
+
+
+# ==============================================================================
+#
+#   NO EDITS REQUIRED BELOW HERE
+#
+# ==============================================================================
+
 # Require CMake version 2.8+
 cmake_minimum_required(VERSION 2.8)
 
-# Set name ofproject
-set(GENCLASSES_NAME "genCppClasses" PARENT_SCOPE)
 
 
-# Control build options and feature support.  Initial values are inherited from
-# parent directory.
-SET(GENCLASSES_CXX_11 ${USE_CXX_11} CACHE BOOL "Enable C++-11 Support within General-Use C++ classes" FORCE)
-SET(GENCLASSES_OPENMP ${USE_OPENMP} CACHE BOOL "Enable OpenMP Support within General-Use C++ classes" FORCE)
-SET(GENCLASSES_USE_QT ${USE_QT} CACHE BOOL "Enable Qt Functionality within General-Use C++ classes" FORCE)
-SET(GENCLASSES_USE_VTK ${USE_VTK} CACHE BOOL "Enable VTK Libraries within General-Use C++ classes" FORCE)
-SET(GENCLASSES_USE_FFTW ${USE_FFTW} CACHE BOOL "Enable FFTW support within General-Use C++ classes")
-
-# Mark these variables as advanced since they likely won't need to be adjusted
-MARK_AS_ADVANCED(GENCLASSES_CXX_11 GENCLASSES_OPENMP GENCLASSES_USE_QT GENCLASSES_USE_VTK GENCLASSES_USE_FFTW)
-
-if(GENCLASSES_USE_VTK)
-    MARK_AS_ADVANCED(CLEAR VTK_DIR)
-else()
-    MARK_AS_ADVANCED(VTK_DIR)
-endif()  
 
 
-# Add 'cmake-modules' to module search path
-#SET(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};../cmake-modules" PARENT_SCOPE)
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake-modules") 
+
+# ==============================================================================
+#
+#   Set local enable/disable options for feature-support & check against
+#   global option
+#
+# ==============================================================================
+
+# Set values.  Default to global settings.
+SET(${GenClasses_ENABLE_CXX11} ${USE_CXX_11} CACHE BOOL "Enable C++-11 support within General C++ Classes")
+SET(${GenClasses_ENABLE_OPENMP} ${USE_OPENMP} CACHE BOOL "OpenMP support within General C++ Classes")
+SET(${GenClasses_ENABLE_VTK} ${USE_VTK} CACHE BOOL "Enable VTK support within General C++ Classes")
+SET(${GenClasses_ENABLE_CUDA} ${USE_CUDA} CACHE BOOL "Enable CUDA support within General C++ Classes")
+SET(${GenClasses_ENABLE_QT} ${USE_QT} CACHE BOOL "Enable QT support within General C++ Classes")
 
 
-# Disable FFTW in General-Use classes if disabled globally
-if(GENCLASSES_USE_FFTW AND WIN32)
-    # Add current directory to CMAKE_MODULE_PATH to find FindFFTW.cmake
-    #SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR} PARENT_SCOPE)
-    #MESSAGE("CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
-    FIND_PACKAGE(FFTW REQUIRED)
-else()
-    SET(GENCLASSES_USE_FFTW FALSE)
-endif()
+# Mark these as advanced options.
+MARK_AS_ADVANCED(FORCE
+                 ${GenClasses_ENABLE_CXX11}
+                 ${GenClasses_ENABLE_OPENMP}
+                 ${GenClasses_ENABLE_VTK}
+                 ${GenClasses_ENABLE_CUDA}
+                 ${GenClasses_ENABLE_QT}
+                )
+
+
+# Check that local option is compatible with global option.  If a feature is globally
+# disabled it cannot be enabled here.  If a feature is globally enabled, it does not
+# have to be enabled here.
+IF(NOT ${USE_CXX_11})
+    SET(${GenClasses_ENABLE_CXX11} FALSE)
+ENDIF()
+
+IF(NOT ${USE_OPENMP})
+    SET(${GenClasses_ENABLE_OPENMP} FALSE)
+ENDIF()
+
+IF(NOT ${USE_VTK})
+    SET(${GenClasses_ENABLE_VTK} FALSE)
+ENDIF()
+
+IF(NOT ${USE_CUDA})
+    SET(${GenClasses_ENABLE_CUDA} FALSE)
+ENDIF()
+
+IF(NOT ${USE_QT})
+    SET(${GenClasses_ENABLE_QT} FALSE)
+ENDIF()
 
 
 
@@ -76,110 +236,11 @@ endif()
 
 # ==============================================================================
 #
-#   Set compiler flags
+#   Setup CMake-configured header file
 #
 # ==============================================================================
 
-
-# GCC
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if(GENCLASSES_CXX_11)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")    # Enable C++11 features
-        add_definitions(-DCXX11)
-    endif()
-
-    if(GENCLASSES_OPENMP)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")      # Enable OpenMP
-    endif()
-endif()
-
-
-# MSVC
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    if(GENCLASSES_CXX_11)
-        add_definitions(-DCXX11)
-    endif()
-
-    if(GENCLASSES_OPENMP)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")      # Enable OpenMP
-    endif()
-endif()
-
-
-
-
-
-
-# ==============================================================================
-#
-#   Define header/source files
-#
-# ==============================================================================
-
-
-# Define source files to be compiled into object files.  
-set(GENCLASSES_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ProgressInfo.cxx
-                      ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediaryBase.cxx
-                      ${CMAKE_CURRENT_SOURCE_DIR}/QtIntermediary.cxx
-                      ${CMAKE_CURRENT_SOURCE_DIR}/StringManip.cxx
+CONFIGURE_FILE(
+    "${CMAKE_CURRENT_LIST_DIR}/${GENERATED_HEADER_INPUT}"
+    "${CMAKE_CURRENT_LIST_DIR}/${GENERATED_HEADER_OUTPUT}"
     )
-
-
-
-# Define header files
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})   # Include source directory during compilation
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-file(GLOB_RECURSE GENCLASSES_HEADERS "*.h")        # Add all *.h files to "GEN_CLASSES_HEADERS"
-file(GLOB_RECURSE GENCLASSES_CPP "*.cpp")          # Add all *.cpp files to "GEN_CLASSES_CPP"
-
-
-# Add header and source files to project-wide variables.
-set(HEADERS ${HEADERS} ${GENCLASSES_HEADERS} PARENT_SCOPE)
-set(SOURCES ${SOURCES} ${GENCLASSES_SOURCE} PARENT_SCOPE)
-
-# NOTE: Files added to 'SOURCES' are 'compileable' sources, not templated sources which are
-#	included in their header files.
-
-
-
-
-
-
-
-# ==============================================================================
-#
-#   Set variables based on configuration options
-#
-# ==============================================================================
-
-# Use Qt
-if(GENCLASSES_USE_QT)
-    # Require Qt4
-    FIND_PACKAGE(Qt4 REQUIRED)
-    INCLUDE(${QT_USE_FILE})
-    ADD_DEFINITIONS(${QT_DEFINITIONS})
-
-    SET(QT_HEADERS ${QT_HEADERS}
-            QSafeApplication.h
-            QtIntermediary.h
-            QtIntermediaryBase.h
-            PARENT_SCOPE
-       )
-    # These headers are not actually processed yet.  This CMakeLists.txt file only
-    # adds them to 'QT_HEADERS' so that they can be processed at a later time
-
-endif()
-
-# Use VTK
-if(GENCLASSES_USE_VTK)
-    FIND_PACKAGE(VTK REQUIRED)
-    INCLUDE(${VTK_USE_FILE})
-
-	#SET(GENCLASSES_VTK_INCLUDE_DIR "VTK_INCLUDE_DIR-NOTFOUND" CACHE STRING "Path to include directory for VTK installation.")
-    
-	#include_directories(${GENCLASSES_VTK_INCLUDE_DIR})
-	include_directories(${VTK_INCLUDE_DIRS})
-    
-    add_definitions(-DUSE_VTK)
-
-endif()
