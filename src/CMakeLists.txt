@@ -112,6 +112,25 @@ SET(GENERATED_HEADER_OUTPUT "GenClassesConfig.h")
 #                     templated classes.
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}) # Include source directory during compilation.
 set(HEADERS ${HEADERS}
+            "${CMAKE_CURRENT_LIST_DIR}/ArrayBase.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Array1D.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Array2D.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Array3D.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Array4D.h"
+            "${CMAKE_CURRENT_LIST_DIR}/CFD2.h"
+            "${CMAKE_CURRENT_LIST_DIR}/DLList.h"
+            "${CMAKE_CURRENT_LIST_DIR}/SLList.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Grid1D.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Grid2D.h"
+            "${CMAKE_CURRENT_LIST_DIR}/MPI_Custom.h"
+            "${CMAKE_CURRENT_LIST_DIR}/ODE.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Stats.h"
+            "${CMAKE_CURRENT_LIST_DIR}/RootFinding.h"
+            "${CMAKE_CURRENT_LIST_DIR}/StringManip.h"
+            "${CMAKE_CURRENT_LIST_DIR}/Tree2.h"
+            "${CMAKE_CURRENT_LIST_DIR}/UnitConvert.h"
+            "${CMAKE_CURRENT_LIST_DIR}/UniformVolume.h"
+            "${CMAKE_CURRENT_LIST_DIR}/XdmfIO.h"
             PARENT_SCOPE)
 
 
@@ -151,6 +170,25 @@ set(SOURCES_QT ${SOURCES_QT}
 #                      end of their respective header files.  This variable exists to
 #                      provide a convenient list/reference.
 set(SOURCES_TEMPLATE ${SOURCES_TEMPLATE}
+                    "${CMAKE_CURRENT_LIST_DIR}/ArrayBase.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Array1D.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Array2D.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Array3D.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Array4D.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/CFD2.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/DLList.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/SLList.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Grid1D.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Grid2D.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/MPI_Custom.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/ODE.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Stats.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/RootFinding.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/StringManip.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/Tree2.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/UnitConvert.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/UniformVolume.cpp"
+                    "${CMAKE_CURRENT_LIST_DIR}/XdmfIO.cpp"
                      PARENT_SCOPE)
 
 
@@ -189,20 +227,20 @@ cmake_minimum_required(VERSION 2.8)
 # ==============================================================================
 
 # Set values.  Default to global settings.
-SET(${GenClasses_ENABLE_CXX11} ${USE_CXX_11} CACHE BOOL "Enable C++-11 support within General C++ Classes")
-SET(${GenClasses_ENABLE_OPENMP} ${USE_OPENMP} CACHE BOOL "OpenMP support within General C++ Classes")
-SET(${GenClasses_ENABLE_VTK} ${USE_VTK} CACHE BOOL "Enable VTK support within General C++ Classes")
-SET(${GenClasses_ENABLE_CUDA} ${USE_CUDA} CACHE BOOL "Enable CUDA support within General C++ Classes")
-SET(${GenClasses_ENABLE_QT} ${USE_QT} CACHE BOOL "Enable QT support within General C++ Classes")
+SET(GenClasses_ENABLE_CXX11 ${USE_CXX_11} CACHE BOOL "Enable C++-11 support within General C++ Classes")
+SET(GenClasses_ENABLE_OPENMP ${USE_OPENMP} CACHE BOOL "OpenMP support within General C++ Classes")
+SET(GenClasses_ENABLE_VTK ${USE_VTK} CACHE BOOL "Enable VTK support within General C++ Classes")
+SET(GenClasses_ENABLE_CUDA ${USE_CUDA} CACHE BOOL "Enable CUDA support within General C++ Classes")
+SET(GenClasses_ENABLE_QT ${USE_QT} CACHE BOOL "Enable QT support within General C++ Classes")
 
 
 # Mark these as advanced options.
 MARK_AS_ADVANCED(FORCE
-                 ${GenClasses_ENABLE_CXX11}
-                 ${GenClasses_ENABLE_OPENMP}
-                 ${GenClasses_ENABLE_VTK}
-                 ${GenClasses_ENABLE_CUDA}
-                 ${GenClasses_ENABLE_QT}
+                 GenClasses_ENABLE_CXX11
+                 GenClasses_ENABLE_OPENMP
+                 GenClasses_ENABLE_VTK
+                 GenClasses_ENABLE_CUDA
+                 GenClasses_ENABLE_QT
                 )
 
 
@@ -210,23 +248,23 @@ MARK_AS_ADVANCED(FORCE
 # disabled it cannot be enabled here.  If a feature is globally enabled, it does not
 # have to be enabled here.
 IF(NOT ${USE_CXX_11})
-    SET(${GenClasses_ENABLE_CXX11} FALSE)
+    SET(GenClasses_ENABLE_CXX11 FALSE)
 ENDIF()
 
 IF(NOT ${USE_OPENMP})
-    SET(${GenClasses_ENABLE_OPENMP} FALSE)
+    SET(GenClasses_ENABLE_OPENMP FALSE)
 ENDIF()
 
 IF(NOT ${USE_VTK})
-    SET(${GenClasses_ENABLE_VTK} FALSE)
+    SET(GenClasses_ENABLE_VTK FALSE)
 ENDIF()
 
 IF(NOT ${USE_CUDA})
-    SET(${GenClasses_ENABLE_CUDA} FALSE)
+    SET(GenClasses_ENABLE_CUDA FALSE)
 ENDIF()
 
 IF(NOT ${USE_QT})
-    SET(${GenClasses_ENABLE_QT} FALSE)
+    SET(GenClasses_ENABLE_QT FALSE)
 ENDIF()
 
 

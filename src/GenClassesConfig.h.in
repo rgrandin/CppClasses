@@ -1,7 +1,7 @@
 /**
- * @file GenClassesConfig.h
- * @author Robert Grandin
- * @brief Contains CMake-based defines to configure General-Use C++ classes.
+ * @file @CODE_NAME@Config.h
+ * @author @CODE_DEVELOPER@
+ * @brief Define options for @CODE_NAME_HUMAN@ code.
  */
 
 
