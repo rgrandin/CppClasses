@@ -586,10 +586,10 @@ void DataFilters<T>::Sinc2D_GetFFT(const size_t nfft1, const size_t nfft2,
 		T wint1 = 2.0e0*PI/(T)nfft1;
 		T wint2 = 2.0e0*PI/(T)nfft2;
         T w1, w2;
-        T expof1 = exp(1.0e0);
+//        T expof1 = exp(1.0e0);
 
         /* Calculate filter. */
-        double scale = 1.0e0/((double)n_sinc_fft);
+//        double scale = 1.0e0/((double)n_sinc_fft);
         for(size_t i=0; i<nfft2; i++){
             w2 = (T)i*wint2;
             if(w2 > PI){ w2 -= 2.0e0*PI; }
@@ -609,15 +609,18 @@ void DataFilters<T>::Sinc2D_GetFFT(const size_t nfft1, const size_t nfft2,
                     /* Weighted sum of exponential attenuation values. */
                     T expval = w1*w1/r/r*expatten1 + w2*w2/r/r*expatten2;
 
-                    /* Calculate normalization factors so maximum filter amplitude is 1.0. */
-                    T normfactor = expval*0.5e0*expof1;     /* Only valid if 1/expval > PI */
+//                    /* Calculate normalization factors so maximum filter amplitude is 1.0. */
+//                    T normfactor = expval*0.5e0*expof1;     /* Only valid if 1/expval > PI */
 
-                    if(expval < 1.0e0/PI){
-                        normfactor = 0.5e0*expf(PI*r)/PI;   /* For case where 1/expval < PI */
-                    }
+//                    if(expval < 1.0e0/PI){
+//                        normfactor = 0.5e0*expf(PI*r)/PI;   /* For case where 1/expval < PI */
+//                    }
+
+//                    normfactor = (T)1.0e0;      /* Reset to disable scaling effect. */
+
 
                     /* Set filter magnitude. */
-                    sinc_fft[i*nfft1+j][0] = 2.0e0*r*exp(-r*expval)*scale*normfactor;
+                    sinc_fft[i*nfft1+j][0] = 2.0e0*r*exp(-r*expval);//*scale*normfactor;
                     sinc_fft[i*nfft1+j][1] = 0.0e0;
 
                 } /* Conditional on i == 0 && j == 0 */
