@@ -973,6 +973,26 @@ public:
     bool DataFromVTK() const;
 
 
+    /**
+     * @brief Set the flag to convert coordinate systems during file IO.
+     *
+     * This converts between the coordinate system used by my reconstruction code (X,Y,Z)
+     * and the coordinate system used by CNDE experimental facilities (Y,Z,X).
+     * @param convert If true, conversion will occur.  If false, no conversion will occur.
+     */
+    void setConvertCoordSystems(const bool convert);
+
+
+    /**
+     * @brief Get the coordinate system conversion flag status.
+     *
+     * This converts between the coordinate system used by my reconstruction code (X,Y,Z)
+     * and the coordinate system used by CNDE experimental facilities (Y,Z,X).
+     * @return Flag status.
+     */
+    bool ConvertCoordSystems() const;
+
+
 
 
 
@@ -1117,6 +1137,11 @@ protected:
 
     /** @brief Flags if data was read-in using VTK library.  */
     bool data_from_vtk;
+
+    /** @brief Flags if data is to have coordinate system transformed during IO.  This
+     * converts between the coordinate system used by my reconstruction code (X,Y,Z)
+     * and the coordinate system used by CNDE experimental facilities (Y,Z,X). */
+    bool convert_coord_sys;
 
 
 
@@ -1335,6 +1360,7 @@ private:
         std::swap(first.scalar_data, second.scalar_data);
         std::swap(first.scalar_data_size, second.scalar_data_size);
         std::swap(first.scalar_data_points_read, second.scalar_data_points_read);
+        std::swap(first.convert_coord_sys, second.convert_coord_sys);
     }
 
 
