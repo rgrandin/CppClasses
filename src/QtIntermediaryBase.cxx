@@ -133,7 +133,7 @@ void QtIntermediaryBase::EmitFunctionDesc(QString desc)
 #endif
 
 
-void QtIntermediaryBase::EmitFunctionDesc(std::string desc)
+void QtIntermediaryBase::EmitFunctionDesc(std::string &desc)
 {
 #ifdef USEQT
     QString qdesc = QString::fromStdString(desc);
@@ -146,7 +146,7 @@ void QtIntermediaryBase::EmitFunctionDesc(std::string desc)
 }
 
 
-void QtIntermediaryBase::EmitFunctionDesc2(std::string desc)
+void QtIntermediaryBase::EmitFunctionDesc2(std::string &desc)
 {
 #ifdef USEQT
     QString qdesc = QString::fromStdString(desc);

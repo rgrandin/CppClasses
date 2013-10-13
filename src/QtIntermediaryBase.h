@@ -228,7 +228,7 @@ public slots:
       @post No changes to object.
       @return None.
     */
-    void EmitFunctionDesc(std::string desc);
+    void EmitFunctionDesc(std::string &desc);
 
 
     /**
@@ -242,7 +242,7 @@ public slots:
       @post No changes to object.
       @return None.
     */
-    void EmitFunctionDesc2(std::string desc);
+    void EmitFunctionDesc2(std::string &desc);
 
 
     /**

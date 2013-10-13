@@ -1893,7 +1893,8 @@ void UniformVolume<T>::VTKWriteBinary()
          * signal to update the interface, and call the function to write the specified portion of the data. */
         std::stringstream tmpss;
         tmpss << "Writing volume file " << i+1 << " of " << ntasks;
-        qtsignals->EmitFunctionDesc2(tmpss.str());
+        std::string str(tmpss.str());
+        qtsignals->EmitFunctionDesc2(str);
 
         UniformVolume<T>::VTKWriteBinaryPartial(first_slice, num_slices, slice_min);
     }
@@ -1971,7 +1972,8 @@ void UniformVolume<T>::VTKWriteBinaryBitFlip()
          * signal to update the interface, and call the function to write the specified portion of the data. */
         std::stringstream tmpss;
         tmpss << "Writing volume file " << i+1 << " of " << ntasks;
-        qtsignals->EmitFunctionDesc2(tmpss.str());
+        std::string str(tmpss.str());
+        qtsignals->EmitFunctionDesc2(str);
 
         UniformVolume<T>::VTKWriteBinaryBitFlipPartial(first_slice, num_slices, slice_min);
     }
@@ -3750,7 +3752,8 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     std::string filename;
     filename = outputdir + "/" + filenamestem;
 
-    qtsignals->EmitFunctionDesc2("Writing XDMF File");
+    std::string str("Writing XDMF File");
+    qtsignals->EmitFunctionDesc2(str);
 
     vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
     imageImport->GlobalWarningDisplayOn();
@@ -3806,7 +3809,8 @@ void UniformVolume<T>::WriteXdmf(const int compression)
 #endif
     writer->Write();
 
-    qtsignals->EmitFunctionDesc2("");
+    str = "";
+    qtsignals->EmitFunctionDesc2(str);
 #else
     std::cerr << "ERROR  UniformVolume::WriteXDMF():  Writing XDMF file " <<
                  "requires compilation with VTK-library support." << std::endl;
@@ -3846,7 +3850,8 @@ void UniformVolume<T>::VTKWriteImageData()
     std::string filename;
     filename = outputdir + "/" + filenamestem;
 
-    qtsignals->EmitFunctionDesc2("Writing VTK File");
+    std::string str("Writing VTK File");
+    qtsignals->EmitFunctionDesc2(str);
 
     vtkSmartPointer<vtkImageImport> imageImport = vtkSmartPointer<vtkImageImport>::New();
     imageImport->SetDataSpacing((double)xspacing, (double)yspacing, (double)zspacing);
@@ -3902,7 +3907,8 @@ void UniformVolume<T>::VTKWriteImageData()
         writer->Write();
     }
 
-    qtsignals->EmitFunctionDesc2("");
+    str = "";
+    qtsignals->EmitFunctionDesc2(str);
 #else
     std::cerr << "ERROR  UniformVolume::VTKWriteImageData() requires compilation with VTK-library support." << std::endl;
 #endif
