@@ -191,8 +191,12 @@ int UniformVolume<T>::WriteVOLFile(
 
     pixelsPerVolume = z*x*y;
 
+    /* Voxel state array is used to set initial visibility within 3D visualization program.  For files
+     * intended for use with that program, 'stateValidFlag' should be set to 'Y'.  For files which
+     * won't be used with that program, the flag can be set to 'N' and the resulting file will then
+     * be 20% smaller.  The actual data in the file is not affected. */
     stateValidFlg='Y';
-    //stateValidFlg='N';  /* Do not write extra state array at end of data to avoid increasing file size by 25%. */
+
     sprintf(countStr,"%dx%dx%d",x, y, z);
     sprintf(endSliceStr, "Volume Size: %s\n", countStr);
     sprintf(extraInfoStr, " ");
