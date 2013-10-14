@@ -4,24 +4,6 @@
  * @date 17 Aug 2011
  * @brief Definition of PArrayBase class.
  *
- * @section Class Description & Notes
- *
- * This class contains the base members and functions for arrays.  A container for
- * the data is provided, along with functions for accessing the data and querying
- * its properties.
- *
- * Bounds-checking during array access is performed if RELEASE is not defined.
- * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
- * using '-DRELEASE' on gcc, will disable bounds-checking.
- *
- * Assert statements are enabled by default, and can be disabled using
- * 'define NDEBUG' or '-DNDEBUG'.  When RELEASE is defined, assert statements
- * are not used.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  *
  * @section Revisions
@@ -85,6 +67,23 @@
 
 /**
  * @brief Base class for arrays of pointers.
+ *
+ * This class contains the base members and functions for arrays.  A container for
+ * the data is provided, along with functions for accessing the data and querying
+ * its properties.
+ *
+ * Bounds-checking during array access is performed if RELEASE is not defined.
+ * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
+ * using '-DRELEASE' on gcc, will disable bounds-checking.
+ *
+ * Assert statements are enabled by default, and can be disabled using
+ * 'define NDEBUG' or '-DNDEBUG'.  When RELEASE is defined, assert statements
+ * are not used.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

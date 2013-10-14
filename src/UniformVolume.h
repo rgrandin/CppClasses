@@ -4,62 +4,6 @@
  * @date 15 Oct 2010
  * @brief Definition of UniformVolume class.
  *
- * @section Class Description & Notes
- *
- * This class represents a 3-dimensional volume discretized into uniformly-sized
- * voxels (volume elements).  Grid spacing is uniform along each direction, but
- * does not need to be uniform between dimensions (i.e., x-spacing and y-spacing
- * can be different, but along the x-direction the spacing is uniform).
- *
- * An arbitrary number of scalar and vector quantities can be represented at each
- * voxel.  The number of quantities can be specified when an instance of of this
- * is declared, as well as anytime after that.  Quantities can also be deleted.
- *
- * Spatial parameters for the minimum and maximum extents can be specified,
- * making it possible to relate voxel position and size with a physical region in
- * space.
- *
- * The Qt Framework is used to provide functionality with graphical user interfaces
- * (GUIs).  Member functions which may require significant time to execute will emit
- * signals containing their progress so that a GUI can be updated accordingly.
- * If this class is to be used in a non-graphical application, two compilation
- * options exist.  In either case, no changes need to be made to this class.
- *  1 If the program is compiled with the Qt libraries, no special action needs
- *    to be take with respect to this class.  The normal Qt compilation proceedure
- *    should work.
- *  1 If Qt libraries are not available, or are not to be used, define the symbol
- *    NOQT with the compiler to disable Qt functionality for the entire application
- *    (and by extension, this class).
- *
- * Qt-specific functionality is handled by the parent class of this object, QtIntermediary.
- * QtIntermediary handles the details related to Qt vs. non-Qt compilation.  This class
- * does not require modification when either enabling or disabling Qt.
- *
- * By default, bounds-checking and error-checking measures are enabled for this class.
- * These can be disabled by defining RELEASE at compile-time.  Disabling them is
- * recommended for performance reasons once the program has been debugged.
- *
- * Some functionality changes are required when compiling this on Windows with the MSVC
- * compiler and linking against the VTK libraries.  Any such changes are controlled by
- * the definition of the symbol 'WIN_MSVC'.
- *
- * Reading and writing volume data is handled using the VTK library.  The VTK shared library
- * files (e.g., *.so and *.dll) must be present when linking an application using this class.
- * Note that legacy VTK files and CNDE VOL formats are supported without requiring use of
- * the VTK libraries.
- *
- * When reading/writing CNDE VOL files a coordinate transformation is performed.  This is
- * due to differing coordinate systems between the legacy data acquisition systems at CNDE
- * and my reconstruction code.  This class was developed to support my reconstruction code,
- * and thus its (x, y, z) axes are by-default in that orientation.  The coordinate transformation
- * is provided as a matter of convenience to provide compatibility with existing data viewers
- * expecting the legacy orientation.  The coordinate transformation can be disabled
- * by defining the symbol VOL_NO_TRANSPOSE in your application.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  *
  * @section Revisions
@@ -166,6 +110,61 @@
 
 /**
  * @brief Representation of 3-dimensional volumetric data.
+ *
+ * This class represents a 3-dimensional volume discretized into uniformly-sized
+ * voxels (volume elements).  Grid spacing is uniform along each direction, but
+ * does not need to be uniform between dimensions (i.e., x-spacing and y-spacing
+ * can be different, but along the x-direction the spacing is uniform).
+ *
+ * An arbitrary number of scalar and vector quantities can be represented at each
+ * voxel.  The number of quantities can be specified when an instance of of this
+ * is declared, as well as anytime after that.  Quantities can also be deleted.
+ *
+ * Spatial parameters for the minimum and maximum extents can be specified,
+ * making it possible to relate voxel position and size with a physical region in
+ * space.
+ *
+ * The Qt Framework is used to provide functionality with graphical user interfaces
+ * (GUIs).  Member functions which may require significant time to execute will emit
+ * signals containing their progress so that a GUI can be updated accordingly.
+ * If this class is to be used in a non-graphical application, two compilation
+ * options exist.  In either case, no changes need to be made to this class.
+ *  1 If the program is compiled with the Qt libraries, no special action needs
+ *    to be take with respect to this class.  The normal Qt compilation proceedure
+ *    should work.
+ *  1 If Qt libraries are not available, or are not to be used, define the symbol
+ *    NOQT with the compiler to disable Qt functionality for the entire application
+ *    (and by extension, this class).
+ *
+ * Qt-specific functionality is handled by the parent class of this object, QtIntermediary.
+ * QtIntermediary handles the details related to Qt vs. non-Qt compilation.  This class
+ * does not require modification when either enabling or disabling Qt.
+ *
+ * By default, bounds-checking and error-checking measures are enabled for this class.
+ * These can be disabled by defining RELEASE at compile-time.  Disabling them is
+ * recommended for performance reasons once the program has been debugged.
+ *
+ * Some functionality changes are required when compiling this on Windows with the MSVC
+ * compiler and linking against the VTK libraries.  Any such changes are controlled by
+ * the definition of the symbol 'WIN_MSVC'.
+ *
+ * Reading and writing volume data is handled using the VTK library.  The VTK shared library
+ * files (e.g., *.so and *.dll) must be present when linking an application using this class.
+ * Note that legacy VTK files and CNDE VOL formats are supported without requiring use of
+ * the VTK libraries.
+ *
+ * When reading/writing CNDE VOL files a coordinate transformation is performed.  This is
+ * due to differing coordinate systems between the legacy data acquisition systems at CNDE
+ * and my reconstruction code.  This class was developed to support my reconstruction code,
+ * and thus its (x, y, z) axes are by-default in that orientation.  The coordinate transformation
+ * is provided as a matter of convenience to provide compatibility with existing data viewers
+ * expecting the legacy orientation.  The coordinate transformation can be disabled
+ * by defining the symbol VOL_NO_TRANSPOSE in your application.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

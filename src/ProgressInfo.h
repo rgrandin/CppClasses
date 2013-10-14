@@ -4,14 +4,6 @@
  * @date 19 Nov 2012
  * @brief Definition of ProgressInfo class.
  *
- * @section Class Description & Notes
- *
- * This class contains information about function execution progress.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  *
  * @section Revisions
@@ -60,7 +52,12 @@
 
 
 /**
-  @brief Class to contain function progress information.
+  @brief  This class contains information about function execution progress.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
   @warning This class contains no checks for thread-safety.  It is left to the programmer to ensure
     that the accessing and setting of member variables is done correctly.
   @warning C++11 functionality, such as the move-constructor and move-assignment, requires the symbol "CXX11"

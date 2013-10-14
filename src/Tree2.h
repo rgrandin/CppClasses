@@ -4,29 +4,6 @@
  * @date 15 March 2012
  * @brief Definition of Tree2 class.
  *
- * @section Class Description & Notes
- *
- * This class representds data structered as a tree with each node having 0, 1, or 2
- * children.  Further, the link between each node may be quantified (e.g., a distance
- * between nodes may be specified).
- *
- * The tree can be visualized in the following image (image provided by Dr. Karin Dorman,
- * Iowa State University).  Note that in this particular image the dashed line has a length
- * of 0 so that S1, S2, and S11 are all children of S0 while still only requiring the use
- * of two children per node.
- * @image html tree2.png "Example tree structure"
- * @image latex tree2.png "Example tree structure" width=7.5cm
- *
- * Any instance of this class created with the copy constructor can access all
- * data in the tree and traverse the nodes.  These copied instances cannot add,
- * delete, or modify nodes.  Only the original instance can modify nodes.  Due to a
- * large number of the member functions requiring the ability to modify nodal properties,
- * the copy constructor is not currently provided.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -89,7 +66,29 @@
  *
  * This is templated by the datatype used to quantify the link between
  *  nodes.  Multiple datatypes for these links within the same tree is not permitted.
- *  @image html tree2.png
+ *
+ * This class representds data structered as a tree with each node having 0, 1, or 2
+ * children.  Further, the link between each node may be quantified (e.g., a distance
+ * between nodes may be specified).
+ *
+ * The tree can be visualized in the following image (image provided by Dr. Karin Dorman,
+ * Iowa State University).  Note that in this particular image the dashed line has a length
+ * of 0 so that S1, S2, and S11 are all children of S0 while still only requiring the use
+ * of two children per node.
+ * @image html tree2.png "Example tree structure"
+ * @image latex tree2.png "Example tree structure" width=7.5cm
+ *
+ * Any instance of this class created with the copy constructor can access all
+ * data in the tree and traverse the nodes.  These copied instances cannot add,
+ * delete, or modify nodes.  Only the original instance can modify nodes.  Due to a
+ * large number of the member functions requiring the ability to modify nodal properties,
+ * the copy constructor is not currently provided.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
+ * @image html tree2.png
  * @param T Datatype used to quantify the inter-node links.
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.

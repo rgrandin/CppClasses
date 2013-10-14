@@ -4,17 +4,6 @@
  * @date 28 November 2010
  * @brief Definition of RootFinding class.
  *
- * @section Class Description & Notes
- *
- * This class contains routines to be used for finding the zero-points of
- * functions.  All calculations are done using the precision of the class as-
- * indicated by template parameter T.  As such, unexpected behavior may result
- * if this class is used for integer calculations.
- *
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
  *
  *
  * @section Revisions
@@ -69,6 +58,17 @@
 
 /**
  * @brief Class for routines used to find roots of equations.
+ *
+ * This class contains routines to be used for finding the zero-points of
+ * functions.  All calculations are done using the precision of the class as-
+ * indicated by template parameter T.  As such, unexpected behavior may result
+ * if this class is used for integer calculations.
+ *
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

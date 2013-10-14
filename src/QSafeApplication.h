@@ -4,15 +4,6 @@
  * @date 17 Nov 2012
  * @brief Definition @e and implementation of QSafeApplication class.
  *
- * @section Class Description & Notes
- *
- * This class reimplements QApplication::notify to enable exception, catching.
- * If an exception is caught, a descriptive message is written to std::cerr.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -67,10 +58,12 @@
 
 
 /**
- * @brief The SafeApplication class reimplements QApplication.
+ * @brief  This class reimplements QApplication::notify to enable exception, catching.
+ * If an exception is caught, a descriptive message is written to std::cerr.
  *
- * This is done to redefine QApplication::notify to enable exception-catching.
- *  If an exception is caught, a descriptive message is written to std::cerr.
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
  */
 class SafeApplication : public QApplication {
 public:

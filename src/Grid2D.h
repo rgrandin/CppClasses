@@ -4,39 +4,6 @@
  * @date 26 November 2010
  * @brief Definition of Grid2D class.
  *
- * @section Class Description & Notes
- *
- * This class represents a 2-dimensional regular grid for use in
- * computational mechanics.  In this class the  ollowing direction-notation is used:
- * 	- Horizontal direction
- * 		- Also known as "x" in spatial coordinates (in the event that the grid
- * 		  is aligned with spatial directions).
- * 		- Uses index "j" in the computational space (column index).
- * 		- Uses greek letter "zi" in the determination of derivatives and the
- * 		  relating of spatial and computational derivatives.
- *
- *  - Vertical direction
- * 		- Also known as "y" in spatial coordinates (in the event that the grid
- * 		  is aligned with spatial directions).
- * 		- Uses index "i" in the computational space (row index).
- * 		- Uses greek letter "eta" in the determination of derivatives and the
- * 		  relating of spatial and computational derivatives.
- *
- * Member arrays containing grid information, such as coordinates of grid points
- * and grid metrics, are public members to simplify their use in solution algorithms.
- * Solution algorithms are deliberately left out of this class and the focus of this
- * class is kept on the storing of grid information and the data associated with each
- * grid point.
- *
- * Bounds-checking during array access is performed if RELEASE is not defined.
- * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
- * using '-DRELEASE' on gcc, will disable bounds-checking.
- *
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -99,6 +66,38 @@
 /**
  * @brief Two-dimensional grid generation and manipulation for use with
  * 			computational mechanics applications.
+ *
+ * This class represents a 2-dimensional regular grid for use in
+ * computational mechanics.  In this class the  ollowing direction-notation is used:
+ * 	- Horizontal direction
+ * 		- Also known as "x" in spatial coordinates (in the event that the grid
+ * 		  is aligned with spatial directions).
+ * 		- Uses index "j" in the computational space (column index).
+ * 		- Uses greek letter "zi" in the determination of derivatives and the
+ * 		  relating of spatial and computational derivatives.
+ *
+ *  - Vertical direction
+ * 		- Also known as "y" in spatial coordinates (in the event that the grid
+ * 		  is aligned with spatial directions).
+ * 		- Uses index "i" in the computational space (row index).
+ * 		- Uses greek letter "eta" in the determination of derivatives and the
+ * 		  relating of spatial and computational derivatives.
+ *
+ * Member arrays containing grid information, such as coordinates of grid points
+ * and grid metrics, are public members to simplify their use in solution algorithms.
+ * Solution algorithms are deliberately left out of this class and the focus of this
+ * class is kept on the storing of grid information and the data associated with each
+ * grid point.
+ *
+ * Bounds-checking during array access is performed if RELEASE is not defined.
+ * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
+ * using '-DRELEASE' on gcc, will disable bounds-checking.
+ *
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

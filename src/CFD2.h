@@ -4,46 +4,6 @@
  * @date 25 March 2012
  * @brief Definition of CFD2 namespace.
  *
- * @section Class Description & Notes
- *
- * This collection of functions is for use in solving hyperbolic partial differential
- * equations.  The member functions of this class are targed towards their use in solving
- * computational fluid dynamics (CFD) problems.
- *
- * These functions are intended for 2-dimensional problems of the form
- * @f$ \frac{\partial Q}{\partial t} + \frac{\partial E}{\partial x} + \frac{\partial F}{\partial y} = 0 @f$,
- * where Q, E, and F are 4-element vectors corresponding to density, x-velocity, y-velocity, and total energy.
- *
- * The physical quantities associated with the Grid2D object are expected to be as follows (unless otherwise noted
- * in the documentation for specific functions):
- *  - 1st scalar quantity: density
- *  - 2nd scalar quantity: total energy
- *  - 3rd scalar quantity: pressure
- *  - 1st vector quantity: velocity (2D velocity, with 3rd component equal to 0)
- *  - 2nd vector quantity: momentum (2D momentum, with 3rd component equal to 0)
- *
- * The density, total energy, and momentum are used in the calculations, with pressure and velocity calculated
- * later.
- *
- * These equations are formulated using a node-centered approach.
- *
- * MPI commands are used within this class.  To enable MPI support, USEMPI must be defined at compile time
- * (-DUSEMPI using the GCC compiler).
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
- *
- * <b>CURRENT ASSUMPTIONS</b>
- *
- * These functions assume that the "lower" boundary (y = ymin for all x) is a line of symmetry
- * in the problem while the "upper" boundary (y = ymax for all x) is a hard physical boundary
- * similar to a wall (i.e., no normal flow allowed while tangential flow is acceptable).  The
- * first and last column in the grid are assumed to be the applied boundary conditions and are not
- * modified by these routines.
- *
- *
  * @section Revisions
  *
  * @date 25 March 2012
@@ -97,8 +57,44 @@
 
 
 /**
-  @brief Collection of functions for solving 2D CFD problems.  See the documentation for CFD2.h
-    for more detailed information regarding this collection of functions.
+ * @brief Collection of functions for solving 2D CFD problems.
+ *
+ * This collection of functions is for use in solving hyperbolic partial differential
+ * equations.  The member functions of this class are targed towards their use in solving
+ * computational fluid dynamics (CFD) problems.
+ *
+ * These functions are intended for 2-dimensional problems of the form
+ * @f$ \frac{\partial Q}{\partial t} + \frac{\partial E}{\partial x} + \frac{\partial F}{\partial y} = 0 @f$,
+ * where Q, E, and F are 4-element vectors corresponding to density, x-velocity, y-velocity, and total energy.
+ *
+ * The physical quantities associated with the Grid2D object are expected to be as follows (unless otherwise noted
+ * in the documentation for specific functions):
+ *  - 1st scalar quantity: density
+ *  - 2nd scalar quantity: total energy
+ *  - 3rd scalar quantity: pressure
+ *  - 1st vector quantity: velocity (2D velocity, with 3rd component equal to 0)
+ *  - 2nd vector quantity: momentum (2D momentum, with 3rd component equal to 0)
+ *
+ * The density, total energy, and momentum are used in the calculations, with pressure and velocity calculated
+ * later.
+ *
+ * These equations are formulated using a node-centered approach.
+ *
+ * MPI commands are used within this class.  To enable MPI support, USEMPI must be defined at compile time
+ * (-DUSEMPI using the GCC compiler).
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
+ *
+ * <b>CURRENT ASSUMPTIONS</b>
+ *
+ * These functions assume that the "lower" boundary (y = ymin for all x) is a line of symmetry
+ * in the problem while the "upper" boundary (y = ymax for all x) is a hard physical boundary
+ * similar to a wall (i.e., no normal flow allowed while tangential flow is acceptable).  The
+ * first and last column in the grid are assumed to be the applied boundary conditions and are not
+ * modified by these routines.
 */
 namespace CFD2 {
 

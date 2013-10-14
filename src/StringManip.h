@@ -4,15 +4,6 @@
  * @date 24 November 2010
  * @brief Definition @e and implementation of StringManip namespace.
  *
- * @section Description & Notes
- *
- * This header file contains functions useful in manipulating string data.
- *
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -71,6 +62,13 @@
 
 /**
  * @brief Namespace for functions used to manipulate strings.
+ *
+ * This header file contains functions useful in manipulating string data.
+ *
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
  */
 namespace StringManip {
 

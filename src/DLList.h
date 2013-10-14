@@ -4,27 +4,6 @@
  * @date 28 September 2011
  * @brief Definition of DLList class.
  *
- * @section Class Description & Notes
- *
- * This class is intended to assist with the management of singly-linked lists.
- * To use this class, the structure for each node must be previously declared
- * using a 'typedef' statement.  This newly-defined type is then used as the
- * template parameter for this class.  This class is heavily inspired by sample
- * code found at http://www.inversereality.org/tutorials/c++/linkedlists.html.
- *
- * Each node in this class stores data in an array, allowing multiple values to
- * be associated with each node.  Each value must have the same datatype since
- * the all reside in the same array.
- *
- * Any instance of this class created with the copy constructor can access all
- * data in the list and traverse the nodes.  These copied instances cannot add,
- * delete, or modify nodes.  Only the original instance can modify nodes.
- *
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -82,6 +61,26 @@
  * @brief Class for the management of singly-linked lists.  This is templated by
  * 		the datatype stored at each node and the number of data elements at each
  * 		node.  Multiple datatypes at each node is not supported.
+ *
+ * This class is intended to assist with the management of singly-linked lists.
+ * To use this class, the structure for each node must be previously declared
+ * using a 'typedef' statement.  This newly-defined type is then used as the
+ * template parameter for this class.  This class is heavily inspired by sample
+ * code found at http://www.inversereality.org/tutorials/c++/linkedlists.html.
+ *
+ * Each node in this class stores data in an array, allowing multiple values to
+ * be associated with each node.  Each value must have the same datatype since
+ * the all reside in the same array.
+ *
+ * Any instance of this class created with the copy constructor can access all
+ * data in the list and traverse the nodes.  These copied instances cannot add,
+ * delete, or modify nodes.  Only the original instance can modify nodes.
+ *
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @param T Datatype used to store the data at each node.
  * @param I Number of elements of datatype T stored at each node.
  *

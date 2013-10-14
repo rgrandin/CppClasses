@@ -4,15 +4,6 @@
  * @date 23 March 2013
  * @brief Definition of namespace to facilitate data IO with XDMF/HDF5 format.
  *
- * @section Description & Notes
- *
- * This class implements functions to read/write data contained within the Array1D,
- * Array2D, Array3D, and Array4D data structures.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -67,7 +58,15 @@
 #include <Array1D.h>
 
 
-/** @brief Namespace containing functions for reading and writing Array data using the XDMF file format. */
+/** @brief Namespace containing functions for reading and writing Array data using the XDMF file format.
+
+ This namespace implements functions to read/write data contained within the Array1D,
+ * Array2D, Array3D, and Array4D data structures.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ */
 namespace XdmfIO
 {
 

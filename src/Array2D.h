@@ -4,32 +4,6 @@
  * @date 15 Oct 2010
  * @brief Definition of Array2D class.
  *
- * @section Class Description & Notes
- *
- * This class contains the definition of a 2-dimensional array.  The low-level
- * memory management functions are all handled internally and array elements are
- * accessed via public member functions and overloaded operators.  The object can
- * be queried for its size, both in number of points and memory required to hold
- * the data and its attributes.
- *
- * Bounds-checking during array access is performed if RELEASE is not defined.
- * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
- * using '-DRELEASE' on gcc, will disable bounds-checking.
- *
- * The transpose function makes use of the FFTW library for single, double,
- * and long-double precisions.  This means that the following libraries must be
- * linked by the compiler: -lfftw3 -lfftw3f -lfftw3l.  To use the FFTW library to
- * perform the transposition, the symbol 'FFTW_TRANSPOSE' must be defined.  Failure
- * to define this symbol will result in a full-copy of the data being made, which
- * requires more memory than the FFTW operations.  The data-copy method is also
- * approximately 4x slower than the FFTW-based method.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
- *
- *
  * @section Revisions
  *
  * This list may not be complete.
@@ -105,6 +79,29 @@
 
 /**
  * @brief Class definition for storing 2-dimensional data.
+ *
+ * This class contains the definition of a 2-dimensional array.  The low-level
+ * memory management functions are all handled internally and array elements are
+ * accessed via public member functions and overloaded operators.  The object can
+ * be queried for its size, both in number of points and memory required to hold
+ * the data and its attributes.
+ *
+ * Bounds-checking during array access is performed if RELEASE is not defined.
+ * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
+ * using '-DRELEASE' on gcc, will disable bounds-checking.
+ *
+ * The transpose function makes use of the FFTW library for single, double,
+ * and long-double precisions.  This means that the following libraries must be
+ * linked by the compiler: -lfftw3 -lfftw3f -lfftw3l.  To use the FFTW library to
+ * perform the transposition, the symbol 'GENCLASSES_FFTW_TRANSPOSE' must be defined.  Failure
+ * to define this symbol will result in a full-copy of the data being made, which
+ * requires more memory than the FFTW operations.  The data-copy method is also
+ * approximately 4x slower than the FFTW-based method.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

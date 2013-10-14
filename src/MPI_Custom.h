@@ -4,14 +4,6 @@
  * @date 14 April 2012
  * @brief Definition of MPI_Custom namespace.
  *
- * @section Namespace Description & Notes
- *
- * This namespace contains utility functions related to MPI programming.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  * @section Revisions
  *
@@ -55,7 +47,13 @@
 
 
 /**
-  @brief Collection of functions to assist MPI programming.
+ * @brief Collection of functions to assist MPI programming.
+ *
+ * This namespace contains utility functions related to MPI programming.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
 */
 namespace MPI_Custom {
 

@@ -4,24 +4,6 @@
  * @date 15 Oct 2010
  * @brief Definition of Array1D class.
  *
- * @section Class Description & Notes
- *
- * This class contains the definition of a 1-dimensional array.  The low-level
- * memory management functions are all handled internally and array elements are
- * accessed via public member functions and overloaded operators.  The object can
- * be queried for its size, both in number of points and memory required to hold
- * the data and its attributes.
- *
- * Bounds-checking during array access is performed if RELEASE is not defined.
- * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
- * using '-DRELEASE' on gcc, will disable bounds-checking.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
- *
- *
  * @section Revisions
  *
  * @date 15 October 2010
@@ -89,6 +71,21 @@
 
 /**
  * @brief Class definition for storing 1-dimensional data.
+ *
+ * This class contains the definition of a 1-dimensional array.  The low-level
+ * memory management functions are all handled internally and array elements are
+ * accessed via public member functions and overloaded operators.  The object can
+ * be queried for its size, both in number of points and memory required to hold
+ * the data and its attributes.
+ *
+ * Bounds-checking during array access is performed if RELEASE is not defined.
+ * Defining RELEASE, either manually via 'define RELEASE' or via the compiler
+ * using '-DRELEASE' on gcc, will disable bounds-checking.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

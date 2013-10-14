@@ -4,18 +4,6 @@
  * @date 7 Feb 2012
  * @brief Definition of Stats class.
  *
- * @section Class Description & Notes
- *
- * This class contains statistical functions developed during my Statistics 580
- * coursework.  Many of these functions were provided to the class by the instructor,
- * Dr. Karin Dorman, in C-form.  They have been reimplemented into C++ by me.
- * For these functions, their original author will be noted in the function
- * documentation.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  *
  * @section Revisions
@@ -72,6 +60,17 @@
 
 /**
   @brief Class to contain statistical functions.
+
+ This class contains statistical functions developed during my Statistics 580
+ * coursework.  Many of these functions were provided to the class by the instructor,
+ * Dr. Karin Dorman, in C-form.  They have been reimplemented into C++ by me.
+ * For these functions, their original author will be noted in the function
+ * documentation.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
   @warning C++11 features, such as move-constructor and move-assignment, require the symbol
    "CXX11" to be defined.
   */

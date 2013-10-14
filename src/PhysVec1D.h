@@ -4,23 +4,6 @@
  * @date 25 August 2011
  * @brief Definition of PhysVec1D class.
  *
- * @section Class Description & Notes
- *
- * This class is a specialization of 1D arrays that represents physical vectors.
- * Such vectors occur often in science and engineering, and common vector operations
- * are possible via the member functions of this class and overloaded operators.
- *
- * Note that in this class the term 'vector' refers to these physical vectors
- * and not the C++ container.
- *
- * Bounds-checking and error-checking during execution is performed if RELEASE
- * is not defined.  Defining RELEASE, either manually via 'define RELEASE' or
- * via the compiler using '-DRELEASE' on gcc, will disable bounds-checking.
- *
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
  *
  *
  * @section Revisions
@@ -83,6 +66,23 @@
 /**
  * @brief Class to represent physical vectors, such as those that occur in science
  * and engineering.
+ *
+ * This class is a specialization of 1D arrays that represents physical vectors.
+ * Such vectors occur often in science and engineering, and common vector operations
+ * are possible via the member functions of this class and overloaded operators.
+ *
+ * Note that in this class the term 'vector' refers to these physical vectors
+ * and not the C++ container.
+ *
+ * Bounds-checking and error-checking during execution is performed if RELEASE
+ * is not defined.  Defining RELEASE, either manually via 'define RELEASE' or
+ * via the compiler using '-DRELEASE' on gcc, will disable bounds-checking.
+ *
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+ *
  * @warning C++11 features, such as move-constructor and move-assignment, require the symbol
  *  "CXX11" to be defined.
  */

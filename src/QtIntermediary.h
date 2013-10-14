@@ -4,21 +4,6 @@
  * @date 5 Feb 2012
  * @brief Definition of QtIntermediary class.
  *
- * @section Class Description & Notes
- *
- * This class serves as an intermediary between QObject and other classes.  It is
- * intended that other classes which want to make use of Qt signals will be derived
- * from this class.  If Qt is enabled, by defining USEQT at compile-time, Qt
- * functionality will be provided.  If Qt is disabled, by defining NOQT at compile-
- * time, the signal-emitting wrapper functions in this class may still be called.
- * However, no signals will actually be emitted and this class will not induce any
- * dependence upon Qt.  The use of the wrapper functions allows the classes which
- * inherit this class to be unmodified when using with either Qt or non-Qt applications.
- *
- * All functions contained within this class are intended for use with the GNU
- * C++ compiler (g++).  Use with other compilers may produce unexpected results
- * and such use is at the users' own risk.
- *
  *
  *
  * @section Revisions
@@ -70,6 +55,19 @@
 /**
   @brief Class to provide Qt interoperability with other classes.
 
+ This class serves as an intermediary between QObject and other classes.  It is
+ * intended that other classes which want to make use of Qt signals will be derived
+ * from this class.  If Qt is enabled, by defining USEQT at compile-time, Qt
+ * functionality will be provided.  If Qt is disabled, by defining NOQT at compile-
+ * time, the signal-emitting wrapper functions in this class may still be called.
+ * However, no signals will actually be emitted and this class will not induce any
+ * dependence upon Qt.  The use of the wrapper functions allows the classes which
+ * inherit this class to be unmodified when using with either Qt or non-Qt applications.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
+
    This class provides no
     additional features with respect to QtIntermediaryBase.  As such, it is an attempt to
     further-hide/abstract Qt functionality.
@@ -91,6 +89,19 @@ public:
 #else
 /**
   @brief Class to provide Qt interoperability with other classes.
+
+ This class serves as an intermediary between QObject and other classes.  It is
+ * intended that other classes which want to make use of Qt signals will be derived
+ * from this class.  If Qt is enabled, by defining USEQT at compile-time, Qt
+ * functionality will be provided.  If Qt is disabled, by defining NOQT at compile-
+ * time, the signal-emitting wrapper functions in this class may still be called.
+ * However, no signals will actually be emitted and this class will not induce any
+ * dependence upon Qt.  The use of the wrapper functions allows the classes which
+ * inherit this class to be unmodified when using with either Qt or non-Qt applications.
+ *
+ * All functions contained within this class are intended for use with the GNU
+ * C++ compiler (g++).  Use with other compilers may produce unexpected results
+ * and such use is at the users' own risk.
  */
 class QtIntermediary
 {
