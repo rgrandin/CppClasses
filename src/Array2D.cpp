@@ -157,6 +157,8 @@ Array2D<T>& Array2D<T>::operator=(Array2D<T> a)
     ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array2DSwap(*this, a);
     return *this;
+#else
+	return Array2D<T>();
 #endif
 }
 
