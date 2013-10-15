@@ -244,7 +244,7 @@ template <class T>
 float ArrayBase<T>::VarianceFloat() const
 {
 	float retval = (T)0.0e0;
-	float mean = ArrayBase<T>::Mean();
+	float mean = (float)ArrayBase<T>::Mean();
 	float diffsq = 0.0e0;
     for(size_t i=0; i<npoints; i++){
         diffsq += ((float)p_array[i] - mean)*((float)p_array[i] - mean);
