@@ -279,13 +279,18 @@ int UniformVolume<T>::WriteVOLFile(
 
 
 
-
-    voxelState = new char[pixelsPerVolume];
-    for(int iii=0; iii<pixelsPerVolume; iii++)
-        voxelState[iii] = 0;
     if(stateValidFlg=='Y')
+        voxelState = new char[pixelsPerVolume];
+        for(int iii=0; iii<pixelsPerVolume; iii++){
+            voxelState[iii] = 0;
+        }
         ffp.write((char *)voxelState,sizeof(char)*pixelsPerVolume);
-    if (voxelState != NULL) {delete [] voxelState; voxelState=NULL;}
+    if (voxelState != NULL) {
+        delete [] voxelState;
+        voxelState=NULL;
+    }
+
+
     ffp.close();
 
     /* Dummy code to remove unused variable warning. */
