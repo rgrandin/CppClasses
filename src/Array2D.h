@@ -287,13 +287,14 @@ public:
     T& operator()(int ind1, int ind2);
 
 
-
+#ifdef CXX11
     /**
      * @brief Copy-assignment operator.
      * @param a Array2D object being assigned.
      * @return Reference to instance of Array2D.
      */
     Array2D& operator=(Array2D<T> a);
+#endif
 
 
     /**

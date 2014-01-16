@@ -125,9 +125,13 @@ const T& Array3D<T>::operator()(size_t ind1, size_t ind2, size_t ind3) const
 template <class T>
 Array3D<T>& Array3D<T>::operator=(Array3D<T> a)
 {
+#ifdef CXX11
     ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array3DSwap(*this, a);
     return *this;
+#else
+    return Array3D<T>();;
+#endif
 }
 
 

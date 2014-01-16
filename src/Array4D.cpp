@@ -138,9 +138,13 @@ const T& Array4D<T>::operator()(size_t ind1, size_t ind2, size_t ind3,
 template <class T>
 Array4D<T>& Array4D<T>::operator=(Array4D<T> a)
 {
+#ifdef CXX11
     ArrayBase<T>::operator=(static_cast<ArrayBase<T>>(a));
     Array4DSwap(*this, a);
     return *this;
+#else
+    return Array4D<T>();
+#endif
 }
 
 
