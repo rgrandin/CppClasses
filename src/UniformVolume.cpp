@@ -128,9 +128,16 @@ void UniformVolume<T>::Initialize(const int nx, const int ny, const int nz,
     data_from_vtk = false;
 
     convert_coord_sys = false;
+
+	writeStateArrayFlag = true;
 }
 
 
+template <class T>
+void UniformVolume<T>::VOLWriteStateArray(const bool writeStateArray)
+{
+	writeStateArrayFlag = writeStateArray;
+}
 
 /*
     NOTE: This function is taken straight from the code as-provided by Jia-Dong
@@ -197,7 +204,11 @@ int UniformVolume<T>::WriteVOLFile(
      * intended for use with that program, 'stateValidFlag' should be set to 'Y'.  For files which
      * won't be used with that program, the flag can be set to 'N' and the resulting file will then
      * be 20% smaller.  The actual data in the file is not affected. */
-    stateValidFlg='Y';
+    stateValidFlg='N';
+
+	if(writeStateArrayFlag){
+		stateValidFlg = 'Y';
+	}
 
     sprintf(countStr,"%dx%dx%d",x, y, z);
     sprintf(endSliceStr, "Volume Size: %s\n", countStr);

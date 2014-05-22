@@ -773,6 +773,16 @@ public:
     void VOLWrite(const int qty, const bool allowScaling, const T minRange);
 
 
+	/** @brief Controls if the voxel state array should be written when data is output
+	 *  to a CNDE VOL file.  
+	 *  @param writeStateArray Set flag state.  Default is 'true'.
+	 *  @warning The 3D visualization program developed in-house at CNDE will display data
+	 *	as transparent if this flag is set to 'false'.  Setting this flag to 'true' will
+	 *  increase the size of the output file.
+	 */
+	void VOLWriteStateArray(const bool writeStateArray);
+
+
     /**
     @brief Read data from disk into UniformVolume object.
     @pre UniformVolume object exists and sufficient memory exists to hold
@@ -1142,6 +1152,8 @@ protected:
      * and the coordinate system used by CNDE experimental facilities (Y,Z,X). */
     bool convert_coord_sys;
 
+	/** @brief Controls if state array will be written for CNDE VOL files.  Default is 'true'. */
+	bool writeStateArrayFlag;
 
 
 private:
