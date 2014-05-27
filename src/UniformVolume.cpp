@@ -191,7 +191,7 @@ int UniformVolume<T>::WriteVOLFile(
     int			corex=1, corey=1;
 
     int			radius=0;
-    char		* voxelState;
+    char		*voxelState = NULL;
     int			pixelsPerVolume;
 
     /* Dummy code to remove unused variable warnings. */
@@ -290,16 +290,17 @@ int UniformVolume<T>::WriteVOLFile(
 
 
 
-    if(stateValidFlg=='Y')
+    if(stateValidFlg=='Y'){
         voxelState = new char[pixelsPerVolume];
         for(int iii=0; iii<pixelsPerVolume; iii++){
             voxelState[iii] = 0;
         }
         ffp.write((char *)voxelState,sizeof(char)*pixelsPerVolume);
-    if (voxelState != NULL) {
-        delete [] voxelState;
-        voxelState=NULL;
-    }
+		if (voxelState != NULL) {
+			delete [] voxelState;
+			voxelState=NULL;
+		}
+	}
 
 
     ffp.close();
