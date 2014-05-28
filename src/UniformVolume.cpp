@@ -3796,7 +3796,8 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     imageData->GetPointData()->GetScalars()->SetName(scalar_names(0)->substr().c_str());
 
     std::string heavydatafile;
-    heavydatafile = filename + ".h5";
+    heavydatafile = filenamestem + ".h5";   /* Will write in current directory, but not include
+                                             * the absolute path to the heavy-data file. */
     filename = filename + ".xmf";
 
     /* Remove existing files, if present. */
@@ -3825,6 +3826,16 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     writer->SetInputData(imageData);
 #endif
     writer->Write();
+
+
+    /* Move heavy data to output directory. */
+    filename = outputdir + "/" + filenamestem;
+    std::string heavydatafile_new;
+    heavydatafile_new = filenamestem + ".h5";
+
+    std::rename(heavydatafile.c_str(), heavydatafile_new.c_str());
+
+
 
     str = "";
     qtsignals->EmitFunctionDesc2(str);
