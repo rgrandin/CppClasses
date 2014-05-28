@@ -4,9 +4,9 @@
  * @brief Implementation of UniformVolume class.
  */
 
+#include <fstream>
 
 #include "UniformVolume.h"    /* Included for syntax-hilighting */
-
 
 
 /* =======================================================================================
@@ -3831,11 +3831,13 @@ void UniformVolume<T>::WriteXdmf(const int compression)
     /* Move heavy data to output directory. */
     filename = outputdir + "/" + filenamestem;
     std::string heavydatafile_new;
-    heavydatafile_new = filenamestem + ".h5";
+    heavydatafile_new = outputdir + filenamestem + ".h5";
 
-    std::rename(heavydatafile.c_str(), heavydatafile_new.c_str());
+    std::ifstream oldfile(heavydatafile.c_str(), std::ios::binary);
+    std::ofstream newfile(heavydatafile_new.c_str(), std::ios::binary);
 
-
+    newfile << oldfile.rdbuf();		/* Copy data from source file to destination. */
+    std::remove(heavydatafile.c_str()); /* Remove source file to make net-result a 'move' rather than 'copy' */
 
     str = "";
     qtsignals->EmitFunctionDesc2(str);
